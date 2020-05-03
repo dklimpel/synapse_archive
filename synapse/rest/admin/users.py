@@ -286,6 +286,97 @@ class UserRestServletV2(RestServlet):
             return 201, ret
 
 
+class DeviceRestServlet(RestServlet):
+    PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/devices$"),)
+
+    """Get request to list all local users.
+    This needs user to have administrator access in Synapse.
+
+    GET /_synapse/admin/v2/users?from=0&limit=10&guests=false
+
+    returns:
+        200 OK with list of users if success otherwise an error.
+
+    The parameters `from` and `limit` are required only for pagination.
+    By default, a `limit` of 100 is used.
+    The parameter `user_id` can be used to filter by user id.
+    The parameter `guests` can be used to exclude guest users.
+    The parameter `deactivated` can be used to include deactivated users.
+    """
+
+    def __init__(self, hs):
+        """
+        Args:
+            hs (synapse.server.HomeServer): server
+        """
+        self.hs = hs
+        self.auth = hs.get_auth()
+        self.device_handler = hs.get_device_handler()
+        self.admin_handler = hs.get_handlers().admin_handler
+        self.auth_handler = hs.get_auth_handler()
+
+    async def on_GET(self, request):
+        await assert_requester_is_admin(self.auth, request)
+
+        start = parse_integer(request, "from", default=0)
+        limit = parse_integer(request, "limit", default=100)
+        user_id = parse_string(request, "user_id", default=None)
+        guests = parse_boolean(request, "guests", default=True)
+        deactivated = parse_boolean(request, "deactivated", default=False)
+
+        users, total = await self.store.get_users_paginate(
+            start, limit, user_id, guests, deactivated
+        )
+        ret = {"users": users, "total": total}
+        if len(users) >= limit:
+            ret["next_token"] = str(start + len(users))
+
+        return 200, ret
+
+
+    async def on_GET(self, request, device_id):
+        requester = await self.auth.get_user_by_req(request, allow_guest=True)
+        device = await self.device_handler.get_device(
+            requester.user.to_string(), device_id
+        )
+        return 200, device
+
+    @interactive_auth_handler
+    async def on_DELETE(self, request, device_id):
+        requester = await self.auth.get_user_by_req(request)
+
+        try:
+            body = parse_json_object_from_request(request)
+
+        except errors.SynapseError as e:
+            if e.errcode == errors.Codes.NOT_JSON:
+                # deal with older clients which didn't pass a JSON dict
+                # the same as those that pass an empty dict
+                body = {}
+            else:
+                raise
+
+        await self.auth_handler.validate_user_via_ui_auth(
+            requester,
+            request,
+            body,
+            self.hs.get_ip_from_request(request),
+            "remove a device from your account",
+        )
+
+        await self.device_handler.delete_device(requester.user.to_string(), device_id)
+        return 200, {}
+
+    async def on_PUT(self, request, device_id):
+        requester = await self.auth.get_user_by_req(request, allow_guest=True)
+
+        body = parse_json_object_from_request(request)
+        await self.device_handler.update_device(
+            requester.user.to_string(), device_id, body
+        )
+        return 200, {}
+
+
 class UserRegisterServlet(RestServlet):
     """
     Attributes:

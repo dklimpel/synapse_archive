@@ -722,3 +722,17 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 
         # Ensure they're still alive
         self.assertEqual(0, channel.json_body["deactivated"])
+
+
+class DeviceTestCase(unittest.HomeserverTestCase):
+    def prepare(self, reactor, clock, hs):
+        self.store = hs.get_datastore()
+
+        self.admin_user = self.register_user("admin", "pass", admin=True)
+        self.admin_user_tok = self.login("admin", "pass")
+
+        self.other_user = self.register_user("user", "pass")
+        self.other_user_token = self.login("user", "pass")
+        self.url_other_user = "/_synapse/admin/v2/users/%s" % urllib.parse.quote(
+            self.other_user
+        )
