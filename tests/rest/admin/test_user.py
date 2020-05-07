@@ -728,6 +728,12 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 # class DeviceRestTestCase(unittest.HomeserverTestCase):
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
+
+    servlets = [
+        synapse.rest.admin.register_servlets,
+        #login.register_servlets,
+    ]
+
     def prepare(self, reactor, clock, hs):
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
