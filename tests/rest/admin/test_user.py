@@ -741,7 +741,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
         self.other_user_device_id = res[0]["device_id"]
 
-        self.url = "/_synapse/admin/v2/users/%s/device/%s"  % (urllib.parse.quote(
+        self.url = "/_synapse/admin/v2/users/%s/devices/%s" % (urllib.parse.quote(
             self.other_user
         ), self.other_user_device_id)
 
@@ -752,8 +752,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         request, channel = self.make_request("GET", self.url, b"{}")
         self.render(request)
 
-        #self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
-        self.assertEqual(self.url, channel.json_body["errcode"])
+        self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
         self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
 
         request, channel = self.make_request("PUT", self.url, b"{}")
