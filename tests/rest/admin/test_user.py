@@ -1068,7 +1068,6 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(404, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
-
     def test_user_is_not_local(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
