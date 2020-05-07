@@ -738,9 +738,12 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
-        self.url = "/_synapse/admin/v2/users/%s/devices" % urllib.parse.quote(
+        self.other_user_device_id = hs.get_device_handler().get_devices_by_user("user")[0]["device_id"]
+
+
+        self.url = "/_synapse/admin/v2/users/%s/device/%s"  % (urllib.parse.quote(
             self.other_user
-        )
+        ), self.other_user_device_id)
 
     def test_no_auth(self):
         """
@@ -750,6 +753,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(self.other_user_device_id, channel.json_body["errcode"])
         self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
 
         request, channel = self.make_request("PUT", self.url, b"{}")
