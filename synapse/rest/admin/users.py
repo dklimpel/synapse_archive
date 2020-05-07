@@ -401,7 +401,7 @@ class DeleteDevicesRestServlet(RestServlet):
         self.auth = hs.get_auth()
         self.device_handler = hs.get_device_handler()
 
-    async def on_POST(self, request):
+    async def on_POST(self, request, user_id):
         await assert_requester_is_admin(self.auth, request)
 
         target_user = UserID.from_string(user_id)
