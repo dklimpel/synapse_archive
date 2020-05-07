@@ -298,6 +298,7 @@ class DeviceRestServlet(RestServlet):
         self.hs = hs
         self.auth = hs.get_auth()
         self.device_handler = hs.get_device_handler()
+        self.store = hs.get_datastore()
 
     async def on_GET(self, request, user_id, device_id):
         await assert_requester_is_admin(self.auth, request)
