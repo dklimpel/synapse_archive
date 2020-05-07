@@ -725,8 +725,8 @@ class UserRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(0, channel.json_body["deactivated"])
 
 
-class DeviceRestTestCase(unittest.HomeserverTestCase):
-    
+# class DeviceRestTestCase(unittest.HomeserverTestCase):
+
 class DevicesRestTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor, clock, hs):
         self.admin_user = self.register_user("admin", "pass", admin=True)
@@ -791,6 +791,6 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
 
 
-class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
+# class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
 
