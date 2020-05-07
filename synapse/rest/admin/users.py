@@ -306,6 +306,10 @@ class DeviceRestServlet(RestServlet):
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
 
+        u = await self.store.get_user_by_id(target_user)
+        if u is None:
+            raise NotFoundError("Unknown user")
+
         device = await self.device_handler.get_device(
             target_user.to_string(), device_id
         )
@@ -356,7 +360,7 @@ class DevicesRestServlet(RestServlet):
         self.hs = hs
         self.auth = hs.get_auth()
         self.device_handler = hs.get_device_handler()
-
+        self.store = hs.get_datastore()
 
     async def on_GET(self, request, user_id):
         await assert_requester_is_admin(self.auth, request)
@@ -364,6 +368,10 @@ class DevicesRestServlet(RestServlet):
         target_user = UserID.from_string(user_id)
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
+
+        u = await self.store.get_user_by_id(target_user)
+        if u is None:
+            raise NotFoundError("Unknown user")
 
         devices = await self.device_handler.get_devices_by_user(
             target_user.to_string()

@@ -793,7 +793,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(400, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+        self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
 
 
