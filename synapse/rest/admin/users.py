@@ -286,7 +286,7 @@ class UserRestServletV2(RestServlet):
             return 201, ret
 
 
-class DeviceRestServlet(RestServlet):
+class DevicesRestServlet(RestServlet):
     PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/devices$"),)
 
     """Get request to list all local users.
@@ -296,12 +296,6 @@ class DeviceRestServlet(RestServlet):
 
     returns:
         200 OK with list of users if success otherwise an error.
-
-    The parameters `from` and `limit` are required only for pagination.
-    By default, a `limit` of 100 is used.
-    The parameter `user_id` can be used to filter by user id.
-    The parameter `guests` can be used to exclude guest users.
-    The parameter `deactivated` can be used to include deactivated users.
     """
 
     def __init__(self, hs):
@@ -312,67 +306,97 @@ class DeviceRestServlet(RestServlet):
         self.hs = hs
         self.auth = hs.get_auth()
         self.device_handler = hs.get_device_handler()
-        self.admin_handler = hs.get_handlers().admin_handler
-        self.auth_handler = hs.get_auth_handler()
 
-    async def on_GET(self, request):
+
+    async def on_GET(self, request, user_id):
         await assert_requester_is_admin(self.auth, request)
 
-        start = parse_integer(request, "from", default=0)
-        limit = parse_integer(request, "limit", default=100)
-        user_id = parse_string(request, "user_id", default=None)
-        guests = parse_boolean(request, "guests", default=True)
-        deactivated = parse_boolean(request, "deactivated", default=False)
+        target_user = UserID.from_string(user_id)
+        if not self.hs.is_mine(target_user):
+            raise SynapseError(400, "Can only lookup local users")
 
-        users, total = await self.store.get_users_paginate(
-            start, limit, user_id, guests, deactivated
+        devices = await self.device_handler.get_devices_by_user(
+            target_user.to_string()
         )
-        ret = {"users": users, "total": total}
-        if len(users) >= limit:
-            ret["next_token"] = str(start + len(users))
-
-        return 200, ret
+        return 200, {"devices": devices}
 
 
-    async def on_GET(self, request, device_id):
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
+class DeleteDevicesRestServlet(RestServlet):
+    """
+    API for bulk deletion of devices. Accepts a JSON object with a devices
+    key which lists the device_ids to delete. Requires user interactive auth.
+    """
+
+    PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/delete_devices$"),)
+
+    def __init__(self, hs):
+        super(DeleteDevicesRestServlet, self).__init__()
+        self.hs = hs
+        self.auth = hs.get_auth()
+        self.device_handler = hs.get_device_handler()
+
+    async def on_POST(self, request):
+        await assert_requester_is_admin(self.auth, request)
+
+        target_user = UserID.from_string(user_id)
+        if not self.hs.is_mine(target_user):
+            raise SynapseError(400, "Can only lookup local users")
+
+        body = parse_json_object_from_request(request, allow_empty_body=False)
+        assert_params_in_dict(body, ["devices"])
+
+        await self.device_handler.delete_devices(
+            target_user.to_string(), body["devices"]
+        )
+        return 200, {}
+
+
+class DeviceRestServlet(RestServlet):
+    PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/devices/(?P<device_id>[^/]*)$"),)
+
+    def __init__(self, hs):
+        """
+        Args:
+            hs (synapse.server.HomeServer): server
+        """
+        super(DeviceRestServlet, self).__init__()
+        self.hs = hs
+        self.auth = hs.get_auth()
+        self.device_handler = hs.get_device_handler()
+
+    async def on_GET(self, request, user_id, device_id):
+        await assert_requester_is_admin(self.auth, request)
+
+        target_user = UserID.from_string(user_id)
+        if not self.hs.is_mine(target_user):
+            raise SynapseError(400, "Can only lookup local users")
+
         device = await self.device_handler.get_device(
-            requester.user.to_string(), device_id
+            target_user.to_string(), device_id
         )
         return 200, device
 
-    @interactive_auth_handler
-    async def on_DELETE(self, request, device_id):
-        requester = await self.auth.get_user_by_req(request)
+    async def on_DELETE(self, request, user_id, device_id):
+        await assert_requester_is_admin(self.auth, request)
 
-        try:
-            body = parse_json_object_from_request(request)
+        target_user = UserID.from_string(user_id)
+        if not self.hs.is_mine(target_user):
+            raise SynapseError(400, "Can only lookup local users")
 
-        except errors.SynapseError as e:
-            if e.errcode == errors.Codes.NOT_JSON:
-                # deal with older clients which didn't pass a JSON dict
-                # the same as those that pass an empty dict
-                body = {}
-            else:
-                raise
-
-        await self.auth_handler.validate_user_via_ui_auth(
-            requester,
-            request,
-            body,
-            self.hs.get_ip_from_request(request),
-            "remove a device from your account",
-        )
-
-        await self.device_handler.delete_device(requester.user.to_string(), device_id)
+        await self.device_handler.delete_device(target_user.to_string(), device_id)
         return 200, {}
 
-    async def on_PUT(self, request, device_id):
-        requester = await self.auth.get_user_by_req(request, allow_guest=True)
+    async def on_PUT(self, request, user_id, device_id):
+        await assert_requester_is_admin(self.auth, request)
 
-        body = parse_json_object_from_request(request)
+        target_user = UserID.from_string(user_id)
+        if not self.hs.is_mine(target_user):
+            raise SynapseError(400, "Can only lookup local users")
+
+        body = parse_json_object_from_request(request, allow_empty_body=False)
+        assert_params_in_dict(body, ["display_name"])
         await self.device_handler.update_device(
-            requester.user.to_string(), device_id, body
+            target_user.to_string(), device_id, body
         )
         return 200, {}
 
