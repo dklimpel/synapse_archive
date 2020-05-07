@@ -868,6 +868,45 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
+    def test_unknown_device(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        url = "/_synapse/admin/v2/users/%s/devices/unknown_device" % urllib.parse.quote(
+            self.other_user
+        )
+
+        request, channel = self.make_request(
+            "GET",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+        request, channel = self.make_request(
+            "PUT",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+        request, channel = self.make_request(
+            "DELETE",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+
 class DevicesRestTestCase(unittest.HomeserverTestCase):
 
     servlets = [
