@@ -397,7 +397,6 @@ class DeleteDevicesRestServlet(RestServlet):
     PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/delete_devices$"),)
 
     def __init__(self, hs):
-        super(DeleteDevicesRestServlet, self).__init__()
         self.hs = hs
         self.auth = hs.get_auth()
         self.device_handler = hs.get_device_handler()
