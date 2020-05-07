@@ -905,8 +905,8 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         )
         self.render(request)
 
-        self.assertEqual(404, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+        # Delete unknown device returns status 200
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
