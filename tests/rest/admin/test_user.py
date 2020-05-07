@@ -754,6 +754,18 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
         self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
 
+        request, channel = self.make_request("PUT", self.url, b"{}")
+        self.render(request)
+
+        self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
+
+        request, channel = self.make_request("DELETE", self.url, b"{}")
+        self.render(request)
+
+        self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
+
     def test_requester_is_no_admin(self):
         """
         If the user is not a server admin, an error is returned.
@@ -766,28 +778,86 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
+        request, channel = self.make_request(
+            "PUT", self.url, access_token=self.other_user_token,
+        )
+        self.render(request)
+
+        self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+
+        request, channel = self.make_request(
+            "DELETE", self.url, access_token=self.other_user_token,
+        )
+        self.render(request)
+
+        self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+
 
     def test_user_does_not_exist(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
+        url ="/_synapse/admin/v2/users/@unknown_person:test/devices"
         request, channel = self.make_request(
             "GET",
-            "/_synapse/admin/v2/users/@unknown_person:test/devices",
+            url,
             access_token=self.admin_user_tok,
         )
         self.render(request)
 
         self.assertEqual(404, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+        request, channel = self.make_request(
+            "PUT",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+        request, channel = self.make_request(
+            "DELETE",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
     def test_user_is_not_local(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
+        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices"
         request, channel = self.make_request(
             "GET",
-            "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(400, channel.code, msg=channel.json_body)
+        self.assertEqual("Can only lookup local users", channel.json_body["error"])
+
+        request, channel = self.make_request(
+            "PUT",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(400, channel.code, msg=channel.json_body)
+        self.assertEqual("Can only lookup local users", channel.json_body["error"])
+
+        request, channel = self.make_request(
+            "DELETE",
+            url,
             access_token=self.admin_user_tok,
         )
         self.render(request)

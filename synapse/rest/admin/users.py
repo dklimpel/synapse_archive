@@ -323,6 +323,10 @@ class DeviceRestServlet(RestServlet):
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
 
+        u = await self.store.get_user_by_id(target_user)
+        if u is None:
+            raise NotFoundError("Unknown user")
+
         await self.device_handler.delete_device(target_user.to_string(), device_id)
         return 200, {}
 
@@ -332,6 +336,10 @@ class DeviceRestServlet(RestServlet):
         target_user = UserID.from_string(user_id)
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
+
+        u = await self.store.get_user_by_id(target_user)
+        if u is None:
+            raise NotFoundError("Unknown user")
 
         body = parse_json_object_from_request(request, allow_empty_body=False)
         assert_params_in_dict(body, ["display_name"])
