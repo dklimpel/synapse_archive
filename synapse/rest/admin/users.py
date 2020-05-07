@@ -400,6 +400,7 @@ class DeleteDevicesRestServlet(RestServlet):
         self.hs = hs
         self.auth = hs.get_auth()
         self.device_handler = hs.get_device_handler()
+        self.store = hs.get_datastore()
 
     async def on_POST(self, request, user_id):
         await assert_requester_is_admin(self.auth, request)
@@ -407,6 +408,10 @@ class DeleteDevicesRestServlet(RestServlet):
         target_user = UserID.from_string(user_id)
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
+
+        u = await self.store.get_user_by_id(target_user.to_string())
+        if u is None:
+            raise NotFoundError("Unknown user")
 
         body = parse_json_object_from_request(request, allow_empty_body=False)
         assert_params_in_dict(body, ["devices"])
