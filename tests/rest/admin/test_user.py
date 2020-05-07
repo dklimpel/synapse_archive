@@ -21,6 +21,7 @@ import urllib.parse
 from mock import Mock
 
 import synapse.rest.admin
+from synapse.api.errors import Codes
 from synapse.api.constants import UserTypes
 from synapse.rest.client.v1 import login
 
@@ -419,7 +420,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(404, channel.code, msg=channel.json_body)
-        self.assertEqual("M_NOT_FOUND", channel.json_body["errcode"])
+
 
     def test_create_server_admin(self):
         """
@@ -724,15 +725,72 @@ class UserRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(0, channel.json_body["deactivated"])
 
 
-class DeviceTestCase(unittest.HomeserverTestCase):
+class DeviceRestTestCase(unittest.HomeserverTestCase):
+    
+class DevicesRestTestCase(unittest.HomeserverTestCase):
     def prepare(self, reactor, clock, hs):
-        self.store = hs.get_datastore()
-
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
-        self.url_other_user = "/_synapse/admin/v2/users/%s" % urllib.parse.quote(
+        self.url = "/_synapse/admin/v2/users/%s/devices" % urllib.parse.quote(
             self.other_user
         )
+
+    def test_no_auth(self):
+        """
+        Try to list users without authentication.
+        """
+        request, channel = self.make_request("GET", self.url, b"{}")
+        self.render(request)
+
+        self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
+
+    def test_requester_is_no_admin(self):
+        """
+        If the user is not a server admin, an error is returned.
+        """
+        request, channel = self.make_request(
+            "GET", self.url, access_token=self.other_user_token,
+        )
+        self.render(request)
+
+        self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+
+
+    def test_user_does_not_exist(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        request, channel = self.make_request(
+            "GET",
+            "/_synapse/admin/v2/users/@unknown_person:test/devices",
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+
+    def test_user_is_not_local(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        request, channel = self.make_request(
+            "GET",
+            "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices",
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(400, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+
+
+
+class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
+
+
