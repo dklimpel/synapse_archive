@@ -877,7 +877,11 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
+        # First device
         self.other_user_token = self.login("user", "pass")
+        # Second device
+        self.login("user", "pass")
+
         self.url = "/_synapse/admin/v2/users/%s/devices" % urllib.parse.quote(
             self.other_user
         )
@@ -949,7 +953,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body["devices"]))
+        self.assertEqual(2, len(channel.json_body["devices"]))
         #self.assertEqual("user", len(channel.json_body["devices"][0]["user_id"]))
         # Check that all fields are available
         for d in channel.json_body["devices"][0]:
