@@ -1111,7 +1111,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         Komentar
         """
         res = self.get_success(self.handler.get_devices_by_user("@user:test"))
-        self.assertEqual(2, len(res["devices"]))
+        self.assertEqual(2, len(res))
 
         body = json.dumps({"devices": [self.other_user_device_id1, self.other_user_device_id2]})
         request, channel = self.make_request(
