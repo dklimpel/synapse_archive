@@ -1088,7 +1088,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        body = json.dumps("devices": ["display_name", "new display"])
+        body = json.dumps({"devices": ["unknown_device1", "unknown_device2"]})
         request, channel = self.make_request(
             "POST",
             self.url,
