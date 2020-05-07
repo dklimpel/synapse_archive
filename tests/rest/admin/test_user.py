@@ -738,8 +738,8 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
-        self.other_user_device_id = hs.get_device_handler().get_devices_by_user("user")[0]["device_id"]
-
+        res = hs.get_device_handler().get_devices_by_user("user")
+        self.other_user_device_id = res[0]["device_id"]
 
         self.url = "/_synapse/admin/v2/users/%s/device/%s"  % (urllib.parse.quote(
             self.other_user
