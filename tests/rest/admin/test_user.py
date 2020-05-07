@@ -1125,6 +1125,5 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         res = self.get_success(self.handler.get_devices_by_user("@user:test"))
-        self.assertEqual(0, res["devices"])
         self.assertEqual(0, len(res))
 
