@@ -738,13 +738,12 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
-        res = hs.get_device_handler().get_devices_by_user("@user:test")
-        self.handler = hs.get_device_handler()
-        self.other_user_device_id = res
+        res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
+        self.other_user_device_id = res[0]["device_id"]
 
         self.url = "/_synapse/admin/v2/users/%s/device/%s"  % (urllib.parse.quote(
             self.other_user
-        ), self.other_user)
+        ), self.other_user_device_id)
 
     def test_no_auth(self):
         """
@@ -754,8 +753,8 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         #self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
-        #self.assertEqual(self.handler.get_devices_by_user("@user:test"), channel.json_body["errcode"])
-        self.assertEqual(len(self.handler.get_devices_by_user("@user:test")), channel.json_body["errcode"])
+        self.assertEqual(self.other_user_device_id, channel.json_body["errcode"])
+        self.assertEqual(len(self.other_user_device_id), channel.json_body["errcode"])
         #self.assertEqual(self.other_user_device_id, channel.json_body["errcode"])
         self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
 
