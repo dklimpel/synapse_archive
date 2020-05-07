@@ -1022,8 +1022,12 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.other_user = self.register_user("user", "pass")
         # First device
         self.other_user_token = self.login("user", "pass")
+        res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
+        self.other_user_device_id1 = res[0]["device_id"]
         # Second device
         self.login("user", "pass")
+        res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
+        self.other_user_device_id2 = res[1]["device_id"]
 
         self.url = "/_synapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
             self.other_user
@@ -1084,7 +1088,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
-    def test_unknown_device(self):
+    def test_unknown_devices(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
@@ -1097,5 +1101,5 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         )
         self.render(request)
 
-        self.assertEqual(404, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+        # Delete unknown devices returns status 200
+        self.assertEqual(200, channel.code, msg=channel.json_body)
