@@ -1016,6 +1016,8 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
     ]
 
     def prepare(self, reactor, clock, hs):
+        self.handler = hs.get_device_handler()
+
         self.admin_user = self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
 
@@ -1103,3 +1105,25 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         # Delete unknown devices returns status 200
         self.assertEqual(200, channel.code, msg=channel.json_body)
+
+    def test_delete_devices(self):
+        """
+        Komentar
+        """
+        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        self.assertEqual(2, len(res["devices"]))
+
+        body = json.dumps({"devices": [self.other_user_device_id1, self.other_user_device_id2]})
+        request, channel = self.make_request(
+            "POST",
+            self.url,
+            access_token=self.admin_user_tok,
+            content=body.encode(encoding="utf_8"),
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        self.assertEqual(0, len(res["devices"]))
+
