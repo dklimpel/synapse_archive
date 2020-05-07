@@ -886,10 +886,12 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(404, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
+        body = json.dumps({"display_name": "new display"})
         request, channel = self.make_request(
             "PUT",
             url,
             access_token=self.admin_user_tok,
+            content=body.encode(encoding="utf_8"),
         )
         self.render(request)
 
