@@ -731,7 +731,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
     servlets = [
         synapse.rest.admin.register_servlets,
-        #login.register_servlets,
+        login.register_servlets,
     ]
 
     def prepare(self, reactor, clock, hs):
