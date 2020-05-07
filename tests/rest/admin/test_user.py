@@ -937,6 +937,21 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
+    def test_get_devices(self):
+        """
+        Komentar
+        """
+        request, channel = self.make_request(
+            "GET",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(3, len(json_body["devices"]))
+        #self.assertEqual("Can only lookup local users", channel.json_body["error"])
+
 
 # class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
