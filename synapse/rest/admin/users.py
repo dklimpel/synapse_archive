@@ -307,7 +307,7 @@ class DeviceRestServlet(RestServlet):
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
 
-        u = await self.store.get_user_by_id(target_user)
+        u = await self.store.get_user_by_id(target_user.to_string())
         if u is None:
             raise NotFoundError("Unknown user")
 
@@ -323,7 +323,7 @@ class DeviceRestServlet(RestServlet):
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
 
-        u = await self.store.get_user_by_id(target_user)
+        u = await self.store.get_user_by_id(target_user.to_string())
         if u is None:
             raise NotFoundError("Unknown user")
 
@@ -337,7 +337,7 @@ class DeviceRestServlet(RestServlet):
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
 
-        u = await self.store.get_user_by_id(target_user)
+        u = await self.store.get_user_by_id(target_user.to_string())
         if u is None:
             raise NotFoundError("Unknown user")
 
@@ -378,7 +378,7 @@ class DevicesRestServlet(RestServlet):
         if not self.hs.is_mine(target_user):
             raise SynapseError(400, "Can only lookup local users")
 
-        u = await self.store.get_user_by_id(target_user)
+        u = await self.store.get_user_by_id(target_user.to_string())
         if u is None:
             raise NotFoundError("Unknown user")
 
