@@ -287,7 +287,11 @@ class UserRestServletV2(RestServlet):
 
 
 class DeviceRestServlet(RestServlet):
-    PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/devices/(?P<device_id>[^/]*)$"),)
+    PATTERNS = (
+        re.compile(
+            "^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/devices/(?P<device_id>[^/]*)$"
+        ),
+    )
 
     def __init__(self, hs):
         """
@@ -382,9 +386,7 @@ class DevicesRestServlet(RestServlet):
         if u is None:
             raise NotFoundError("Unknown user")
 
-        devices = await self.device_handler.get_devices_by_user(
-            target_user.to_string()
-        )
+        devices = await self.device_handler.get_devices_by_user(target_user.to_string())
         return 200, {"devices": devices}
 
 
@@ -394,7 +396,9 @@ class DeleteDevicesRestServlet(RestServlet):
     key which lists the device_ids to delete. Requires user interactive auth.
     """
 
-    PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/delete_devices$"),)
+    PATTERNS = (
+        re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/delete_devices$"),
+    )
 
     def __init__(self, hs):
         self.hs = hs
