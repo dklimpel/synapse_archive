@@ -949,7 +949,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(3, len(json_body["devices"]))
+        self.assertEqual(1, len(channel.json_body["devices"]))
         #self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
 
