@@ -725,9 +725,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(0, channel.json_body["deactivated"])
 
 
-# class DeviceRestTestCase(unittest.HomeserverTestCase):
-
-class DevicesRestTestCase(unittest.HomeserverTestCase):
+class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     servlets = [
         synapse.rest.admin.register_servlets,
@@ -799,7 +797,8 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url ="/_synapse/admin/v2/users/@unknown_person:test/devices"
+        url ="/_synapse/admin/v2/users/@unknown_person:test/device/"
+
         request, channel = self.make_request(
             "GET",
             url,
@@ -834,7 +833,8 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices"
+        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/device/"
+
         request, channel = self.make_request(
             "GET",
             url,
@@ -865,6 +865,77 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
+class DevicesRestTestCase(unittest.HomeserverTestCase):
+
+    servlets = [
+        synapse.rest.admin.register_servlets,
+        login.register_servlets,
+    ]
+
+    def prepare(self, reactor, clock, hs):
+        self.admin_user = self.register_user("admin", "pass", admin=True)
+        self.admin_user_tok = self.login("admin", "pass")
+
+        self.other_user = self.register_user("user", "pass")
+        self.other_user_token = self.login("user", "pass")
+        self.url = "/_synapse/admin/v2/users/%s/devices" % urllib.parse.quote(
+            self.other_user
+        )
+
+    def test_no_auth(self):
+        """
+        Try to list users without authentication.
+        """
+        request, channel = self.make_request("GET", self.url, b"{}")
+        self.render(request)
+
+        self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
+
+    def test_requester_is_no_admin(self):
+        """
+        If the user is not a server admin, an error is returned.
+        """
+        request, channel = self.make_request(
+            "GET", self.url, access_token=self.other_user_token,
+        )
+        self.render(request)
+
+        self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
+        self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
+
+
+    def test_user_does_not_exist(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        url ="/_synapse/admin/v2/users/@unknown_person:test/devices"
+        request, channel = self.make_request(
+            "GET",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+
+    def test_user_is_not_local(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices"
+
+        request, channel = self.make_request(
+            "GET",
+            url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(400, channel.code, msg=channel.json_body)
+        self.assertEqual("Can only lookup local users", channel.json_body["error"])
 
 
 # class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
