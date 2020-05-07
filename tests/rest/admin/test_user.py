@@ -421,7 +421,6 @@ class UserRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(404, channel.code, msg=channel.json_body)
 
-
     def test_create_server_admin(self):
         """
         Check that a new admin user is created successfully.
@@ -795,12 +794,11 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
-
     def test_user_does_not_exist(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url ="/_synapse/admin/v2/users/@unknown_person:test/devices/%s" % self.other_user_device_id
+        url = "/_synapse/admin/v2/users/@unknown_person:test/devices/%s" % self.other_user_device_id
 
         request, channel = self.make_request(
             "GET",
@@ -952,12 +950,11 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
-
     def test_user_does_not_exist(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url ="/_synapse/admin/v2/users/@unknown_person:test/devices"
+        url = "/_synapse/admin/v2/users/@unknown_person:test/devices"
         request, channel = self.make_request(
             "GET",
             url,
@@ -967,7 +964,6 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(404, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
-
 
     def test_user_is_not_local(self):
         """
@@ -1057,12 +1053,11 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(403, int(channel.result["code"]), msg=channel.result["body"])
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
-
     def test_user_does_not_exist(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url ="/_synapse/admin/v2/users/@unknown_person:test/delete_devices"
+        url = "/_synapse/admin/v2/users/@unknown_person:test/delete_devices"
         request, channel = self.make_request(
             "POST",
             url,
@@ -1126,4 +1121,3 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         res = self.get_success(self.handler.get_devices_by_user("@user:test"))
         self.assertEqual(0, len(res))
-
