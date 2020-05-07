@@ -800,7 +800,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url ="/_synapse/admin/v2/users/@unknown_person:test/device/"
+        url ="/_synapse/admin/v2/users/@unknown_person:test/devices/%s" % self.other_user_device_id
 
         request, channel = self.make_request(
             "GET",
@@ -836,7 +836,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/device/"
+        url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices/%s" % self.other_user_device_id
 
         request, channel = self.make_request(
             "GET",
