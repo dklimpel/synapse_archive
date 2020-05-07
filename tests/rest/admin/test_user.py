@@ -754,7 +754,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         #self.assertEqual(401, int(channel.result["code"]), msg=channel.result["body"])
-        self.assertEqual(self.handler.get_devices_by_user("@user:test"), channel.json_body["errcode"])
+        #self.assertEqual(self.handler.get_devices_by_user("@user:test"), channel.json_body["errcode"])
         self.assertEqual(len(self.handler.get_devices_by_user("@user:test")), channel.json_body["errcode"])
         #self.assertEqual(self.other_user_device_id, channel.json_body["errcode"])
         self.assertEqual(Codes.MISSING_TOKEN, channel.json_body["errcode"])
