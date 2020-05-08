@@ -254,6 +254,23 @@ User devices
 List all devices
 ----------------
 
+Parameters
+^^^^^^^^^^
+
+The following query parameters are available:
+ - ``user_id`` - fully qualified: for example, ``@user:server.com``.
+
+Usage
+-----
+A standard request for query an user:
+
+::
+
+    GET /_synapse/admin/v2/users/<user_id>
+    
+    {}
+
+
 Delete all devices
 -----------------
 
