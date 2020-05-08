@@ -893,8 +893,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         )
         self.render(request)
 
-        self.assertEqual(404, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         request, channel = self.make_request(
             "DELETE",
