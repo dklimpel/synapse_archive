@@ -345,7 +345,7 @@ class DeviceRestServlet(RestServlet):
         if u is None:
             raise NotFoundError("Unknown user")
 
-        body = parse_json_object_from_request(request, allow_empty_body=False)
+        body = parse_json_object_from_request(request, allow_empty_body=True)
         await self.device_handler.update_device(
             target_user.to_string(), device_id, body
         )
