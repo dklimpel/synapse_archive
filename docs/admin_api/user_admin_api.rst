@@ -265,8 +265,8 @@ The following fields are possible in the JSON response body:
 
 - ``devices`` - An array of objects, each containing information about a room.
   Devices objects contain the following fields:
- - ``displayname`` is optional and defaults to ``user_id``.
- - ``threepids`` is optional.
+  - ``displayname`` is optional and defaults to ``user_id``.
+  - ``threepids`` is optional.
 
 Usage
 ^^^^^
