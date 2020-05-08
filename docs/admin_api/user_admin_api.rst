@@ -289,7 +289,20 @@ Response:
 .. code:: json
 
     {
-
+      "devices": [
+        {
+          "device_id": "QBUAZIFURK",
+          "display_name": "android",
+          "last_seen_ip": "1.2.3.4",
+          "last_seen_ts": 1474491775024
+        },
+        {
+          "device_id": "AUIECTSRND",
+          "display_name": "ios",
+          "last_seen_ip": "1.2.3.5",
+          "last_seen_ts": 1474491775025
+        }
+      ]
     }
 
 Delete all devices
@@ -365,7 +378,10 @@ Response:
 .. code:: json
 
     {
-    
+      "device_id": "QBUAZIFURK",
+      "display_name": "android",
+      "last_seen_ip": "1.2.3.4",
+      "last_seen_ts": 1474491775024
     }
 
 Edit one device
