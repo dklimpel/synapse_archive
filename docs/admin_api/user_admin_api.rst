@@ -261,6 +261,11 @@ The following query parameters are available:
 
 - ``user_id`` - fully qualified: for example, ``@user:server.com``.
 
+The following fields are possible in the JSON response body:
+
+- ``displayname`` is optional and defaults to ``user_id``.
+- ``threepids`` is optional.
+
 Usage
 ^^^^^
 A standard request for query an user:
