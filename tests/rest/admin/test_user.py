@@ -914,7 +914,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(1, res[0]["display_name"])
 
         request, channel = self.make_request(
-            "POST",
+            "PUT",
             self.url,
             access_token=self.admin_user_tok,
         )
@@ -941,7 +941,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         # Set new display_name
         body = json.dumps({"display_name": "new displayname"})
         request, channel = self.make_request(
-            "POST",
+            "PUT",
             self.url,
             access_token=self.admin_user_tok,
             content=body.encode(encoding="utf_8"),
