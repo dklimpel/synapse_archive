@@ -255,8 +255,7 @@ List all devices
 ----------------
 Gets information about all devices for a specific ``user_id``.
 
-Parameters
-^^^^^^^^^^
+**Parameters**
 
 The following query parameters are available:
 
@@ -273,8 +272,8 @@ The following fields are possible in the JSON response body:
   - ``last_seen_ip`` - The IP address where this device was last seen. (May be a few minutes out of date, for efficiency reasons).
   - ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
 
-Usage
-^^^^^
+**Usage**
+
 A standard request for query an user:
 
 ::
@@ -309,8 +308,7 @@ Delete all devices
 ------------------
 Deletes the given devices for a specific ``user_id``, and invalidates any access token associated with them.
 
-Parameters
-^^^^^^^^^^
+**Parameters**
 
 The following query parameters are available:
 
@@ -320,8 +318,8 @@ The following fields are required in the JSON request body:
 
 - ``devices`` -  The list of device IDs to delete.
 
-Usage
-^^^^^
+**Usage**
+
 A standard request for delete devices:
 
 ::
@@ -347,6 +345,7 @@ Show a device
 Gets information on a single device, by ``device_id`` for a specific ``user_id``.
 
 **Parameters**
+
 The following query parameters are available:
 
 - ``user_id`` - fully qualified: for example, ``@user:server.com``.
@@ -362,6 +361,7 @@ The following fields are possible in the JSON response body:
 
 
 **Usage**
+
 A standard request for get a device:
 
 ::
@@ -386,8 +386,7 @@ Update a device
 ---------------
 Updates the metadata on the given ``device_id`` for a specific ``user_id``.
 
-Parameters
-^^^^^^^^^^
+**Parameters**
 
 The following query parameters are available:
 
@@ -398,8 +397,8 @@ The following fields are required in the JSON request body:
 
 - ``display_name`` -  The new display name for this device. If not given, the display name is unchanged.
 
-Usage
-^^^^^
+**Usage**
+
 A standard request for modify a device:
 
 ::
@@ -421,16 +420,15 @@ Delete a device
 ---------------
 Deletes the given ``device_id`` for a specific ``user_id``, and invalidates any access token associated with it.
 
-Parameters
-^^^^^^^^^^
+**Parameters**
 
 The following query parameters are available:
 
 - ``user_id`` - fully qualified: for example, ``@user:server.com``.
 - ``device_id`` - The device to delete.
 
-Usage
-^^^^^
+**Usage**
+
 A standard request for delete a device:
 
 ::
