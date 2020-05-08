@@ -307,7 +307,7 @@ Response:
 
 Delete all devices
 ------------------
-Deletes the given devices, and invalidates any access token associated with them for a specific ``user_id``.
+Deletes the given devices for a specific ``user_id``, and invalidates any access token associated with them.
 
 Parameters
 ^^^^^^^^^^
@@ -342,7 +342,7 @@ Response:
 
     {}
 
-Show one device
+Show a device
 ---------------
 Gets information on a single device, by ``device_id`` for a specific ``user_id``.
 
@@ -385,7 +385,7 @@ Response:
       "last_seen_ts": 1474491775024
     }
 
-Edit one device
+Update a device
 ---------------
 Updates the metadata on the given ``device_id`` for a specific ``user_id``.
 
@@ -395,7 +395,7 @@ Parameters
 The following query parameters are available:
 
 - ``user_id`` - fully qualified: for example, ``@user:server.com``.
-- ``device_id`` - The device to retrieve.
+- ``device_id`` - The device to update.
 
 The following fields are required in the JSON request body:
 
@@ -420,5 +420,31 @@ Response:
 
     {}
 
-Delete one device
+Delete a device
 ---------------
+Deletes the given ``device_id`` for a specific ``user_id``, and invalidates any access token associated with it.
+
+Parameters
+^^^^^^^^^^
+
+The following query parameters are available:
+
+- ``user_id`` - fully qualified: for example, ``@user:server.com``.
+- ``device_id`` - The device to delete.
+
+Usage
+^^^^^
+A standard request for delete a device:
+
+::
+
+    DELETE /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+
+    {}
+
+
+Response:
+
+.. code:: json
+
+    {}
