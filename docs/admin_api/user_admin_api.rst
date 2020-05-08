@@ -263,10 +263,14 @@ The following query parameters are available:
 
 The following fields are possible in the JSON response body:
 
-- ``devices`` - An array of objects, each containing information about a room.
-  Devices objects contain the following fields.
-  - ``displayname`` is optional and defaults to ``user_id``.
-  - ``threepids`` is optional.
+- ``devices`` - An array of objects, each containing information about a device.
+  Devices objects contain the following fields:
+
+  - ``user_id`` - Owner of  device.
+  - ``device_id`` - Identifier of device.
+  - ``display_name`` - Display name set by the user for this device. Absent if no name has been set.
+  - ``last_seen_ip`` - The IP address where this device was last seen. (May be a few minutes out of date, for efficiency reasons).
+  - ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
 
 Usage
 ^^^^^
