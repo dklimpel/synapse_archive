@@ -346,9 +346,7 @@ Show a device
 ---------------
 Gets information on a single device, by ``device_id`` for a specific ``user_id``.
 
-Parameters
-^^^^^^^^^^
-
+**Parameters**
 The following query parameters are available:
 
 - ``user_id`` - fully qualified: for example, ``@user:server.com``.
@@ -363,8 +361,7 @@ The following fields are possible in the JSON response body:
 - ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
 
 
-Usage
-"""""
+**Usage**
 A standard request for get a device:
 
 ::
