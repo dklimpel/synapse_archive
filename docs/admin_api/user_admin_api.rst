@@ -258,6 +258,7 @@ Parameters
 ^^^^^^^^^^
 
 The following query parameters are available:
+
  - ``user_id`` - fully qualified: for example, ``@user:server.com``.
 
 Usage
