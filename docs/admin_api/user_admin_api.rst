@@ -364,7 +364,7 @@ The following fields are possible in the JSON response body:
 
 
 Usage
-^^^^^
+"""""
 A standard request for get a device:
 
 ::
