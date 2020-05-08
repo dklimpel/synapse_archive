@@ -274,7 +274,7 @@ The following fields are possible in the JSON response body:
 
 **Usage**
 
-A standard request for query an user:
+A standard request for query devices of an user:
 
 ::
 
@@ -304,7 +304,7 @@ Response:
       ]
     }
 
-Delete all devices
+Delete multiple devices
 ------------------
 Deletes the given devices for a specific ``user_id``, and invalidates any access token associated with them.
 
@@ -316,7 +316,7 @@ The following query parameters are available:
 
 The following fields are required in the JSON request body:
 
-- ``devices`` -  The list of device IDs to delete.
+- ``devices`` - The list of device IDs to delete.
 
 **Usage**
 
@@ -399,7 +399,7 @@ The following fields are required in the JSON request body:
 
 **Usage**
 
-A standard request for modify a device:
+A standard request for update a device:
 
 ::
 

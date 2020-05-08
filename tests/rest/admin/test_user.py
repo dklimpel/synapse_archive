@@ -884,12 +884,10 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(404, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
-        body = json.dumps({"display_name": "new display"})
         request, channel = self.make_request(
             "PUT",
             url,
             access_token=self.admin_user_tok,
-            content=body.encode(encoding="utf_8"),
         )
         self.render(request)
 
@@ -905,6 +903,101 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         # Delete unknown device returns status 200
         self.assertEqual(200, channel.code, msg=channel.json_body)
+
+    def test_update_no_display_name(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        self.assertEqual(1, res[0]["display_name"])
+
+        request, channel = self.make_request(
+            "POST",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        # Check new display_name
+        request, channel = self.make_request(
+            "GET",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("new displayname", channel.json_body["display_name"])
+
+
+    def test_update_display_name(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        # Set new display_name
+        body = json.dumps({"display_name": "new displayname"})
+        request, channel = self.make_request(
+            "POST",
+            self.url,
+            access_token=self.admin_user_tok,
+            content=body.encode(encoding="utf_8"),
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        # Check new display_name
+        request, channel = self.make_request(
+            "GET",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("new displayname", channel.json_body["display_name"])
+
+    def test_get_device(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        request, channel = self.make_request(
+            "GET",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("@user:test", channel.json_body["user_id"])
+        # Check that all fields are available
+        for d in channel.json_body:
+            self.assertIn("user_id", d)
+            self.assertIn("device_id", d)
+            self.assertIn("display_name", d)
+            self.assertIn("last_seen_ip", d)
+            self.assertIn("last_seen_ts", d)
+
+    def test_delete_device(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        self.assertEqual(1, len(res))
+
+        request, channel = self.make_request(
+            "DELETE",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        self.assertEqual(0, len(res))
 
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
@@ -1102,7 +1195,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_delete_devices(self):
         """
-        Komentar
+        Kommentar
         """
         res = self.get_success(self.handler.get_devices_by_user("@user:test"))
         self.assertEqual(2, len(res))
