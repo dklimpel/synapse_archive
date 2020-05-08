@@ -292,7 +292,40 @@ Response:
     }
 
 Delete all devices
------------------
+------------------
+Deletes the given devices, and invalidates any access token associated with them.
+
+Parameters
+^^^^^^^^^^
+
+The following query parameters are available:
+
+- ``user_id`` - fully qualified: for example, ``@user:server.com``.
+
+The following query parameters are available:
+- ``devices`` -  The list of device IDs to delete.
+
+Usage
+^^^^^
+A standard request for delete devices:
+
+::
+
+    POST /_synapse/admin/v2/users/<user_id>/delete_devices
+
+    {
+      "devices": [
+        "QBUAZIFURK",
+        "AUIECTSRND"
+      ],
+    }
+
+
+Response:
+
+.. code:: json
+
+    {}
 
 Show one device
 ---------------
