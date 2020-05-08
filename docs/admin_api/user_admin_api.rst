@@ -249,10 +249,11 @@ including an ``access_token`` of a server admin.
 
 
 User devices
-=======
+============
 
 List all devices
 ----------------
+Gets information about all devices for a specific ``user_id``.
 
 Parameters
 ^^^^^^^^^^
@@ -293,7 +294,7 @@ Response:
 
 Delete all devices
 ------------------
-Deletes the given devices, and invalidates any access token associated with them.
+Deletes the given devices, and invalidates any access token associated with them for a specific ``user_id``.
 
 Parameters
 ^^^^^^^^^^
@@ -329,6 +330,43 @@ Response:
 
 Show one device
 ---------------
+Gets information on a single device, by ``device_id`` for a specific ``user_id``.
+
+Parameters
+^^^^^^^^^^
+
+The following query parameters are available:
+
+- ``user_id`` - fully qualified: for example, ``@user:server.com``.
+- ``device_id`` - The device to retrieve.
+
+The following fields are possible in the JSON response body:
+
+- ``user_id`` - Owner of  device.
+- ``device_id`` - Identifier of device.
+- ``display_name`` - Display name set by the user for this device. Absent if no name has been set.
+- ``last_seen_ip`` - The IP address where this device was last seen. (May be a few minutes out of date, for efficiency reasons).
+- ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
+
+
+Usage
+^^^^^
+A standard request for get a device:
+
+::
+
+    GET /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+
+    {}
+
+
+Response:
+
+.. code:: json
+
+    {
+    
+    }
 
 Edit one device
 ---------------
