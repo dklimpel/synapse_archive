@@ -316,7 +316,8 @@ The following query parameters are available:
 
 - ``user_id`` - fully qualified: for example, ``@user:server.com``.
 
-The following query parameters are available:
+The following fields are required in the JSON request body:
+
 - ``devices`` -  The list of device IDs to delete.
 
 Usage
@@ -386,6 +387,38 @@ Response:
 
 Edit one device
 ---------------
+Updates the metadata on the given ``device_id`` for a specific ``user_id``.
+
+Parameters
+^^^^^^^^^^
+
+The following query parameters are available:
+
+- ``user_id`` - fully qualified: for example, ``@user:server.com``.
+- ``device_id`` - The device to retrieve.
+
+The following fields are required in the JSON request body:
+
+- ``display_name`` -  The new display name for this device. If not given, the display name is unchanged.
+
+Usage
+^^^^^
+A standard request for modify a device:
+
+::
+
+    PUT /_synapse/admin/v2/users/<user_id>/devices/<device_id>
+
+    {
+      "display_name": "My other phone"
+    }
+
+
+Response:
+
+.. code:: json
+
+    {}
 
 Delete one device
 ---------------

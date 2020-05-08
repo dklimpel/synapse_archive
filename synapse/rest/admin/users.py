@@ -346,7 +346,6 @@ class DeviceRestServlet(RestServlet):
             raise NotFoundError("Unknown user")
 
         body = parse_json_object_from_request(request, allow_empty_body=False)
-        assert_params_in_dict(body, ["display_name"])
         await self.device_handler.update_device(
             target_user.to_string(), device_id, body
         )
