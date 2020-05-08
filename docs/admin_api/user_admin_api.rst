@@ -259,7 +259,7 @@ Parameters
 
 The following query parameters are available:
 
- - ``user_id`` - fully qualified: for example, ``@user:server.com``.
+- ``user_id`` - fully qualified: for example, ``@user:server.com``.
 
 Usage
 ^^^^^
@@ -271,6 +271,14 @@ A standard request for query an user:
 
     {}
 
+
+Response:
+
+.. code:: json
+
+    {
+
+    }
 
 Delete all devices
 -----------------
