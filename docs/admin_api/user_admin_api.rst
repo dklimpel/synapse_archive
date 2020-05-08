@@ -246,3 +246,22 @@ with a body of:
     }
 
 including an ``access_token`` of a server admin.
+
+
+User devices
+=======
+
+List all devices
+----------------
+
+Delete all devices
+-----------------
+
+Show one device
+---------------
+
+Edit one device
+---------------
+
+Delete one device
+---------------
