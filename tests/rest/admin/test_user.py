@@ -739,7 +739,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
-        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.other_user_device_id = res[0]["device_id"]
 
         self.url = "/_synapse/admin/v2/users/%s/devices/%s" % (urllib.parse.quote(
@@ -1012,10 +1012,6 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        # First device
-        self.other_user_token = self.login("user", "pass")
-        # Second device
-        self.login("user", "pass")
 
         self.url = "/_synapse/admin/v2/users/%s/devices" % urllib.parse.quote(
             self.other_user
@@ -1035,8 +1031,10 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         """
         If the user is not a server admin, an error is returned.
         """
+        other_user_token = self.login("user", "pass")
+
         request, channel = self.make_request(
-            "GET", self.url, access_token=self.other_user_token,
+            "GET", self.url, access_token=other_user_token,
         )
         self.render(request)
 
@@ -1078,6 +1076,11 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Komentar
         """
+        # Create devices
+        number_devices = 5
+        for n in range(number_devices):
+            self.login("user", "pass")
+
         request, channel = self.make_request(
             "GET",
             self.url,
@@ -1086,7 +1089,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(2, len(channel.json_body["devices"]))
+        self.assertEqual(number_devices, len(channel.json_body["devices"]))
         self.assertEqual(self.other_user, channel.json_body["devices"][0]["user_id"])
         # Check that all fields are available
         for d in channel.json_body["devices"]:
@@ -1111,7 +1114,6 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        # self.other_user_token = self.login("user", "pass")
 
         self.url = "/_synapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
             self.other_user
@@ -1201,13 +1203,11 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         # Get devices
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(number_devices, len(res))
-        # device_ids = ', '.join(str(d["device_id"]) for d in res)
 
-
+        # Create list of device IDs
         device_ids = []
-        device_ids = (str(d["device_id"]) for d in res)
-        #for d in res:
-        #    device_ids.append(str(d["device_id"]))
+        for d in res:
+            device_ids.append(str(d["device_id"]))
 
         body = json.dumps({"devices": device_ids})
         request, channel = self.make_request(
