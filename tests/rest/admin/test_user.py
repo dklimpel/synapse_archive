@@ -909,8 +909,8 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
-        self.assertEqual(1, res[0]["display_name"])
+        update = {"display_name": "new display"}
+        self.get_success(self.handler.update_device("@user:test", self.other_user_device_id, update))
 
         request, channel = self.make_request(
             "PUT",
@@ -930,7 +930,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual("new displayname", channel.json_body["display_name"])
+        self.assertEqual("new display", channel.json_body["display_name"])
 
 
     def test_update_display_name(self):
