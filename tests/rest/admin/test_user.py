@@ -1131,8 +1131,10 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         """
         If the user is not a server admin, an error is returned.
         """
+        other_user_token = self.login("user", "pass")
+        
         request, channel = self.make_request(
-            "POST", self.url, access_token=self.other_user_token,
+            "POST", self.url, access_token=other_user_token,
         )
         self.render(request)
 
@@ -1197,7 +1199,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
             self.login("user", "pass")
 
         # Get devices
-        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         res2 = ','.join(str(device["device_id"]) for device in res)
         self.assertEqual(number_devices, res2)
         self.other_user_device_id1 = res[0]["device_id"]
