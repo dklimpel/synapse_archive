@@ -1205,7 +1205,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
 
         device_ids = []
-        device_ids = str(d["device_id"]) for d in res
+        device_ids = (str(d["device_id"]) for d in res)
         #for d in res:
         #    device_ids.append(str(d["device_id"]))
 
