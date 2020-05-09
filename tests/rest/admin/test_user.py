@@ -1111,14 +1111,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        # First device
-        self.other_user_token = self.login("user", "pass")
-        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
-        self.other_user_device_id1 = res[0]["device_id"]
-        # Second device
-        self.login("user", "pass")
-        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
-        self.other_user_device_id2 = res[1]["device_id"]
+        # self.other_user_token = self.login("user", "pass")
 
         self.url = "/_synapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
             self.other_user
@@ -1197,10 +1190,23 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Kommentar
         """
-        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
-        self.assertEqual(2, len(res))
 
-        body = json.dumps({"devices": [self.other_user_device_id1, self.other_user_device_id2]})
+        # Create devices
+        number_devices = 5
+        for n in range(number_devices)
+            self.login("user", "pass")
+
+        # Get devices
+        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
+        res2 = ','.join(str(device["device_id"]) for device in res)
+        self.assertEqual(number_devices, res2)
+        self.other_user_device_id1 = res[0]["device_id"]
+        self.other_user_device_id2 = res[1]["device_id"]
+
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
+        self.assertEqual(number_devices, len(res))
+
+        body = json.dumps({"devices": [', '.join(mylist)]})
         request, channel = self.make_request(
             "POST",
             self.url,
