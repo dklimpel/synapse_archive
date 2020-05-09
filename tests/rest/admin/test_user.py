@@ -748,7 +748,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_no_auth(self):
         """
-        Try to list users without authentication.
+        Try to get a device of an user without authentication.
         """
         request, channel = self.make_request("GET", self.url, b"{}")
         self.render(request)
@@ -834,7 +834,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_user_is_not_local(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a lookup for a user that is not a local returns a 400
         """
         url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices/%s" % self.other_user_device_id
 
@@ -1019,7 +1019,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_no_auth(self):
         """
-        Try to list users without authentication.
+        Try to list devices of an user without authentication.
         """
         request, channel = self.make_request("GET", self.url, b"{}")
         self.render(request)
@@ -1058,7 +1058,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_user_is_not_local(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a lookup for a user that is not a local returns a 400
         """
         url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/devices"
 
@@ -1121,7 +1121,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_no_auth(self):
         """
-        Try to list users without authentication.
+        Try to delete devices of an user without authentication.
         """
         request, channel = self.make_request("POST", self.url, b"{}")
         self.render(request)
@@ -1160,7 +1160,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_user_is_not_local(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a lookup for a user that is not a local returns a 400
         """
         url = "/_synapse/admin/v2/users/@unknown_person:unknown_domain/delete_devices"
 
