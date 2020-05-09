@@ -1195,9 +1195,8 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         # Create devices
         number_devices = 5
-        #for n in range(number_devices):
-        #    self.login("user", "pass")
-        (self.login("user", "pass") for n in range(number_devices))
+        for n in range(number_devices):
+            self.login("user", "pass")
 
         # Get devices
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
