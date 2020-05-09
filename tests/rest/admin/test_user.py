@@ -1207,7 +1207,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         #(li2.extend(str(d["device_id"])) for d in res)
         
         m=0
-        device_ids[]
+        device_ids = []
         for d in res:
             device_ids.extend(d["device_id"])
             m = m+1
