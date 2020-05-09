@@ -739,7 +739,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.other_user = self.register_user("user", "pass")
         self.other_user_token = self.login("user", "pass")
-        res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
+        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
         self.other_user_device_id = res[0]["device_id"]
 
         self.url = "/_synapse/admin/v2/users/%s/devices/%s" % (urllib.parse.quote(
@@ -972,7 +972,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual("@user:test", channel.json_body["user_id"])
+        self.assertEqual(self.other_user, channel.json_body["user_id"])
         # Check that all fields are available
         self.assertIn("user_id", channel.json_body)
         self.assertIn("device_id", channel.json_body)
@@ -984,7 +984,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that does not exist returns a 404
         """
-        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(1, len(res))
 
         request, channel = self.make_request(
@@ -996,7 +996,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
-        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(0, len(res))
 
 
@@ -1087,7 +1087,7 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(2, len(channel.json_body["devices"]))
-        self.assertEqual("@user:test", channel.json_body["devices"][0]["user_id"])
+        self.assertEqual(self.other_user, channel.json_body["devices"][0]["user_id"])
         # Check that all fields are available
         for d in channel.json_body["devices"]:
             self.assertIn("user_id", d)
@@ -1113,11 +1113,11 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         self.other_user = self.register_user("user", "pass")
         # First device
         self.other_user_token = self.login("user", "pass")
-        res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
+        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
         self.other_user_device_id1 = res[0]["device_id"]
         # Second device
         self.login("user", "pass")
-        res = self.get_success(hs.get_device_handler().get_devices_by_user("@user:test"))
+        res = self.get_success(hs.get_device_handler().get_devices_by_user(self.other_user))
         self.other_user_device_id2 = res[1]["device_id"]
 
         self.url = "/_synapse/admin/v2/users/%s/delete_devices" % urllib.parse.quote(
@@ -1197,7 +1197,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         """
         Kommentar
         """
-        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(2, len(res))
 
         body = json.dumps({"devices": [self.other_user_device_id1, self.other_user_device_id2]})
@@ -1211,5 +1211,5 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
-        res = self.get_success(self.handler.get_devices_by_user("@user:test"))
+        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(0, len(res))
