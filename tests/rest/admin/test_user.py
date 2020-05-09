@@ -1209,7 +1209,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         m=0
         device_ids = []
         for d in res:
-            device_ids[m] = d["device_id"]
+            device_ids.append(str(d["device_id"]))
             m = m+1
         
         self.assertEqual(number_devices, json.dumps(device_ids))
