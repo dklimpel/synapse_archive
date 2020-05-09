@@ -1206,11 +1206,11 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         #device_ids = (str(d["device_id"]) for d in res)
         #(li2.extend(str(d["device_id"])) for d in res)
         
-        #device_ids = []
+        device_ids = []
         for d in res:
             device_ids.append(str(d["device_id"]))
         
-        self.assertEqual(number_devices, json.dumps(device_ids))
+        #self.assertEqual(number_devices, json.dumps(device_ids))
 
         self.assertEqual(number_devices, {"devices": [device_ids]})
         body = json.dumps({"devices": [device_ids]})
