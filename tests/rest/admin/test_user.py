@@ -1201,9 +1201,12 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         # Get devices
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(number_devices, len(res))
-        device_ids = ', '.join(str(d["device_id"]) for d in res)
+        # device_ids = ', '.join(str(d["device_id"]) for d in res)
+        li2 = []
+        (li2.extend(str(d["device_id"])) for d in res)
+        self.assertEqual(number_devices, json.dumps(li2))
 
-        #self.assertEqual(number_devices, {"devices": [device_ids]})
+        self.assertEqual(number_devices, {"devices": [device_ids]})
         body = json.dumps({"devices": [device_ids]})
         request, channel = self.make_request(
             "POST",
