@@ -910,7 +910,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         Tests that a lookup for a user that does not exist returns a 404
         """
         update = {"display_name": "new display"}
-        self.get_success(self.handler.update_device("@user:test", self.other_user_device_id, update))
+        self.get_success(self.handler.update_device(self.other_user, self.other_user_device_id, update))
 
         request, channel = self.make_request(
             "PUT",
