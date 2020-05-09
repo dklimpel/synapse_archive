@@ -1195,18 +1195,14 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
         # Create devices
         number_devices = 5
-        for n in range(number_devices):
-            self.login("user", "pass")
+        #for n in range(number_devices):
+        #    self.login("user", "pass")
+        (self.login("user", "pass") for n in range(number_devices))
 
         # Get devices
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
-        res2 = ','.join(str(device["device_id"]) for device in res)
-        self.assertEqual(number_devices, res2)
-        self.other_user_device_id1 = res[0]["device_id"]
-        self.other_user_device_id2 = res[1]["device_id"]
-
-        res = self.get_success(self.handler.get_devices_by_user(self.other_user))
         self.assertEqual(number_devices, len(res))
+        device_ids = ', '.join(str(d["device_id"]) for d in res)
 
         body = json.dumps({"devices": [', '.join(mylist)]})
         request, channel = self.make_request(
