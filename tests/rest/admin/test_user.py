@@ -905,6 +905,41 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         # Delete unknown device returns status 200
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
+    def test_update_device_too_long_display_name(self):
+        """
+        Tests that a lookup for a user that does not exist returns a 404
+        """
+        update = {"display_name": "new display"}
+        self.get_success(self.handler.update_device(self.other_user, self.other_user_device_id, update))
+
+        # Request to update a device display name with a new value that is longer than allowed.
+        update = {
+            "display_name": "a"
+            * (synapse.handlers.device.MAX_DEVICE_DISPLAY_NAME_LEN + 1)
+        }
+
+        body = json.dumps(update)
+        request, channel = self.make_request(
+            "PUT",
+            self.url,
+            access_token=self.admin_user_tok,
+            content=body.encode(encoding="utf_8"),
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        # Ensure the display name was not updated.
+        request, channel = self.make_request(
+            "GET",
+            self.url,
+            access_token=self.admin_user_tok,
+        )
+        self.render(request)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("new display", channel.json_body["display_name"])
+
     def test_update_no_display_name(self):
         """
         Tests that a lookup for a user that does not exist returns a 404
@@ -921,6 +956,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
+        # Ensure the display name was not updated.
         # Check new display_name
         request, channel = self.make_request(
             "GET",
