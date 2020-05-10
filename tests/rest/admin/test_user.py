@@ -927,7 +927,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         )
         self.render(request)
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(400, channel.code, msg=channel.json_body)
 
         # Ensure the display name was not updated.
         request, channel = self.make_request(
