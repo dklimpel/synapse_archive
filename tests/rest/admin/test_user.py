@@ -420,6 +420,7 @@ class UserRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual("M_NOT_FOUND", channel.json_body["errcode"])
 
     def test_create_server_admin(self):
         """
