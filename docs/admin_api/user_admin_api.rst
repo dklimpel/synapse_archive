@@ -267,11 +267,12 @@ The following fields are possible in the JSON response body:
   Devices objects contain the following fields:
 
   - ``device_id`` - Identifier of device.
-  - ``display_name`` - Display name set by the user for this device. 
+  - ``display_name`` - Display name set by the user for this device.
     Absent if no name has been set.
   - ``last_seen_ip`` - The IP address where this device was last seen.
     (May be a few minutes out of date, for efficiency reasons).
-  - ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
+  - ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this
+    devices was last seen. (May be a few minutes out of date, for efficiency reasons).
   - ``user_id`` - Owner of  device.
 
 **Usage**
@@ -310,7 +311,8 @@ Response:
 
 Delete multiple devices
 ------------------
-Deletes the given devices for a specific ``user_id``, and invalidates any access token associated with them.
+Deletes the given devices for a specific ``user_id``, and invalidates
+any access token associated with them.
 
 **Parameters**
 
@@ -358,9 +360,12 @@ The following query parameters are available:
 The following fields are possible in the JSON response body:
 
 - ``device_id`` - Identifier of device.
-- ``display_name`` - Display name set by the user for this device. Absent if no name has been set.
-- ``last_seen_ip`` - The IP address where this device was last seen. (May be a few minutes out of date, for efficiency reasons).
-- ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
+- ``display_name`` - Display name set by the user for this device.
+  Absent if no name has been set.
+- ``last_seen_ip`` - The IP address where this device was last seen.
+  (May be a few minutes out of date, for efficiency reasons).
+- ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this
+  devices was last seen. (May be a few minutes out of date, for efficiency reasons).
 - ``user_id`` - Owner of  device.
 
 
@@ -400,7 +405,8 @@ The following query parameters are available:
 
 The following fields are required in the JSON request body:
 
-- ``display_name`` -  The new display name for this device. If not given, the display name is unchanged.
+- ``display_name`` - The new display name for this device. If not given,
+  the display name is unchanged.
 
 **Usage**
 
@@ -423,7 +429,8 @@ Response:
 
 Delete a device
 ---------------
-Deletes the given ``device_id`` for a specific ``user_id``, and invalidates any access token associated with it.
+Deletes the given ``device_id`` for a specific ``user_id``,
+and invalidates any access token associated with it.
 
 **Parameters**
 
