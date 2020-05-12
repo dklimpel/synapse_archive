@@ -1008,7 +1008,6 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(self.other_user, channel.json_body)
         self.assertEqual(self.other_user, channel.json_body["user_id"])
         # Check that all fields are available
         self.assertIn("user_id", channel.json_body)
