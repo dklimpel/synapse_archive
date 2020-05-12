@@ -870,7 +870,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_unknown_device(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a lookup for a device that does not exist returns either 404 or 200.
         """
         url = "/_synapse/admin/v2/users/%s/devices/unknown_device" % urllib.parse.quote(
             self.other_user
@@ -907,8 +907,9 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_update_device_too_long_display_name(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Update a device with a display name that is invalid (too long).
         """
+        # Set iniital display name.
         update = {"display_name": "new display"}
         self.get_success(self.handler.update_device(self.other_user, self.other_user_device_id, update))
 
@@ -928,6 +929,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.render(request)
 
         self.assertEqual(400, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
 
         # Ensure the display name was not updated.
         request, channel = self.make_request(
@@ -942,8 +944,9 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_update_no_display_name(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a update for a device without JSON returns a 200
         """
+        # Set iniital display name.
         update = {"display_name": "new display"}
         self.get_success(self.handler.update_device(self.other_user, self.other_user_device_id, update))
 
@@ -957,7 +960,6 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Ensure the display name was not updated.
-        # Check new display_name
         request, channel = self.make_request(
             "GET",
             self.url,
@@ -971,7 +973,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_update_display_name(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests a normal successful update of display name
         """
         # Set new display_name
         body = json.dumps({"display_name": "new displayname"})
@@ -998,7 +1000,7 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_get_device(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a normal lookup for a device is successfully
         """
         request, channel = self.make_request(
             "GET",
@@ -1018,11 +1020,14 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
     def test_delete_device(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a remove of a device is successfully
         """
+        # Count number of devies of an user.
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
-        self.assertEqual(1, len(res))
+        number_devices = len(res)
+        self.assertEqual(1, number_devices)
 
+        # Delete device
         request, channel = self.make_request(
             "DELETE",
             self.url,
@@ -1032,8 +1037,9 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
+        # Ensure that the number of devices is decreased
         res = self.get_success(self.handler.get_devices_by_user(self.other_user))
-        self.assertEqual(0, len(res))
+        self.assertEqual(number_devices - 1, len(res))
 
 
 class DevicesRestTestCase(unittest.HomeserverTestCase):
@@ -1110,13 +1116,14 @@ class DevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_get_devices(self):
         """
-        Komentar
+        Tests that a normal lookup for devices is successfully
         """
         # Create devices
         number_devices = 5
         for n in range(number_devices):
             self.login("user", "pass")
 
+        # Get devices
         request, channel = self.make_request(
             "GET",
             self.url,
@@ -1212,7 +1219,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_unknown_devices(self):
         """
-        Tests that a lookup for a user that does not exist returns a 404
+        Tests that a remove of a device that does not exist returns 200.
         """
         body = json.dumps({"devices": ["unknown_device1", "unknown_device2"]})
         request, channel = self.make_request(
@@ -1228,7 +1235,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
 
     def test_delete_devices(self):
         """
-        Kommentar
+        Tests that a remove of devices is successfully
         """
 
         # Create devices
@@ -1245,6 +1252,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         for d in res:
             device_ids.append(str(d["device_id"]))
 
+        # Delete devices
         body = json.dumps({"devices": device_ids})
         request, channel = self.make_request(
             "POST",

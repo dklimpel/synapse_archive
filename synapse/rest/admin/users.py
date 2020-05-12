@@ -293,6 +293,10 @@ class DeviceRestServlet(RestServlet):
         ),
     )
 
+    """
+    Get, update or delete the given user's device
+    """
+
     def __init__(self, hs):
         """
         Args:
@@ -355,13 +359,8 @@ class DeviceRestServlet(RestServlet):
 class DevicesRestServlet(RestServlet):
     PATTERNS = (re.compile("^/_synapse/admin/v2/users/(?P<user_id>[^/]*)/devices$"),)
 
-    """Get request to list all local users.
-    This needs user to have administrator access in Synapse.
-
-    GET /_synapse/admin/v2/users?from=0&limit=10&guests=false
-
-    returns:
-        200 OK with list of users if success otherwise an error.
+    """
+    Retrieve the given user's devices
     """
 
     def __init__(self, hs):
@@ -392,7 +391,7 @@ class DevicesRestServlet(RestServlet):
 class DeleteDevicesRestServlet(RestServlet):
     """
     API for bulk deletion of devices. Accepts a JSON object with a devices
-    key which lists the device_ids to delete. Requires user interactive auth.
+    key which lists the device_ids to delete.
     """
 
     PATTERNS = (
