@@ -268,9 +268,9 @@ The following fields are possible in the JSON response body:
 
   - ``device_id`` - Identifier of device.
   - ``display_name`` - Display name set by the user for this device. 
-Absent if no name has been set.
+    Absent if no name has been set.
   - ``last_seen_ip`` - The IP address where this device was last seen.
-(May be a few minutes out of date, for efficiency reasons).
+    (May be a few minutes out of date, for efficiency reasons).
   - ``last_seen_ts`` - The timestamp (in milliseconds since the unix epoch) when this devices was last seen. (May be a few minutes out of date, for efficiency reasons).
   - ``user_id`` - Owner of  device.
 
@@ -295,7 +295,7 @@ Response:
           "device_id": "QBUAZIFURK",
           "display_name": "android",
           "last_seen_ip": "1.2.3.4",
-          "last_seen_ts": 1474491775024.
+          "last_seen_ts": 1474491775024,
           "user_id": "<user_id>"
         },
         {
