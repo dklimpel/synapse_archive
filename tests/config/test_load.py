@@ -122,7 +122,7 @@ class ConfigLoadingTestCase(unittest.TestCase):
 
         with open(self.file, "r") as f:
             contents = f.readlines()
-        contents = [line for line in contents if needle not in line]
+        contents = [l for l in contents if needle not in l]
         with open(self.file, "w") as f:
             f.write("".join(contents))
 

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import inspect
-from typing import Any, Dict, List
+from typing import Dict
 
 from synapse.spam_checker_api import SpamCheckerApi
 
@@ -26,17 +26,24 @@ if MYPY:
 
 class SpamChecker(object):
     def __init__(self, hs: "synapse.server.HomeServer"):
-        self.spam_checkers = []  # type: List[Any]
+        self.spam_checker = None
 
-        for module, config in hs.config.spam_checkers:
+        module = None
+        config = None
+        try:
+            module, config = hs.config.spam_checker
+        except Exception:
+            pass
+
+        if module is not None:
             # Older spam checkers don't accept the `api` argument, so we
             # try and detect support.
             spam_args = inspect.getfullargspec(module)
             if "api" in spam_args.args:
                 api = SpamCheckerApi(hs)
-                self.spam_checkers.append(module(config=config, api=api))
+                self.spam_checker = module(config=config, api=api)
             else:
-                self.spam_checkers.append(module(config=config))
+                self.spam_checker = module(config=config)
 
     def check_event_for_spam(self, event: "synapse.events.EventBase") -> bool:
         """Checks if a given event is considered "spammy" by this server.
@@ -51,11 +58,10 @@ class SpamChecker(object):
         Returns:
             True if the event is spammy.
         """
-        for spam_checker in self.spam_checkers:
-            if spam_checker.check_event_for_spam(event):
-                return True
+        if self.spam_checker is None:
+            return False
 
-        return False
+        return self.spam_checker.check_event_for_spam(event)
 
     def user_may_invite(
         self, inviter_userid: str, invitee_userid: str, room_id: str
@@ -72,14 +78,12 @@ class SpamChecker(object):
         Returns:
             True if the user may send an invite, otherwise False
         """
-        for spam_checker in self.spam_checkers:
-            if (
-                spam_checker.user_may_invite(inviter_userid, invitee_userid, room_id)
-                is False
-            ):
-                return False
+        if self.spam_checker is None:
+            return True
 
-        return True
+        return self.spam_checker.user_may_invite(
+            inviter_userid, invitee_userid, room_id
+        )
 
     def user_may_create_room(self, userid: str) -> bool:
         """Checks if a given user may create a room
@@ -92,11 +96,10 @@ class SpamChecker(object):
         Returns:
             True if the user may create a room, otherwise False
         """
-        for spam_checker in self.spam_checkers:
-            if spam_checker.user_may_create_room(userid) is False:
-                return False
+        if self.spam_checker is None:
+            return True
 
-        return True
+        return self.spam_checker.user_may_create_room(userid)
 
     def user_may_create_room_alias(self, userid: str, room_alias: str) -> bool:
         """Checks if a given user may create a room alias
@@ -110,11 +113,10 @@ class SpamChecker(object):
         Returns:
             True if the user may create a room alias, otherwise False
         """
-        for spam_checker in self.spam_checkers:
-            if spam_checker.user_may_create_room_alias(userid, room_alias) is False:
-                return False
+        if self.spam_checker is None:
+            return True
 
-        return True
+        return self.spam_checker.user_may_create_room_alias(userid, room_alias)
 
     def user_may_publish_room(self, userid: str, room_id: str) -> bool:
         """Checks if a given user may publish a room to the directory
@@ -128,11 +130,10 @@ class SpamChecker(object):
         Returns:
             True if the user may publish the room, otherwise False
         """
-        for spam_checker in self.spam_checkers:
-            if spam_checker.user_may_publish_room(userid, room_id) is False:
-                return False
+        if self.spam_checker is None:
+            return True
 
-        return True
+        return self.spam_checker.user_may_publish_room(userid, room_id)
 
     def check_username_for_spam(self, user_profile: Dict[str, str]) -> bool:
         """Checks if a user ID or display name are considered "spammy" by this server.
@@ -149,14 +150,13 @@ class SpamChecker(object):
         Returns:
             True if the user is spammy.
         """
-        for spam_checker in self.spam_checkers:
-            # For backwards compatibility, only run if the method exists on the
-            # spam checker
-            checker = getattr(spam_checker, "check_username_for_spam", None)
-            if checker:
-                # Make a copy of the user profile object to ensure the spam checker
-                # cannot modify it.
-                if checker(user_profile.copy()):
-                    return True
+        if self.spam_checker is None:
+            return False
 
-        return False
+        # For backwards compatibility, if the method does not exist on the spam checker, fallback to not interfering.
+        checker = getattr(self.spam_checker, "check_username_for_spam", None)
+        if not checker:
+            return False
+        # Make a copy of the user profile object to ensure the spam checker
+        # cannot modify it.
+        return checker(user_profile.copy())

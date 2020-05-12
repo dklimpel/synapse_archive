@@ -51,8 +51,7 @@ class SQLBaseStoreTestCase(unittest.TestCase):
 
         config = Mock()
         config._disable_native_upserts = True
-        config.caches = Mock()
-        config.caches.event_cache_size = 1
+        config.event_cache_size = 1
         hs = TestHomeServer("test", config=config)
 
         sqlite_config = {"name": "sqlite3"}

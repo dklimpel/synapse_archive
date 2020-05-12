@@ -19,7 +19,6 @@ import logging
 import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Iterable, List, TypeVar
 
 from six.moves import urllib
 
@@ -41,8 +40,6 @@ from synapse.util.async_helpers import concurrently_execute
 from synapse.visibility import filter_events_for_client
 
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T")
 
 
 MESSAGE_FROM_PERSON_IN_ROOM = (
@@ -641,10 +638,10 @@ def safe_text(raw_text):
     )
 
 
-def deduped_ordered_list(it: Iterable[T]) -> List[T]:
+def deduped_ordered_list(l):
     seen = set()
     ret = []
-    for item in it:
+    for item in l:
         if item not in seen:
             seen.add(item)
             ret.append(item)

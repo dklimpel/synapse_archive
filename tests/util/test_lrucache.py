@@ -22,7 +22,7 @@ from synapse.util.caches.treecache import TreeCache
 from .. import unittest
 
 
-class LruCacheTestCase(unittest.HomeserverTestCase):
+class LruCacheTestCase(unittest.TestCase):
     def test_get_set(self):
         cache = LruCache(1)
         cache["key"] = "value"
@@ -84,7 +84,7 @@ class LruCacheTestCase(unittest.HomeserverTestCase):
         self.assertEquals(len(cache), 0)
 
 
-class LruCacheCallbacksTestCase(unittest.HomeserverTestCase):
+class LruCacheCallbacksTestCase(unittest.TestCase):
     def test_get(self):
         m = Mock()
         cache = LruCache(1)
@@ -233,7 +233,7 @@ class LruCacheCallbacksTestCase(unittest.HomeserverTestCase):
         self.assertEquals(m3.call_count, 1)
 
 
-class LruCacheSizedTestCase(unittest.HomeserverTestCase):
+class LruCacheSizedTestCase(unittest.TestCase):
     def test_evict(self):
         cache = LruCache(5, size_callback=len)
         cache["key1"] = [0]

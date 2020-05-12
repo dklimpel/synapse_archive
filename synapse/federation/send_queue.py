@@ -31,7 +31,6 @@ Events are replicated via a separate events stream.
 
 import logging
 from collections import namedtuple
-from typing import Dict, List, Tuple, Type
 
 from six import iteritems
 
@@ -57,35 +56,21 @@ class FederationRemoteSendQueue(object):
         self.notifier = hs.get_notifier()
         self.is_mine_id = hs.is_mine_id
 
-        # Pending presence map user_id -> UserPresenceState
-        self.presence_map = {}  # type: Dict[str, UserPresenceState]
-
-        # Stream position -> list[user_id]
-        self.presence_changed = SortedDict()  # type: SortedDict[int, List[str]]
+        self.presence_map = {}  # Pending presence map user_id -> UserPresenceState
+        self.presence_changed = SortedDict()  # Stream position -> list[user_id]
 
         # Stores the destinations we need to explicitly send presence to about a
         # given user.
         # Stream position -> (user_id, destinations)
-        self.presence_destinations = (
-            SortedDict()
-        )  # type: SortedDict[int, Tuple[str, List[str]]]
+        self.presence_destinations = SortedDict()
 
-        # (destination, key) -> EDU
-        self.keyed_edu = {}  # type: Dict[Tuple[str, tuple], Edu]
+        self.keyed_edu = {}  # (destination, key) -> EDU
+        self.keyed_edu_changed = SortedDict()  # stream position -> (destination, key)
 
-        # stream position -> (destination, key)
-        self.keyed_edu_changed = (
-            SortedDict()
-        )  # type: SortedDict[int, Tuple[str, tuple]]
+        self.edus = SortedDict()  # stream position -> Edu
 
-        self.edus = SortedDict()  # type: SortedDict[int, Edu]
-
-        # stream ID for the next entry into presence_changed/keyed_edu_changed/edus.
         self.pos = 1
-
-        # map from stream ID to the time that stream entry was generated, so that we
-        # can clear out entries after a while
-        self.pos_time = SortedDict()  # type: SortedDict[int, int]
+        self.pos_time = SortedDict()
 
         # EVERYTHING IS SAD. In particular, python only makes new scopes when
         # we make a new function, so we need to make a new function so the inner
@@ -173,10 +158,8 @@ class FederationRemoteSendQueue(object):
             for edu_key in self.keyed_edu_changed.values():
                 live_keys.add(edu_key)
 
-            keys_to_del = [
-                edu_key for edu_key in self.keyed_edu if edu_key not in live_keys
-            ]
-            for edu_key in keys_to_del:
+            to_del = [edu_key for edu_key in self.keyed_edu if edu_key not in live_keys]
+            for edu_key in to_del:
                 del self.keyed_edu[edu_key]
 
             # Delete things out of edu map
@@ -267,23 +250,19 @@ class FederationRemoteSendQueue(object):
         self._clear_queue_before_pos(token)
 
     async def get_replication_rows(
-        self, instance_name: str, from_token: int, to_token: int, target_row_count: int
-    ) -> Tuple[List[Tuple[int, Tuple]], int, bool]:
+        self, from_token, to_token, limit, federation_ack=None
+    ):
         """Get rows to be sent over federation between the two tokens
 
         Args:
-            instance_name: the name of the current process
-            from_token: the previous stream token: the starting point for fetching the
-                updates
-            to_token: the new stream token: the point to get updates up to
-            target_row_count: a target for the number of rows to be returned.
-
-        Returns: a triplet `(updates, new_last_token, limited)`, where:
-           * `updates` is a list of `(token, row)` entries.
-           * `new_last_token` is the new position in stream.
-           * `limited` is whether there are more updates to fetch.
+            from_token (int)
+            to_token(int)
+            limit (int)
+            federation_ack (int): Optional. The position where the worker is
+                explicitly acknowledged it has handled. Allows us to drop
+                data from before that point
         """
-        # TODO: Handle target_row_count.
+        # TODO: Handle limit.
 
         # To handle restarts where we wrap around
         if from_token > self.pos:
@@ -291,7 +270,12 @@ class FederationRemoteSendQueue(object):
 
         # list of tuple(int, BaseFederationRow), where the first is the position
         # of the federation stream.
-        rows = []  # type: List[Tuple[int, BaseFederationRow]]
+        rows = []
+
+        # There should be only one reader, so lets delete everything its
+        # acknowledged its seen.
+        if federation_ack:
+            self._clear_queue_before_pos(federation_ack)
 
         # Fetch changed presence
         i = self.presence_changed.bisect_right(from_token)
@@ -348,11 +332,7 @@ class FederationRemoteSendQueue(object):
         # Sort rows based on pos
         rows.sort()
 
-        return (
-            [(pos, (row.TypeId, row.to_data())) for pos, row in rows],
-            to_token,
-            False,
-        )
+        return [(pos, row.TypeId, row.to_data()) for pos, row in rows]
 
 
 class BaseFederationRow(object):
@@ -361,7 +341,7 @@ class BaseFederationRow(object):
     Specifies how to identify, serialize and deserialize the different types.
     """
 
-    TypeId = ""  # Unique string that ids the type. Must be overriden in sub classes.
+    TypeId = None  # Unique string that ids the type. Must be overriden in sub classes.
 
     @staticmethod
     def from_data(data):
@@ -474,14 +454,10 @@ class EduRow(BaseFederationRow, namedtuple("EduRow", ("edu",))):  # Edu
         buff.edus.setdefault(self.edu.destination, []).append(self.edu)
 
 
-_rowtypes = (
-    PresenceRow,
-    PresenceDestinationsRow,
-    KeyedEduRow,
-    EduRow,
-)  # type: Tuple[Type[BaseFederationRow], ...]
-
-TypeToRow = {Row.TypeId: Row for Row in _rowtypes}
+TypeToRow = {
+    Row.TypeId: Row
+    for Row in (PresenceRow, PresenceDestinationsRow, KeyedEduRow, EduRow,)
+}
 
 
 ParsedFederationStreamData = namedtuple(

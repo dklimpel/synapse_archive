@@ -15,7 +15,7 @@
 
 import logging
 from collections import namedtuple
-from typing import Callable, Iterable, List, TypeVar
+from typing import Callable, List
 
 from prometheus_client import Counter
 
@@ -42,14 +42,12 @@ users_woken_by_stream_counter = Counter(
     "synapse_notifier_users_woken_by_stream", "", ["stream"]
 )
 
-T = TypeVar("T")
-
 
 # TODO(paul): Should be shared somewhere
-def count(func: Callable[[T], bool], it: Iterable[T]) -> int:
-    """Return the number of items in it for which func returns true."""
+def count(func, l):
+    """Return the number of items in l for which func returns true."""
     n = 0
-    for x in it:
+    for x in l:
         if func(x):
             n += 1
     return n

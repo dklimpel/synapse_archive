@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import Dict, Hashable, Iterable, List, Optional, Set, Tuple
+from typing import Dict, Hashable, Iterable, List, Optional, Set
 
 from six import itervalues
 
@@ -498,16 +498,14 @@ class FederationSender(object):
 
         self._get_per_destination_queue(destination).attempt_new_transaction()
 
-    @staticmethod
-    def get_current_token() -> int:
+    def get_current_token(self) -> int:
         # Dummy implementation for case where federation sender isn't offloaded
         # to a worker.
         return 0
 
-    @staticmethod
     async def get_replication_rows(
-        instance_name: str, from_token: int, to_token: int, target_row_count: int
-    ) -> Tuple[List[Tuple[int, Tuple]], int, bool]:
+        self, from_token, to_token, limit, federation_ack=None
+    ):
         # Dummy implementation for case where federation sender isn't offloaded
         # to a worker.
-        return [], 0, False
+        return []

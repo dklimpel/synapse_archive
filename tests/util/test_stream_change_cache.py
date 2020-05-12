@@ -1,9 +1,11 @@
+from mock import patch
+
 from synapse.util.caches.stream_change_cache import StreamChangeCache
 
 from tests import unittest
 
 
-class StreamChangeCacheTests(unittest.HomeserverTestCase):
+class StreamChangeCacheTests(unittest.TestCase):
     """
     Tests for StreamChangeCache.
     """
@@ -52,6 +54,7 @@ class StreamChangeCacheTests(unittest.HomeserverTestCase):
         self.assertTrue(cache.has_entity_changed("user@foo.com", 0))
         self.assertTrue(cache.has_entity_changed("not@here.website", 0))
 
+    @patch("synapse.util.caches.CACHE_SIZE_FACTOR", 1.0)
     def test_entity_has_changed_pops_off_start(self):
         """
         StreamChangeCache.entity_has_changed will respect the max size and

@@ -51,7 +51,6 @@ push_rules_delta_state_cache_metric = register_cache(
     "cache",
     "push_rules_delta_state_cache_metric",
     cache=[],  # Meaningless size, as this isn't a cache that stores values
-    resizable=False,
 )
 
 
@@ -68,8 +67,7 @@ class BulkPushRuleEvaluator(object):
         self.room_push_rule_cache_metrics = register_cache(
             "cache",
             "room_push_rule_cache",
-            cache=[],  # Meaningless size, as this isn't a cache that stores values,
-            resizable=False,
+            cache=[],  # Meaningless size, as this isn't a cache that stores values
         )
 
     @defer.inlineCallbacks

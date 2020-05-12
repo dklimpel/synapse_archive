@@ -28,6 +28,7 @@ from synapse.storage.data_stores.state.bg_updates import StateBackgroundUpdateSt
 from synapse.storage.database import Database
 from synapse.storage.state import StateFilter
 from synapse.types import StateMap
+from synapse.util.caches import get_cache_factor_for
 from synapse.util.caches.descriptors import cached
 from synapse.util.caches.dictionary_cache import DictionaryCache
 
@@ -89,10 +90,11 @@ class StateGroupDataStore(StateBackgroundUpdateStore, SQLBaseStore):
         self._state_group_cache = DictionaryCache(
             "*stateGroupCache*",
             # TODO: this hasn't been tuned yet
-            50000,
+            50000 * get_cache_factor_for("stateGroupCache"),
         )
         self._state_group_members_cache = DictionaryCache(
-            "*stateGroupMembersCache*", 500000,
+            "*stateGroupMembersCache*",
+            500000 * get_cache_factor_for("stateGroupMembersCache"),
         )
 
     @cached(max_entries=10000, iterable=True)

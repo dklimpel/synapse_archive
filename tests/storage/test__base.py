@@ -25,8 +25,8 @@ from synapse.util.caches.descriptors import Cache, cached
 from tests import unittest
 
 
-class CacheTestCase(unittest.HomeserverTestCase):
-    def prepare(self, reactor, clock, homeserver):
+class CacheTestCase(unittest.TestCase):
+    def setUp(self):
         self.cache = Cache("test")
 
     def test_empty(self):
@@ -96,7 +96,7 @@ class CacheTestCase(unittest.HomeserverTestCase):
         cache.get(3)
 
 
-class CacheDecoratorTestCase(unittest.HomeserverTestCase):
+class CacheDecoratorTestCase(unittest.TestCase):
     @defer.inlineCallbacks
     def test_passthrough(self):
         class A(object):
@@ -239,7 +239,7 @@ class CacheDecoratorTestCase(unittest.HomeserverTestCase):
         callcount2 = [0]
 
         class A(object):
-            @cached(max_entries=2)
+            @cached(max_entries=4)  # HACK: This makes it 2 due to cache factor
             def func(self, key):
                 callcount[0] += 1
                 return key

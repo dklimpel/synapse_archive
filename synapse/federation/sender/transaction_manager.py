@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from typing import TYPE_CHECKING, List
+from typing import List
 
 from canonicaljson import json
 
+import synapse.server
 from synapse.api.errors import HttpResponseException
 from synapse.events import EventBase
 from synapse.federation.persistence import TransactionActions
@@ -29,9 +30,6 @@ from synapse.logging.opentracing import (
     whitelisted_homeserver,
 )
 from synapse.util.metrics import measure_func
-
-if TYPE_CHECKING:
-    import synapse.server
 
 logger = logging.getLogger(__name__)
 

@@ -322,14 +322,11 @@ class _AsyncEventContextImpl(EventContext):
         self._current_state_ids = yield self._storage.state.get_state_ids_for_group(
             self.state_group
         )
-        if self._event_state_key is not None:
+        if self._prev_state_id and self._event_state_key is not None:
             self._prev_state_ids = dict(self._current_state_ids)
 
             key = (self._event_type, self._event_state_key)
-            if self._prev_state_id:
-                self._prev_state_ids[key] = self._prev_state_id
-            else:
-                self._prev_state_ids.pop(key, None)
+            self._prev_state_ids[key] = self._prev_state_id
         else:
             self._prev_state_ids = self._current_state_ids
 

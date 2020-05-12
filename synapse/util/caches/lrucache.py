@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import threading
 from functools import wraps
-from typing import Callable, Optional, Type, Union
 
-from synapse.config import cache as cache_config
 from synapse.util.caches.treecache import TreeCache
 
 
@@ -53,18 +52,17 @@ class LruCache(object):
 
     def __init__(
         self,
-        max_size: int,
-        keylen: int = 1,
-        cache_type: Type[Union[dict, TreeCache]] = dict,
-        size_callback: Optional[Callable] = None,
-        evicted_callback: Optional[Callable] = None,
-        apply_cache_factor_from_config: bool = True,
+        max_size,
+        keylen=1,
+        cache_type=dict,
+        size_callback=None,
+        evicted_callback=None,
     ):
         """
         Args:
-            max_size: The maximum amount of entries the cache can hold
+            max_size (int):
 
-            keylen: The length of the tuple used as the cache key
+            keylen (int):
 
             cache_type (type):
                 type of underlying cache to be used. Typically one of dict
@@ -75,23 +73,9 @@ class LruCache(object):
             evicted_callback (func(int)|None):
                 if not None, called on eviction with the size of the evicted
                 entry
-
-            apply_cache_factor_from_config (bool): If true, `max_size` will be
-                multiplied by a cache factor derived from the homeserver config
         """
         cache = cache_type()
         self.cache = cache  # Used for introspection.
-
-        # Save the original max size, and apply the default size factor.
-        self._original_max_size = max_size
-        # We previously didn't apply the cache factor here, and as such some caches were
-        # not affected by the global cache factor. Add an option here to disable applying
-        # the cache factor when a cache is created
-        if apply_cache_factor_from_config:
-            self.max_size = int(max_size * cache_config.properties.default_factor_size)
-        else:
-            self.max_size = int(max_size)
-
         list_root = _Node(None, None, None, None)
         list_root.next_node = list_root
         list_root.prev_node = list_root
@@ -99,7 +83,7 @@ class LruCache(object):
         lock = threading.Lock()
 
         def evict():
-            while cache_len() > self.max_size:
+            while cache_len() > max_size:
                 todelete = list_root.prev_node
                 evicted_len = delete_node(todelete)
                 cache.pop(todelete.key, None)
@@ -252,7 +236,6 @@ class LruCache(object):
             return key in cache
 
         self.sentinel = object()
-        self._on_resize = evict
         self.get = cache_get
         self.set = cache_set
         self.setdefault = cache_set_default
@@ -283,20 +266,3 @@ class LruCache(object):
 
     def __contains__(self, key):
         return self.contains(key)
-
-    def set_cache_factor(self, factor: float) -> bool:
-        """
-        Set the cache factor for this individual cache.
-
-        This will trigger a resize if it changes, which may require evicting
-        items from the cache.
-
-        Returns:
-            bool: Whether the cache changed size or not.
-        """
-        new_size = int(self._original_max_size * factor)
-        if new_size != self.max_size:
-            self.max_size = new_size
-            self._on_resize()
-            return True
-        return False

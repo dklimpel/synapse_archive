@@ -13,7 +13,6 @@ from synapse.config import (
     key,
     logger,
     metrics,
-    oidc_config,
     password,
     password_auth_providers,
     push,
@@ -60,7 +59,6 @@ class RootConfig:
     saml2: saml2_config.SAML2Config
     cas: cas.CasConfig
     sso: sso.SSOConfig
-    oidc: oidc_config.OIDCConfig
     jwt: jwt_config.JWTConfig
     password: password.PasswordConfig
     email: emailconfig.EmailConfig
