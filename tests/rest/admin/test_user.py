@@ -21,8 +21,8 @@ import urllib.parse
 from mock import Mock
 
 import synapse.rest.admin
-from synapse.api.errors import Codes
 from synapse.api.constants import UserTypes
+from synapse.api.errors import Codes
 from synapse.rest.client.v1 import login
 
 from tests import unittest
