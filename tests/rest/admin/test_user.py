@@ -970,7 +970,6 @@ class DeviceRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("new display", channel.json_body["display_name"])
 
-
     def test_update_display_name(self):
         """
         Tests a normal successful update of display name
@@ -1177,7 +1176,7 @@ class DeleteDevicesRestTestCase(unittest.HomeserverTestCase):
         If the user is not a server admin, an error is returned.
         """
         other_user_token = self.login("user", "pass")
-        
+
         request, channel = self.make_request(
             "POST", self.url, access_token=other_user_token,
         )
