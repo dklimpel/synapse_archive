@@ -79,6 +79,23 @@ class UserSortOrder(Enum):
     DISPLAYNAME = "displayname"
 
 
+class EventSortOrder(Enum):
+    """
+    Enum to define the sorting method used when returning users
+    with get_users_media_usage_paginate
+
+    MEDIA_LENGTH = ordered by size of uploaded media. Smallest to largest.
+    MEDIA_COUNT = ordered by number of uploaded media. Smallest to largest.
+    USER_ID = ordered alphabetically by `user_id`.
+    DISPLAYNAME = ordered alphabetically by `displayname`
+    """
+
+    MEDIA_LENGTH = "canonical_alias"
+    MEDIA_COUNT = "create"
+    USER_ID = "user_id"
+    DISPLAYNAME = "displayname"
+
+
 class StatsStore(StateDeltasStore):
     def __init__(self, database: DatabasePool, db_conn, hs):
         super().__init__(database, db_conn, hs)
@@ -1008,4 +1025,111 @@ class StatsStore(StateDeltasStore):
 
         return await self.db_pool.runInteraction(
             "get_users_media_usage_paginate_txn", get_users_media_usage_paginate_txn
+        )
+
+    async def get_users_events_usage_paginate(
+        self,
+        start: int,
+        limit: int,
+        from_ts: Optional[int] = None,
+        until_ts: Optional[int] = None,
+        order_by: Optional[UserSortOrder] = UserSortOrder.USER_ID.value,
+        direction: Optional[str] = "f",
+        search_term: Optional[str] = None,
+    ) -> Tuple[List[JsonDict], Dict[str, int]]:
+        """Function to retrieve a paginated list of users and their uploaded local media
+        (size and number). This will return a json list of users and the
+        total number of users matching the filter criteria.
+
+        Args:
+            start: offset to begin the query from
+            limit: number of rows to retrieve
+            from_ts: request only media that are created later than this timestamp (ms)
+            until_ts: request only media that are created earlier than this timestamp (ms)
+            order_by: the sort order of the returned list
+            direction: sort ascending or descending
+            search_term: a string to filter user names by
+        Returns:
+            A list of user dicts and an integer representing the total number of
+            users that exist given this query
+        """
+
+        def get_users_events_usage_paginate_txn(txn):
+            filters = []
+            args = [self.hs.config.server_name]
+
+            if search_term:
+                filters.append("(lmr.user_id LIKE ? OR displayname LIKE ?)")
+                args.extend(["@%" + search_term + "%:%", "%" + search_term + "%"])
+
+            if from_ts:
+                filters.append("created_ts >= ?")
+                args.extend([from_ts])
+            if until_ts:
+                filters.append("created_ts <= ?")
+                args.extend([until_ts])
+
+            # Set ordering
+            if UserSortOrder(order_by) == UserSortOrder.MEDIA_LENGTH:
+                order_by_column = "media_length"
+            elif UserSortOrder(order_by) == UserSortOrder.MEDIA_COUNT:
+                order_by_column = "media_count"
+            elif UserSortOrder(order_by) == UserSortOrder.USER_ID:
+                order_by_column = "lmr.user_id"
+            elif UserSortOrder(order_by) == UserSortOrder.DISPLAYNAME:
+                order_by_column = "displayname"
+            else:
+                raise StoreError(
+                    500, "Incorrect value for order_by provided: %s" % order_by
+                )
+
+            if direction == "b":
+                order = "DESC"
+            else:
+                order = "ASC"
+
+            where_clause = "WHERE " + " AND ".join(filters) if len(filters) > 0 else ""
+
+            sql_base = """
+                FROM local_media_repository as lmr
+                LEFT JOIN profiles AS p ON lmr.user_id = '@' || p.user_id || ':' || ?
+                {}
+                GROUP BY lmr.user_id, displayname
+            """.format(
+                where_clause
+            )
+
+            # SQLite does not support SELECT COUNT(*) OVER()
+            sql = """
+                SELECT COUNT(*) FROM (
+                    SELECT lmr.user_id
+                    {sql_base}
+                ) AS count_user_ids
+            """.format(
+                sql_base=sql_base,
+            )
+            txn.execute(sql, args)
+            count = txn.fetchone()[0]
+
+            sql = """
+                SELECT
+                    lmr.user_id,
+                    displayname,
+                    COUNT(lmr.user_id) as media_count,
+                    SUM(media_length) as media_length
+                    {sql_base}
+                ORDER BY {order_by_column} {order}
+                LIMIT ? OFFSET ?
+            """.format(
+                sql_base=sql_base, order_by_column=order_by_column, order=order,
+            )
+
+            args += [limit, start]
+            txn.execute(sql, args)
+            users = self.db_pool.cursor_to_dict(txn)
+
+            return users, count
+
+        return await self.db_pool.runInteraction(
+            "get_users_events_usage_paginate_txn", get_users_events_usage_paginate_txn
         )
