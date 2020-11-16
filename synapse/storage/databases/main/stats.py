@@ -1058,6 +1058,31 @@ class StatsStore(StateDeltasStore):
             filters = []
             args = [self.hs.config.server_name]
 
+            sql = """
+                SELECT count(*) AS number_events,
+                       sender,
+                       displayname,
+                       TYPE
+                FROM EVENTS AS e
+                LEFT JOIN profiles AS p ON e.sender = '@' || p.user_id || ':' || ?
+                WHERE e.sender in
+                    (SELECT sender
+                     FROM
+                       (SELECT sender,
+                               count(*) AS c,
+                               TYPE
+                        FROM EVENTS
+                        WHERE TYPE='m.room.encrypted'
+                        GROUP BY sender,
+                                 TYPE
+                        ORDER BY c DESC
+                        LIMIT 5) AS foo)
+                GROUP BY sender,
+                         displayname,
+                         TYPE
+                ORDER BY sender;
+            """
+
             if search_term:
                 filters.append("(lmr.user_id LIKE ? OR displayname LIKE ?)")
                 args.extend(["@%" + search_term + "%:%", "%" + search_term + "%"])
