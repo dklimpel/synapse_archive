@@ -864,6 +864,14 @@ Beware that Apache <em>will</em> canonicalise URIs unless you specify
 <code>https://matrix.example.com</code>, and other servers to connect at
 <code>https://example.com:8448</code>.  The following sections detail the configuration of
 the reverse proxy and the homeserver.</p>
+<h2 id="homeserver-configuration"><a class="header" href="#homeserver-configuration">Homeserver Configuration</a></h2>
+<p>The HTTP configuration will need to be updated for Synapse to correctly record 
+client IP addresses and generate redirect URLs while behind a reverse proxy. </p>
+<p>In <code>homeserver.yaml</code> set <code>x_forwarded: true</code> in the port 8008 section and 
+consider setting <code>bind_addresses: ['127.0.0.1']</code> so that the server only
+listens to traffic on localhost. (Do not change <code>bind_addresses</code> to <code>127.0.0.1</code> 
+when using a containerized Synapse, as that will prevent it from responding
+to proxied traffic.)</p>
 <h2 id="reverse-proxy-configuration-examples"><a class="header" href="#reverse-proxy-configuration-examples">Reverse-proxy configuration examples</a></h2>
 <p><strong>NOTE</strong>: You only need one of these.</p>
 <h3 id="nginx"><a class="header" href="#nginx">nginx</a></h3>
@@ -1043,13 +1051,6 @@ relay &quot;matrix_federation&quot; {
     forward to &lt;matrixserver&gt; port 8008 check tcp
 }
 </code></pre>
-<h2 id="homeserver-configuration"><a class="header" href="#homeserver-configuration">Homeserver Configuration</a></h2>
-<p>You will also want to set <code>bind_addresses: ['127.0.0.1']</code> and
-<code>x_forwarded: true</code> for port 8008 in <code>homeserver.yaml</code> to ensure that
-client IP addresses are recorded correctly.</p>
-<p>Having done so, you can then use <code>https://matrix.example.com</code> (instead
-of <code>https://matrix.example.com:8448</code>) as the &quot;Custom server&quot; when
-connecting to Synapse from a client.</p>
 <h2 id="health-check-endpoint"><a class="header" href="#health-check-endpoint">Health check endpoint</a></h2>
 <p>Synapse exposes a health check endpoint for use by reverse proxies.
 Each configured HTTP listener has a <code>/health</code> endpoint which always returns
@@ -1109,21 +1110,21 @@ will apply blacklisting of IP addresses.</p>
 <li>recaptcha validation</li>
 <li>CAS auth validation</li>
 <li>OpenID Connect</li>
+<li>Outbound federation</li>
 <li>Federation (checking public key revocation)</li>
+<li>Fetching public keys of other servers</li>
+<li>Downloading remote media</li>
 </ul>
 <p>It will <strong>not be used</strong> for:</p>
 <ul>
 <li>Application Services</li>
 <li>Identity servers</li>
-<li>Outbound federation</li>
 <li>In worker configurations
 <ul>
 <li>connections between workers</li>
 <li>connections from workers to Redis</li>
 </ul>
 </li>
-<li>Fetching public keys of other servers</li>
-<li>Downloading remote media</li>
 </ul>
 <h2 id="troubleshooting-1"><a class="header" href="#troubleshooting-1">Troubleshooting</a></h2>
 <p>If a proxy server is used with TLS (HTTPS) and no connections are established,
@@ -1544,6 +1545,30 @@ dpkg -i matrix-synapse-py3_1.3.0+stretch1_amd64.deb
 </code></pre>
 </li>
 </ul>
+<h1 id="upgrading-to-v1xx0"><a class="header" href="#upgrading-to-v1xx0">Upgrading to v1.xx.0</a></h1>
+<h2 id="add-support-for-routing-outbound-http-requests-via-a-proxy-for-federation"><a class="header" href="#add-support-for-routing-outbound-http-requests-via-a-proxy-for-federation">Add support for routing outbound HTTP requests via a proxy for federation</a></h2>
+<p>Since Synapse 1.6.0 (2019-11-26) you can set a proxy for outbound HTTP requests via
+http_proxy/https_proxy environment variables. This proxy was set for:</p>
+<ul>
+<li>push</li>
+<li>url previews</li>
+<li>phone-home stats</li>
+<li>recaptcha validation</li>
+<li>CAS auth validation</li>
+<li>OpenID Connect</li>
+<li>Federation (checking public key revocation)</li>
+</ul>
+<p>In this version we have added support for outbound requests for:</p>
+<ul>
+<li>Outbound federation</li>
+<li>Downloading remote media</li>
+<li>Fetching public keys of other servers</li>
+</ul>
+<p>These requests use the same proxy configuration. If you have a proxy configuration we
+recommend to verify the configuration. It may be necessary to adjust the <code>no_proxy</code>
+environment variable.</p>
+<p>See <a href="setup/forward_proxy.html">using a forward proxy with Synapse documentation</a> for
+details.</p>
 <h1 id="upgrading-to-v1390"><a class="header" href="#upgrading-to-v1390">Upgrading to v1.39.0</a></h1>
 <h2 id="deprecation-of-the-current-third-party-rules-module-interface"><a class="header" href="#deprecation-of-the-current-third-party-rules-module-interface">Deprecation of the current third-party rules module interface</a></h2>
 <p>The current third-party rules module interface is deprecated in favour of the new generic
@@ -8707,6 +8732,7 @@ have a canonical alias set.</li>
 <ul>
 <li><a href="admin_api/media_admin_api.html#delete-a-specific-local-media">Delete a specific local media</a></li>
 <li><a href="admin_api/media_admin_api.html#delete-local-media-by-date-or-size">Delete local media by date or size</a></li>
+<li><a href="admin_api/media_admin_api.html#delete-media-uploaded-by-a-user">Delete media uploaded by a user</a></li>
 </ul>
 </li>
 <li><a href="admin_api/media_admin_api.html#purge-remote-media-api">Purge Remote Media API</a></li>
@@ -8735,7 +8761,8 @@ server admin: see <a href="admin_api/../usage/administration/admin_api">Admin AP
 </code></pre>
 <h2 id="list-all-media-uploaded-by-a-user"><a class="header" href="#list-all-media-uploaded-by-a-user">List all media uploaded by a user</a></h2>
 <p>Listing all media that has been uploaded by a local user can be achieved through
-the use of the <a href="admin_api/user_admin_api.html#list-media-of-a-user">List media of a user</a>
+the use of the
+<a href="admin_api/user_admin_api.html#list-media-uploaded-by-a-user">List media uploaded by a user</a>
 Admin API.</p>
 <h1 id="quarantine-media"><a class="header" href="#quarantine-media">Quarantine media</a></h1>
 <p>Quarantining media means that it is marked as inaccessible by users. It applies
@@ -8895,6 +8922,9 @@ If <code>false</code> these files will be deleted. Defaults to <code>true</code>
 <li><code>deleted_media</code>: an array of strings - List of deleted <code>media_id</code></li>
 <li><code>total</code>: integer - Total number of deleted <code>media_id</code></li>
 </ul>
+<h2 id="delete-media-uploaded-by-a-user"><a class="header" href="#delete-media-uploaded-by-a-user">Delete media uploaded by a user</a></h2>
+<p>You can find details of how to delete multiple media uploaded by a user in
+<a href="admin_api/user_admin_api.html#delete-media-uploaded-by-a-user">User Admin API</a>.</p>
 <h1 id="purge-remote-media-api"><a class="header" href="#purge-remote-media-api">Purge Remote Media API</a></h1>
 <p>The purge remote media API allows server admins to purge old cached remote media.</p>
 <p>The API is:</p>
@@ -9939,6 +9969,16 @@ specific <code>user_id</code>.</p>
             &quot;address&quot;: &quot;&lt;user_mail_2&gt;&quot;
         }
     ],
+    &quot;external_ids&quot;: [
+        {
+            &quot;auth_provider&quot;: &quot;&lt;provider1&gt;&quot;,
+            &quot;external_id&quot;: &quot;&lt;user_id_provider_1&gt;&quot;
+        },
+        {
+            &quot;auth_provider&quot;: &quot;&lt;provider2&gt;&quot;,
+            &quot;external_id&quot;: &quot;&lt;user_id_provider_2&gt;&quot;
+        }
+    ],
     &quot;avatar_url&quot;: &quot;&lt;avatar_url&gt;&quot;,
     &quot;admin&quot;: false,
     &quot;deactivated&quot;: false
@@ -9946,36 +9986,44 @@ specific <code>user_id</code>.</p>
 </code></pre>
 <p>To use it, you will need to authenticate by providing an <code>access_token</code> for a
 server admin: <a href="admin_api/../usage/administration/admin_api">Admin API</a></p>
+<p>Returns HTTP status code:</p>
+<ul>
+<li><code>201</code> - When a new user object was created.</li>
+<li><code>200</code> - When a user was modified.</li>
+</ul>
 <p>URL parameters:</p>
 <ul>
 <li><code>user_id</code>: fully-qualified user id: for example, <code>@user:server.com</code>.</li>
 </ul>
 <p>Body parameters:</p>
 <ul>
-<li>
-<p><code>password</code>, optional. If provided, the user's password is updated and all
-devices are logged out.</p>
+<li><code>password</code> - string, optional. If provided, the user's password is updated and all
+devices are logged out.</li>
+<li><code>displayname</code> - string, optional, defaults to the value of <code>user_id</code>.</li>
+<li><code>threepids</code> - array, optional, allows setting the third-party IDs (email, msisdn)
+<ul>
+<li><code>medium</code> - string. Kind of third-party ID, either <code>email</code> or <code>msisdn</code>.</li>
+<li><code>address</code> - string. Value of third-party ID.
+belonging to a user.</li>
+</ul>
 </li>
-<li>
-<p><code>displayname</code>, optional, defaults to the value of <code>user_id</code>.</p>
+<li><code>external_ids</code> - array, optional. Allow setting the identifier of the external identity
+provider for SSO (Single sign-on). Details in
+<a href="admin_api/../usage/configuration/homeserver_sample_config.html">Sample Configuration File</a>
+section <code>sso</code> and <code>oidc_providers</code>.
+<ul>
+<li><code>auth_provider</code> - string. ID of the external identity provider. Value of <code>idp_id</code>
+in homeserver configuration.</li>
+<li><code>external_id</code> - string, user ID in the external identity provider.</li>
+</ul>
 </li>
-<li>
-<p><code>threepids</code>, optional, allows setting the third-party IDs (email, msisdn)
-belonging to a user.</p>
-</li>
-<li>
-<p><code>avatar_url</code>, optional, must be a
-<a href="https://matrix.org/docs/spec/client_server/r0.6.0#matrix-content-mxc-uris">MXC URI</a>.</p>
-</li>
-<li>
-<p><code>admin</code>, optional, defaults to <code>false</code>.</p>
-</li>
-<li>
-<p><code>deactivated</code>, optional. If unspecified, deactivation state will be left
+<li><code>avatar_url</code> - string, optional, must be a
+<a href="https://matrix.org/docs/spec/client_server/r0.6.0#matrix-content-mxc-uris">MXC URI</a>.</li>
+<li><code>admin</code> - bool, optional, defaults to <code>false</code>.</li>
+<li><code>deactivated</code> - bool, optional. If unspecified, deactivation state will be left
 unchanged on existing accounts and set to <code>false</code> for new accounts.
 A user cannot be erased by deactivating with this API. For details on
-deactivating users see <a href="admin_api/user_admin_api.html#deactivate-account">Deactivate Account</a>.</p>
-</li>
+deactivating users see <a href="admin_api/user_admin_api.html#deactivate-account">Deactivate Account</a>.</li>
 </ul>
 <p>If the user already exists then optional parameters default to the current value.</p>
 <p>In order to re-activate an account <code>deactivated</code> must be set to <code>false</code>. If
@@ -10244,7 +10292,8 @@ member are returned.</p>
 <li><code>joined_rooms</code> - An array of <code>room_id</code>.</li>
 <li><code>total</code> - Number of rooms.</li>
 </ul>
-<h2 id="list-media-of-a-user"><a class="header" href="#list-media-of-a-user">List media of a user</a></h2>
+<h2 id="user-media"><a class="header" href="#user-media">User media</a></h2>
+<h3 id="list-media-uploaded-by-a-user"><a class="header" href="#list-media-uploaded-by-a-user">List media uploaded by a user</a></h3>
 <p>Gets a list of all local media that a specific <code>user_id</code> has created.
 By default, the response is ordered by descending creation date and ascending media ID.
 The newest media is on top. You can change the order with parameters
@@ -10337,44 +10386,56 @@ database, especially for large environments.</p>
 <p><strong>Response</strong></p>
 <p>The following fields are returned in the JSON response body:</p>
 <ul>
-<li>
-<p><code>media</code> - An array of objects, each containing information about a media.
-Media objects contain the following fields:</p>
+<li><code>media</code> - An array of objects, each containing information about a media.
+Media objects contain the following fields:
 <ul>
-<li>
-<p><code>created_ts</code> - integer - Timestamp when the content was uploaded in ms.</p>
-</li>
-<li>
-<p><code>last_access_ts</code> - integer - Timestamp when the content was last accessed in ms.</p>
-</li>
-<li>
-<p><code>media_id</code> - string - The id used to refer to the media.</p>
-</li>
-<li>
-<p><code>media_length</code> - integer - Length of the media in bytes.</p>
-</li>
-<li>
-<p><code>media_type</code> - string - The MIME-type of the media.</p>
-</li>
-<li>
-<p><code>quarantined_by</code> - string - The user ID that initiated the quarantine request
-for this media.</p>
-</li>
-<li>
-<p><code>safe_from_quarantine</code> - bool - Status if this media is safe from quarantining.</p>
-</li>
-<li>
-<p><code>upload_name</code> - string - The name the media was uploaded with.</p>
-</li>
+<li><code>created_ts</code> - integer - Timestamp when the content was uploaded in ms.</li>
+<li><code>last_access_ts</code> - integer - Timestamp when the content was last accessed in ms.</li>
+<li><code>media_id</code> - string - The id used to refer to the media.</li>
+<li><code>media_length</code> - integer - Length of the media in bytes.</li>
+<li><code>media_type</code> - string - The MIME-type of the media.</li>
+<li><code>quarantined_by</code> - string - The user ID that initiated the quarantine request
+for this media.</li>
+<li><code>safe_from_quarantine</code> - bool - Status if this media is safe from quarantining.</li>
+<li><code>upload_name</code> - string - The name the media was uploaded with.</li>
 </ul>
 </li>
-<li>
-<p><code>next_token</code>: integer - Indication for pagination. See above.</p>
-</li>
-<li>
-<p><code>total</code> - integer - Total number of media.</p>
-</li>
+<li><code>next_token</code>: integer - Indication for pagination. See above.</li>
+<li><code>total</code> - integer - Total number of media.</li>
 </ul>
+<h3 id="delete-media-uploaded-by-a-user-1"><a class="header" href="#delete-media-uploaded-by-a-user-1">Delete media uploaded by a user</a></h3>
+<p>This API deletes the <em>local</em> media from the disk of your own server
+that a specific <code>user_id</code> has created. This includes any local thumbnails.</p>
+<p>This API will not affect media that has been uploaded to external
+media repositories (e.g https://github.com/turt2live/matrix-media-repo/).</p>
+<p>By default, the API deletes media ordered by descending creation date and ascending media ID.
+The newest media is deleted first. You can change the order with parameters
+<code>order_by</code> and <code>dir</code>. If no <code>limit</code> is set the API deletes <code>100</code> files per request.</p>
+<p>The API is:</p>
+<pre><code>DELETE /_synapse/admin/v1/users/&lt;user_id&gt;/media
+</code></pre>
+<p>To use it, you will need to authenticate by providing an <code>access_token</code> for a
+server admin: <a href="admin_api/../usage/administration/admin_api">Admin API</a></p>
+<p>A response body like the following is returned:</p>
+<pre><code class="language-json">{
+  &quot;deleted_media&quot;: [
+    &quot;abcdefghijklmnopqrstuvwx&quot;
+  ],
+  &quot;total&quot;: 1
+}
+</code></pre>
+<p>The following fields are returned in the JSON response body:</p>
+<ul>
+<li><code>deleted_media</code>: an array of strings - List of deleted <code>media_id</code></li>
+<li><code>total</code>: integer - Total number of deleted <code>media_id</code></li>
+</ul>
+<p><strong>Note</strong>: There is no <code>next_token</code>. This is not useful for deleting media, because
+after deleting media the remaining media have a new order.</p>
+<p><strong>Parameters</strong></p>
+<p>This API has the same parameters as
+<a href="admin_api/user_admin_api.html#list-media-uploaded-by-a-user">List media uploaded by a user</a>.
+With the parameters you can for example limit the number of files to delete at once or
+delete largest/smallest or newest/oldest files first.</p>
 <h2 id="login-as-a-user"><a class="header" href="#login-as-a-user">Login as a user</a></h2>
 <p>Get an access token that can be used to authenticate as that user. Useful for
 when admins wish to do actions on behalf of a user.</p>
@@ -10743,6 +10804,18 @@ server admin: <a href="admin_api/../usage/administration/admin_api">Admin API</a
 <li><code>user_id</code> - The fully qualified MXID: for example, <code>@user:server.com</code>. The user must
 be local.</li>
 </ul>
+<h3 id="check-username-availability"><a class="header" href="#check-username-availability">Check username availability</a></h3>
+<p>Checks to see if a username is available, and valid, for the server. See <a href="https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-register-available">the client-server 
+API</a>
+for more information.</p>
+<p>This endpoint will work even if registration is disabled on the server, unlike 
+<code>/_matrix/client/r0/register/available</code>.</p>
+<p>The API is:</p>
+<pre><code>POST /_synapse/admin/v1/username_availabile?username=$localpart
+</code></pre>
+<p>The request and response format is the same as the <a href="https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-register-available">/_matrix/client/r0/register/available</a> API.</p>
+<p>To use it, you will need to authenticate by providing an <code>access_token</code> for a
+server admin: <a href="admin_api/../usage/administration/admin_api">Admin API</a></p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="version-api"><a class="header" href="#version-api">Version API</a></h1>
 <p>This API returns the running Synapse version and the Python version
 on which Synapse is being run. This is useful when a Synapse instance
@@ -10802,7 +10875,7 @@ the username <code>matrix</code>:</p>
 <p>This gives a Python REPL in which <code>hs</code> gives access to the
 <code>synapse.server.HomeServer</code> object - which in turn gives access to many other
 parts of the process.</p>
-<p>Note that any call which returns a coroutine will need to be wrapped in <code>ensureDeferred</code>.</p>
+<p>Note that, prior to Synapse 1.41, any call which returns a coroutine will need to be wrapped in <code>ensureDeferred</code>.</p>
 <p>As a simple example, retrieving an event from the database:</p>
 <pre><code class="language-pycon">&gt;&gt;&gt; from twisted.internet import defer
 &gt;&gt;&gt; defer.ensureDeferred(hs.get_datastore().get_event('$1416420717069yeQaw:matrix.org'))
@@ -11106,8 +11179,9 @@ small processing times.</p>
 <li><a href="development/contributing_guide.html#8-test-test-test">8. Test, test, test!</a>
 <ul>
 <li><a href="development/contributing_guide.html#run-the-linters">Run the linters.</a></li>
-<li><a href="development/contributing_guide.html#run-the-unit-tests">Run the unit tests.</a></li>
-<li><a href="development/contributing_guide.html#run-the-integration-tests">Run the integration tests.</a></li>
+<li><a href="development/contributing_guide.html#run-the-unit-tests-twisted-trial">Run the unit tests.</a></li>
+<li><a href="development/contributing_guide.html#run-the-integration-tests-sytest">Run the integration tests (SyTest).</a></li>
+<li><a href="development/contributing_guide.html#run-the-integration-tests-complement">Run the integration tests (Complement).</a></li>
 </ul>
 </li>
 <li><a href="development/contributing_guide.html#9-submit-your-patch">9. Submit your patch.</a>
@@ -11232,7 +11306,7 @@ anything was broken. They are slower than the unit tests but will
 typically catch more errors.</p>
 <p>The following command will let you run the integration test with the most common
 configuration:</p>
-<pre><code class="language-sh">$ docker run --rm -it -v /path/where/you/have/cloned/the/repository\:/src:ro -v /path/to/where/you/want/logs\:/logs matrixdotorg/sytest-synapse:py37
+<pre><code class="language-sh">$ docker run --rm -it -v /path/where/you/have/cloned/the/repository\:/src:ro -v /path/to/where/you/want/logs\:/logs matrixdotorg/sytest-synapse:buster
 </code></pre>
 <p>This configuration should generally cover  your needs. For more details about other configurations, see <a href="https://github.com/matrix-org/sytest/blob/develop/docker/README.md">documentation in the SyTest repo</a>.</p>
 <h2 id="run-the-integration-tests-a-hrefhttpsgithubcommatrix-orgcomplementcomplementa"><a class="header" href="#run-the-integration-tests-a-hrefhttpsgithubcommatrix-orgcomplementcomplementa">Run the integration tests (<a href="https://github.com/matrix-org/complement">Complement</a>).</a></h2>
@@ -11268,6 +11342,7 @@ Here is how to run your local Synapse checkout against your local Complement che
 <li>on GitHub, <a href="https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request">create the Pull Request</a>;</li>
 <li>add a <a href="development/contributing_guide.html#changelog">changelog entry</a> and push it to your Pull Request;</li>
 <li>for most contributors, that's all - however, if you are a member of the organization <code>matrix-org</code>, on GitHub, please request a review from <code>matrix.org / Synapse Core</code>.</li>
+<li>if you need to update your PR, please avoid rebasing and just add new commits to your branch.</li>
 </ol>
 <h2 id="changelog"><a class="header" href="#changelog">Changelog</a></h2>
 <p>All changes, even minor ones, need a corresponding changelog / newsfragment
