@@ -101,6 +101,7 @@ class RoomRestV2Servlet(RestServlet):
     def __init__(self, hs: "HomeServer"):
         self.hs = hs
         self.auth = hs.get_auth()
+        self.store = hs.get_datastore()
         self.room_shutdown_bg_handler = hs.get_room_shutdown_bg_handler()
         self.pagination_handler = hs.get_pagination_handler()
 
@@ -136,6 +137,9 @@ class RoomRestV2Servlet(RestServlet):
                 "Param 'force_purge' must be a boolean, if given",
                 Codes.BAD_JSON,
             )
+
+        if not await self.store.get_room(room_id):
+            raise NotFoundError("Unknown room id %s" % (room_id,))
 
         return await self.room_shutdown_bg_handler.start_shutdown_room(
             room_id=room_id,
