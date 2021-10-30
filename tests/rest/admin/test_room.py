@@ -476,7 +476,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     @parameterized.expand(
         [
             ("DELETE", "/_synapse/admin/v2/rooms/%s"),
-            ("GET", "new"),
+            ("GET", "/_synapse/admin/v2/rooms/%s/delete_status"),
         ]
     )
     def test_requester_is_no_admin(self, method: str, url: str):
@@ -494,11 +494,17 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(403, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
-    def test_room_does_not_exist(self):
+    @parameterized.expand(
+        [
+            ("DELETE", "/_synapse/admin/v2/rooms/%s"),
+            ("GET", "/_synapse/admin/v2/rooms/%s/delete_status"),
+        ]
+    )
+    def test_room_does_not_exist(self, method: str, url: str):
         """
         Check that unknown rooms/server return error 404.
         """
-        url = "/_synapse/admin/v2/rooms/%s" % "!unknown:test"
+        url % "!unknown:test"
 
         channel = self.make_request(
             "DELETE",
