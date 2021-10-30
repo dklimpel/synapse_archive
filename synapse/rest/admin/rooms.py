@@ -96,7 +96,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
     If 'purge' is true, it will remove all traces of a room from the database.
     """
 
-    PATTERNS = admin_patterns("/rooms/(?P<room_id>/delete_status[^/]+)$", "v2")
+    PATTERNS = admin_patterns("/rooms/(?P<room_id>[^/]+)/delete_status$", "v2")
 
     def __init__(self, hs: "HomeServer"):
         self.hs = hs
