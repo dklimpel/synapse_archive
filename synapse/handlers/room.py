@@ -1815,8 +1815,8 @@ class RoomShutdownBgHandler:
             raise SynapseError(400, "%s is not a legal room ID" % (room_id,))
 
         # await?
-        if not self.store.get_room(room_id):
-            raise NotFoundError("Unknown room id %s" % (room_id,))
+        # if not await self.store.get_room(room_id):
+        #     raise NotFoundError("Unknown room id %s" % (room_id,))
 
         if new_room_user_id is not None:
             if not self.hs.is_mine_id(new_room_user_id):
