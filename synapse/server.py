@@ -447,6 +447,10 @@ class HomeServer(metaclass=abc.ABCMeta):
         return RoomShutdownHandler(self)
 
     @cache_in_self
+    def get_room_shutdown_bg_handler(self) -> RoomShutdownBgHandler:
+        return RoomShutdownBgHandler(self)
+
+    @cache_in_self
     def get_state_handler(self) -> StateHandler:
         return StateHandler(self)
 

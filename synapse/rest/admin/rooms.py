@@ -81,6 +81,73 @@ class DeleteRoomRestServlet(RestServlet):
         )
 
 
+class RoomRestV2Servlet(RestServlet):
+    """Delete a room from server.
+
+    It is a combination and improvement of shutdown and purge room.
+
+    Shuts down a room by removing all local users from the room.
+    Blocking all future invites and joins to the room is optional.
+
+    If desired any local aliases will be repointed to a new room
+    created by `new_room_user_id` and kicked users will be auto-
+    joined to the new room.
+
+    If 'purge' is true, it will remove all traces of a room from the database.
+    """
+
+    PATTERNS = admin_patterns("/rooms/(?P<room_id>[^/]+)$", "v2")
+
+    def __init__(self, hs: "HomeServer"):
+        self.hs = hs
+        self.auth = hs.get_auth()
+        self.room_shutdown_bg_handler = hs.get_room_shutdown_bg_handler()
+        self.pagination_handler = hs.get_pagination_handler()
+
+    async def on_DELETE(
+        self, request: SynapseRequest, room_id: str
+    ) -> Tuple[int, JsonDict]:
+        requester = await auth.get_user_by_req(request)
+        await assert_user_is_admin(auth, requester.user)
+
+        content = parse_json_object_from_request(request)
+
+        block = content.get("block", False)
+        if not isinstance(block, bool):
+            raise SynapseError(
+                HTTPStatus.BAD_REQUEST,
+                "Param 'block' must be a boolean, if given",
+                Codes.BAD_JSON,
+            )
+
+        purge = content.get("purge", True)
+        if not isinstance(purge, bool):
+            raise SynapseError(
+                HTTPStatus.BAD_REQUEST,
+                "Param 'purge' must be a boolean, if given",
+                Codes.BAD_JSON,
+            )
+
+        force_purge = content.get("force_purge", False)
+        if not isinstance(force_purge, bool):
+            raise SynapseError(
+                HTTPStatus.BAD_REQUEST,
+                "Param 'force_purge' must be a boolean, if given",
+                Codes.BAD_JSON,
+            )
+
+        ret = await self.room_shutdown_bg_handler.start_shutdown_room(
+            room_id=room_id,
+            new_room_user_id=content.get("new_room_user_id"),
+            new_room_name=content.get("room_name"),
+            message=content.get("message"),
+            requester_user_id=requester.user.to_string(),
+            block=block,
+            purge=purge,
+            force=force_purge,
+        )
+
+
 class ListRoomRestServlet(RestServlet):
     """
     List all rooms that are known to the homeserver. Results are returned
