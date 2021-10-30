@@ -545,7 +545,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual("completed", channel.json_body["status"])
+        self.assertEqual("complete", channel.json_body["status"])
         self.assertIn("new_room_id", channel.json_body["result"])
         self.assertIn("kicked_users", channel.json_body["result"])
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
