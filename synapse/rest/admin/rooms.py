@@ -34,7 +34,7 @@ from synapse.rest.admin._base import (
     assert_user_is_admin,
 )
 from synapse.storage.databases.main.room import RoomSortOrder
-from synapse.types import JsonDict, UserID, create_requester
+from synapse.types import JsonDict, RoomID, UserID, create_requester
 from synapse.util import json_decoder
 
 if TYPE_CHECKING:
@@ -137,6 +137,9 @@ class RoomRestV2Servlet(RestServlet):
                 "Param 'force_purge' must be a boolean, if given",
                 Codes.BAD_JSON,
             )
+
+        if not RoomID.is_valid(room_id):
+            raise SynapseError(400, "%s is not a legal room ID" % (room_id,))
 
         if not await self.store.get_room(room_id):
             raise NotFoundError("Unknown room id %s" % (room_id,))
