@@ -485,7 +485,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         """
 
         channel = self.make_request(
-            "DELETE",
+            method,
             url % self.room_id,
             content={},
             access_token=self.other_user_tok,
@@ -504,11 +504,10 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         """
         Check that unknown rooms/server return error 404.
         """
-        url % "!unknown:test"
 
         channel = self.make_request(
-            "DELETE",
-            url,
+            method,
+            url % "!unknown:test",
             content={},
             access_token=self.admin_user_tok,
         )
