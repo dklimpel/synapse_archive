@@ -79,7 +79,7 @@ from synapse.types import (
 from synapse.util import stringutils
 from synapse.util.async_helpers import Linearizer, ReadWriteLock
 from synapse.util.caches.response_cache import ResponseCache
-from synapse.util.stringutils import parse_and_validate_server_name, random_string
+from synapse.util.stringutils import parse_and_validate_server_name
 from synapse.visibility import filter_events_for_client
 
 if TYPE_CHECKING:
