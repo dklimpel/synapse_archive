@@ -1545,7 +1545,6 @@ class RoomShutdownBgHandler:
 
     async def _shutdown_room(
         self,
-        shutdown_id: str,
         room_id: str,
         requester_user_id: str,
         new_room_user_id: Optional[str] = None,
@@ -1652,7 +1651,7 @@ class RoomShutdownBgHandler:
                     logger.info("Shutting down room %r", room_id)
 
                 self._shutdown_by_id[
-                    shutdown_id
+                    room_id
                 ].status = ShutDownStatus.STATUS_KICK_MEMBERS
 
                 users = await self.store.get_users_in_room(room_id)
@@ -1711,7 +1710,7 @@ class RoomShutdownBgHandler:
                         )
                         failed_to_kick_users.append(user_id)
 
-                self._shutdown_by_id[shutdown_id].status = ShutDownStatus.STATUS_ACTIVE
+                self._shutdown_by_id[room_id].status = ShutDownStatus.STATUS_ACTIVE
 
                 # Send message in new room and move aliases
                 if new_room_user_id:
@@ -1734,7 +1733,7 @@ class RoomShutdownBgHandler:
                 else:
                     aliases_for_room = []
 
-                self._shutdown_by_id[shutdown_id].result = {
+                self._shutdown_by_id[room_id].result = {
                     "kicked_users": kicked_users,
                     "failed_to_kick_users": failed_to_kick_users,
                     "local_aliases": aliases_for_room,
@@ -1743,7 +1742,7 @@ class RoomShutdownBgHandler:
 
                 if purge:
                     self._shutdown_by_id[
-                        shutdown_id
+                        room_id
                     ].status = ShutDownStatus.STATUS_PURGE
 
                     # first check that we have no users in this room
@@ -1759,29 +1758,29 @@ class RoomShutdownBgHandler:
                     await self.storage.purge_events.purge_room(room_id)
 
             logger.info("[shutdown] complete")
-            self._shutdown_by_id[shutdown_id].status = ShutDownStatus.STATUS_COMPLETE
+            self._shutdown_by_id[room_id].status = ShutDownStatus.STATUS_COMPLETE
         except Exception:
             f = Failure()
             logger.error(
                 "[shutdown] failed", exc_info=(f.type, f.value, f.getTracebackObject())  # type: ignore
             )
-            self._shutdown_by_id[shutdown_id].status = ShutDownStatus.STATUS_FAILED
+            self._shutdown_by_id[room_id].status = ShutDownStatus.STATUS_FAILED
         finally:
             self._shutdown_in_progress_by_room.discard(room_id)
 
             # remove the purge from the list 48 hours after it completes
             def clear_purge() -> None:
-                del self._shutdown_by_id[shutdown_id]
+                del self._shutdown_by_id[room_id]
 
             self.hs.get_reactor().callLater(48 * 3600, clear_purge)
 
-    def get_shutdown_status(self, shutdown_id: str) -> Optional[ShutDownStatus]:
+    def get_shutdown_status(self, room_id: str) -> Optional[ShutDownStatus]:
         """Get the current status of an active purge
 
         Args:
             purge_id: purge_id returned by start_purge_history
         """
-        return self._shutdown_by_id.get(shutdown_id)
+        return self._shutdown_by_id.get(room_id)
 
     def start_shutdown_room(
         self,
@@ -1793,7 +1792,7 @@ class RoomShutdownBgHandler:
         block: bool = False,
         purge: bool = True,
         force: bool = False,
-    ) -> str:
+    ) -> None:
         """Start off a history purge on a room.
 
         Args:
@@ -1816,16 +1815,13 @@ class RoomShutdownBgHandler:
                     400, "User must be our own: %s" % (new_room_user_id,)
                 )
 
-        shutdown_id = random_string(16)
-
         # we log the purge_id here so that it can be tied back to the
         # request id in the log lines.
-        logger.info("[shutdown] starting shutdown_id %s", shutdown_id)
+        logger.info("[shutdown] starting shutdown room_id %s", room_id)
 
-        self._shutdown_by_id[shutdown_id] = ShutDownStatus()
+        self._shutdown_by_id[room_id] = ShutDownStatus()
         run_in_background(
             self._shutdown_room,
-            shutdown_id,
             room_id,
             requester_user_id,
             new_room_user_id,
@@ -1835,4 +1831,3 @@ class RoomShutdownBgHandler:
             purge,
             force,
         )
-        return shutdown_id

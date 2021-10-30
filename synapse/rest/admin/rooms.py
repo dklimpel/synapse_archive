@@ -96,7 +96,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
     If 'purge' is true, it will remove all traces of a room from the database.
     """
 
-    PATTERNS = admin_patterns("/rooms/delete_status/(?P<shutdown_id>[^/]+)$", "v2")
+    PATTERNS = admin_patterns("/rooms/(?P<room_id>/delete_status[^/]+)$", "v2")
 
     def __init__(self, hs: "HomeServer"):
         self.hs = hs
@@ -104,14 +104,14 @@ class DeleteRoomStatusRestServlet(RestServlet):
         self.room_shutdown_bg_handler = hs.get_room_shutdown_bg_handler()
 
     async def on_GET(
-        self, request: SynapseRequest, shutdown_id: str
+        self, request: SynapseRequest, room_id: str
     ) -> Tuple[int, JsonDict]:
 
         await assert_requester_is_admin(self.auth, request)
 
-        shutdown_status = self.room_shutdown_bg_handler.get_shutdown_status(shutdown_id)
+        shutdown_status = self.room_shutdown_bg_handler.get_shutdown_status(room_id)
         if shutdown_status is None:
-            raise NotFoundError("shutdown id '%s' not found" % shutdown_id)
+            raise NotFoundError("room_id '%s' not found" % room_id)
 
         return 200, shutdown_status.asdict()
 
@@ -179,7 +179,7 @@ class RoomRestV2Servlet(RestServlet):
         if not await self.store.get_room(room_id):
             raise NotFoundError("Unknown room id %s" % (room_id,))
 
-        ret = self.room_shutdown_bg_handler.start_shutdown_room(
+        self.room_shutdown_bg_handler.start_shutdown_room(
             room_id=room_id,
             new_room_user_id=content.get("new_room_user_id"),
             new_room_name=content.get("room_name"),
@@ -190,7 +190,7 @@ class RoomRestV2Servlet(RestServlet):
             force=force_purge,
         )
 
-        return 200, {"shutdown_id": ret}
+        return 200, {}
 
 
 class ListRoomRestServlet(RestServlet):
