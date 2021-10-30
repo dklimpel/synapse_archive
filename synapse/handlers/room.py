@@ -28,8 +28,13 @@ from typing import (
     Dict,
     List,
     Optional,
+    Set,
     Tuple,
 )
+
+import attr
+
+from twisted.python.failure import Failure
 
 from synapse.api.constants import (
     EventContentFields,
@@ -55,6 +60,7 @@ from synapse.api.room_versions import KNOWN_ROOM_VERSIONS, RoomVersion
 from synapse.event_auth import validate_event_for_room_version
 from synapse.events import EventBase
 from synapse.events.utils import copy_power_levels_contents
+from synapse.logging.context import run_in_background
 from synapse.rest.admin._base import assert_user_is_admin
 from synapse.storage.state import StateFilter
 from synapse.streams import EventSource
@@ -71,9 +77,9 @@ from synapse.types import (
     create_requester,
 )
 from synapse.util import stringutils
-from synapse.util.async_helpers import Linearizer
+from synapse.util.async_helpers import Linearizer, ReadWriteLock
 from synapse.util.caches.response_cache import ResponseCache
-from synapse.util.stringutils import parse_and_validate_server_name
+from synapse.util.stringutils import parse_and_validate_server_name, random_string
 from synapse.visibility import filter_events_for_client
 
 if TYPE_CHECKING:
@@ -1531,6 +1537,8 @@ class RoomShutdownBgHandler:
         self._shutdown_in_progress_by_room: Set[str] = set()
         # map from purge id to ShutDownStatus
         self._shutdown_by_id: Dict[str, ShutDownStatus] = {}
+
+        self._server_name = hs.hostname
 
     async def _shutdown_room(
         self,
