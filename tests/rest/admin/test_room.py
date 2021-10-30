@@ -437,6 +437,8 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
 
 class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
+    # fehlende tests: doppelt gleiche ID abfragen
+    # löschen des statuses
     servlets = [
         synapse.rest.admin.register_servlets,
         login.register_servlets,

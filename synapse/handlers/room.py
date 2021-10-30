@@ -1295,7 +1295,6 @@ class RoomShutdownHandler:
         self._room_creation_handler = hs.get_room_creation_handler()
         self._replication = hs.get_replication_data_handler()
         self.event_creation_handler = hs.get_event_creation_handler()
-        self.state = hs.get_state_handler()
         self.store = hs.get_datastore()
 
     async def shutdown_room(
@@ -1535,7 +1534,6 @@ class RoomShutdownBgHandler:
         self._room_creation_handler = hs.get_room_creation_handler()
         self._replication = hs.get_replication_data_handler()
         self.event_creation_handler = hs.get_event_creation_handler()
-        self.state = hs.get_state_handler()
         self.store = hs.get_datastore()
         self.storage = hs.get_storage()
 

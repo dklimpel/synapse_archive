@@ -403,6 +403,13 @@ several minutes or longer.
 The local server will only have the power to move local user and room aliases to
 the new room. Users on other servers will be unaffected.
 
+## Version 1 (old version)
+
+This version works synchronous. That means you get the response if the server has
+finised this action. This may take a long time. If you requests the same action
+a second time if the server is not finished the first one, can the server hang up.
+This is fixed in Version 2 of this API. The parameters are the same in both APIs.
+
 The API is:
 
 ```
@@ -439,6 +446,34 @@ A response body like the following is returned:
     "new_room_id": "!newroomid:example.com"
 }
 ```
+
+## Version 2 (new version)
+
+This version works asynchronous. That means you get the response from server immediately.
+The server works on that task in background. You can request the satus of this action.
+
+The API is:
+
+```
+DELETE /_synapse/admin/v2/rooms/<room_id>
+```
+
+with a body of:
+
+```json
+{
+    "new_room_user_id": "@someuser:example.com",
+    "room_name": "Content Violation Notification",
+    "message": "Bad Room has been shutdown due to content violations on this server. Please review our Terms of Service.",
+    "block": true,
+    "purge": true
+}
+```
+
+To use it, you will need to authenticate by providing an ``access_token`` for a
+server admin: see [Admin API](../usage/administration/admin_api).
+
+There is no response body. Only the HTTP status 200.
 
 **Parameters**
 
