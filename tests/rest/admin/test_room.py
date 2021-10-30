@@ -701,10 +701,19 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(None, channel.json_body["new_room_id"])
-        self.assertEqual(self.other_user, channel.json_body["kicked_users"][0])
-        self.assertIn("failed_to_kick_users", channel.json_body)
-        self.assertIn("local_aliases", channel.json_body)
+
+        channel = self.make_request(
+            "GET",
+            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("complete", channel.json_body["status"])
+        self.assertIsNone(channel.json_body["result"]["new_room_id"])
+        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
+        self.assertIn("failed_to_kick_users", channel.json_body["result"])
+        self.assertIn("local_aliases", channel.json_body["result"])
 
         with self.assertRaises(AssertionError):
             self._is_purged(self.room_id)
