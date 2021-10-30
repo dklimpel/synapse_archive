@@ -1634,7 +1634,7 @@ class RoomShutdownBgHandler:
                     logger.info(
                         "Shutting down room %r, joining to new room: %r",
                         room_id,
-                        new_room_id
+                        new_room_id,
                     )
 
                     # We now wait for the create room to come back in via replication so
