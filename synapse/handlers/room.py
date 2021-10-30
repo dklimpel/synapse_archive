@@ -1512,6 +1512,8 @@ class ShutDownStatus:
     # Tracks whether this request has completed. One of STATUS_{ACTIVE,COMPLETE,FAILED}.
     status: int = STATUS_ACTIVE
 
+    result: Dict = {}
+
     def asdict(self) -> JsonDict:
         return {"status": ShutDownStatus.STATUS_TEXT[self.status]}
 
@@ -1532,6 +1534,7 @@ class RoomShutdownBgHandler:
         self.event_creation_handler = hs.get_event_creation_handler()
         self.state = hs.get_state_handler()
         self.store = hs.get_datastore()
+        self.storage = hs.get_storage()
 
         self.shutdown_lock = ReadWriteLock()
         self._shutdown_in_progress_by_room: Set[str] = set()
@@ -1542,6 +1545,7 @@ class RoomShutdownBgHandler:
 
     async def _shutdown_room(
         self,
+        shutdown_id: str,
         room_id: str,
         requester_user_id: str,
         new_room_user_id: Optional[str] = None,
