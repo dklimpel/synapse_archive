@@ -539,7 +539,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{shutdown_id}/delete_status",
+            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
