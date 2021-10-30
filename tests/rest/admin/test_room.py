@@ -473,7 +473,10 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
         self.url = "/_synapse/admin/v2/rooms/%s" % self.room_id
 
-    @parameterized.expand(["DELETE", "GET"], [self.url, "new"])
+    @parameterized.expand(
+        ["DELETE", "GET"],
+        ["/_synapse/admin/v2/rooms/%s", "new"],
+    )
     def test_requester_is_no_admin(self, method: str, url: str):
         """
         If the user is not a server admin, an error 403 is returned.
@@ -481,7 +484,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "DELETE",
-            self.url,
+            url % self.room_id,
             content={},
             access_token=self.other_user_tok,
         )
