@@ -1734,13 +1734,12 @@ class RoomShutdownBgHandler:
                 else:
                     aliases_for_room = []
 
-                result = {
+                self._shutdown_by_id[shutdown_id].result = {
                     "kicked_users": kicked_users,
                     "failed_to_kick_users": failed_to_kick_users,
                     "local_aliases": aliases_for_room,
                     "new_room_id": new_room_id,
                 }
-                self._shutdown_by_id[shutdown_id].result = result
 
                 if purge:
                     self._shutdown_by_id[
