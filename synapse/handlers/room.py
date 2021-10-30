@@ -1515,7 +1515,10 @@ class ShutDownStatus:
     result: Dict = {}
 
     def asdict(self) -> JsonDict:
-        return {"status": ShutDownStatus.STATUS_TEXT[self.status], "result": self.result}
+        return {
+            "status": ShutDownStatus.STATUS_TEXT[self.status],
+            "result": self.result
+        }
 
 
 class RoomShutdownBgHandler:
@@ -1741,9 +1744,7 @@ class RoomShutdownBgHandler:
                 }
 
                 if purge:
-                    self._shutdown_by_id[
-                        room_id
-                    ].status = ShutDownStatus.STATUS_PURGE
+                    self._shutdown_by_id[room_id].status = ShutDownStatus.STATUS_PURGE
 
                     # first check that we have no users in this room
                     if not force:

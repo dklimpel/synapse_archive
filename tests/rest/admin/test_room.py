@@ -427,17 +427,13 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET", url.encode("ascii"), access_token=self.admin_user_tok
         )
-        self.assertEqual(
-            expect_code, channel.code, msg=channel.json_body
-        )
+        self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
         url = "events?timeout=0&room_id=" + room_id
         channel = self.make_request(
             "GET", url.encode("ascii"), access_token=self.admin_user_tok
         )
-        self.assertEqual(
-            expect_code, channel.code, msg=channel.json_body
-        )
+        self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
 
 class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
@@ -642,7 +638,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
         self.assertIsNone(channel.json_body["result"]["new_room_id"])
-        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
+        self.assertEqual(
+            self.other_user, channel.json_body["result"]["kicked_users"][0]
+        )
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
         self.assertIn("local_aliases", channel.json_body["result"])
 
@@ -682,7 +680,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
         self.assertIsNone(channel.json_body["result"]["new_room_id"])
-        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
+        self.assertEqual(
+            self.other_user, channel.json_body["result"]["kicked_users"][0]
+        )
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
         self.assertIn("local_aliases", channel.json_body["result"])
 
@@ -723,7 +723,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
         self.assertIsNone(channel.json_body["result"]["new_room_id"])
-        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
+        self.assertEqual(
+            self.other_user, channel.json_body["result"]["kicked_users"][0]
+        )
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
         self.assertIn("local_aliases", channel.json_body["result"])
 
@@ -777,7 +779,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
-        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
+        self.assertEqual(
+            self.other_user, channel.json_body["result"]["kicked_users"][0]
+        )
         self.assertIn("new_room_id", channel.json_body["result"])
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
         self.assertIn("local_aliases", channel.json_body["result"])
@@ -832,7 +836,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
-        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
+        self.assertEqual(
+            self.other_user, channel.json_body["result"]["kicked_users"][0]
+        )
         self.assertIn("new_room_id", channel.json_body["result"])
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
         self.assertIn("local_aliases", channel.json_body["result"])
@@ -887,17 +893,13 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         channel = self.make_request(
             "GET", url.encode("ascii"), access_token=self.admin_user_tok
         )
-        self.assertEqual(
-            expect_code, channel.code, msg=channel.json_body
-        )
+        self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
         url = "events?timeout=0&room_id=" + room_id
         channel = self.make_request(
             "GET", url.encode("ascii"), access_token=self.admin_user_tok
         )
-        self.assertEqual(
-            expect_code, channel.code, msg=channel.json_body
-        )
+        self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
 
 class RoomTestCase(unittest.HomeserverTestCase):
@@ -1019,9 +1021,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
                 url.encode("ascii"),
                 access_token=self.admin_user_tok,
             )
-            self.assertEqual(
-                200, channel.code, msg=channel.json_body
-            )
+            self.assertEqual(200, channel.code, msg=channel.json_body)
 
             self.assertTrue("rooms" in channel.json_body)
             for r in channel.json_body["rooms"]:
@@ -1160,9 +1160,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
                 {"room_id": room_id},
                 access_token=admin_user_tok,
             )
-            self.assertEqual(
-                200, channel.code, msg=channel.json_body
-            )
+            self.assertEqual(200, channel.code, msg=channel.json_body)
 
             # Set this new alias as the canonical alias for this room
             self.helper.send_state(
@@ -1872,9 +1870,7 @@ class JoinAliasRoomTestCase(unittest.HomeserverTestCase):
                 % (room_id, events[midway]["event_id"]),
                 access_token=tok,
             )
-            self.assertEquals(
-                403, channel.code, msg=channel.json_body
-            )
+            self.assertEquals(403, channel.code, msg=channel.json_body)
             self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
     def test_context_as_admin(self):
