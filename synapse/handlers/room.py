@@ -1499,9 +1499,8 @@ class ShutDownStatus:
         STATUS_ACTIVE: "active",
         STATUS_COMPLETE: "complete",
         STATUS_FAILED: "failed",
-
-        STATUS_PURGE: "",
-        STATUS_KICK_MEMBERS: "",
+        STATUS_PURGE: "purging",
+        STATUS_KICK_MEMBERS: "kicking members",
     }
 
     # Tracks whether this request has completed. One of STATUS_{ACTIVE,COMPLETE,FAILED}.
@@ -1607,7 +1606,6 @@ class RoomShutdownBgHandler:
                     400, "User must be our own: %s" % (new_room_user_id,)
                 )
 
-
         self._shutdown_in_progress_by_room.add(room_id)
         try:
             with await self.shutdown_lock.write(room_id):
@@ -1634,14 +1632,18 @@ class RoomShutdownBgHandler:
                     new_room_id = info["room_id"]
 
                     logger.info(
-                        "Shutting down room %r, joining to new room: %r", room_id, new_room_id
+                        "Shutting down room %r, joining to new room: %r",
+                        room_id,
+                        new_room_id
                     )
 
                     # We now wait for the create room to come back in via replication so
                     # that we can assume that all the joins/invites have propagated before
                     # we try and auto join below.
                     await self._replication.wait_for_stream_position(
-                        self.hs.config.worker.events_shard_config.get_instance(new_room_id),
+                        self.hs.config.worker.events_shard_config.get_instance(
+                            new_room_id
+                        ),
                         "events",
                         stream_id,
                     )
@@ -1649,7 +1651,9 @@ class RoomShutdownBgHandler:
                     new_room_id = None
                     logger.info("Shutting down room %r", room_id)
 
-                self._shutdown_by_id[shutdown_id].status = ShutDownStatus.STATUS_KICK_MEMBERS
+                self._shutdown_by_id[
+                    shutdown_id
+                ].status = ShutDownStatus.STATUS_KICK_MEMBERS
 
                 users = await self.store.get_users_in_room(room_id)
                 kicked_users = []
@@ -1677,12 +1681,16 @@ class RoomShutdownBgHandler:
 
                         # Wait for leave to come in over replication before trying to forget.
                         await self._replication.wait_for_stream_position(
-                            self.hs.config.worker.events_shard_config.get_instance(room_id),
+                            self.hs.config.worker.events_shard_config.get_instance(
+                                room_id
+                            ),
                             "events",
                             stream_id,
                         )
 
-                        await self.room_member_handler.forget(target_requester.user, room_id)
+                        await self.room_member_handler.forget(
+                            target_requester.user, room_id
+                        )
 
                         # Join users to new room
                         if new_room_user_id:
@@ -1735,13 +1743,19 @@ class RoomShutdownBgHandler:
                 self._shutdown_by_id[shutdown_id].result = result
 
                 if purge:
-                    self._shutdown_by_id[shutdown_id].status = ShutDownStatus.STATUS_PURGE
+                    self._shutdown_by_id[
+                        shutdown_id
+                    ].status = ShutDownStatus.STATUS_PURGE
 
                     # first check that we have no users in this room
                     if not force:
-                        joined = await self.store.is_host_joined(room_id, self._server_name)
+                        joined = await self.store.is_host_joined(
+                            room_id, self._server_name
+                        )
                         if joined:
-                            raise SynapseError(400, "Users are still joined to this room")
+                            raise SynapseError(
+                                400, "Users are still joined to this room"
+                            )
 
                     await self.storage.purge_events.purge_room(room_id)
 
