@@ -471,7 +471,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.room_id = self.helper.create_room_as(
             self.other_user, tok=self.other_user_tok
         )
-        self.url = "/_synapse/admin/v2/rooms/%s" % self.room_id
+        self.url = f"/_synapse/admin/v2/rooms/{self.room_id}"
+        self.url_status = f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status"
 
     @parameterized.expand(
         [
@@ -550,7 +551,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            self.url_status,
             access_token=self.admin_user_tok,
         )
 
@@ -634,7 +635,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            self.url_status,
             access_token=self.admin_user_tok,
         )
 
@@ -674,7 +675,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            self.url_status,
             access_token=self.admin_user_tok,
         )
 
@@ -715,7 +716,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            self.url_status,
             access_token=self.admin_user_tok,
         )
 
@@ -770,7 +771,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            self.url_status,
             access_token=self.admin_user_tok,
         )
 
@@ -825,7 +826,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         channel = self.make_request(
             "GET",
-            f"/_synapse/admin/v2/rooms/{self.room_id}/delete_status",
+            self.url_status,
             access_token=self.admin_user_tok,
         )
 
@@ -882,7 +883,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def _assert_peek(self, room_id, expect_code):
         """Assert that the admin user can (or cannot) peek into the room."""
 
-        url = "rooms/%s/initialSync" % (room_id,)
+        url = f"rooms/{room_id}/initialSync"
         channel = self.make_request(
             "GET", url.encode("ascii"), access_token=self.admin_user_tok
         )
