@@ -1517,7 +1517,7 @@ class ShutDownStatus:
     def asdict(self) -> JsonDict:
         return {
             "status": ShutDownStatus.STATUS_TEXT[self.status],
-            "result": self.result
+            "result": self.result,
         }
 
 
