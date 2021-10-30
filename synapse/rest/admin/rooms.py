@@ -81,6 +81,41 @@ class DeleteRoomRestServlet(RestServlet):
         )
 
 
+class DeleteRoomStatusRestServlet(RestServlet):
+    """Delete a room from server.
+
+    It is a combination and improvement of shutdown and purge room.
+
+    Shuts down a room by removing all local users from the room.
+    Blocking all future invites and joins to the room is optional.
+
+    If desired any local aliases will be repointed to a new room
+    created by `new_room_user_id` and kicked users will be auto-
+    joined to the new room.
+
+    If 'purge' is true, it will remove all traces of a room from the database.
+    """
+
+    PATTERNS = admin_patterns("/rooms/delete_status/(?P<shutdown_id>[^/]+)$", "v2")
+
+    def __init__(self, hs: "HomeServer"):
+        self.hs = hs
+        self.auth = hs.get_auth()
+        self.room_shutdown_bg_handler = hs.get_room_shutdown_bg_handler()
+
+    async def on_GET(
+        self, request: SynapseRequest, shutdown_id: str
+    ) -> Tuple[int, JsonDict]:
+
+        await assert_requester_is_admin(self.auth, request)
+
+        shutdown_status = self.room_shutdown_bg_handler.get_shutdown_status(shutdown_id)
+        if shutdown_status is None:
+            raise NotFoundError("shutdown id '%s' not found" % shutdown_id)
+
+        return 200, shutdown_status.asdict()
+
+
 class RoomRestV2Servlet(RestServlet):
     """Delete a room from server.
 

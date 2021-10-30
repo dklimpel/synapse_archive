@@ -536,6 +536,17 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIn("shutdown_id", channel.json_body)
+        shutdown_id = channel.json_body
+
+        channel = self.make_request(
+            "GET",
+            f"/_synapse/admin/v2/rooms/delete_status/{shutdown_id}",
+            access_token=self.admin_user_tok,
+        )
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(200, channel.json_body, msg=channel.json_body)
+
         self.assertIn("new_room_id", channel.json_body)
         self.assertIn("kicked_users", channel.json_body)
         self.assertIn("failed_to_kick_users", channel.json_body)
