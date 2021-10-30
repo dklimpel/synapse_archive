@@ -1606,18 +1606,6 @@ class RoomShutdownBgHandler:
         if not message:
             message = self.DEFAULT_MESSAGE
 
-        if not RoomID.is_valid(room_id):
-            raise SynapseError(400, "%s is not a legal room ID" % (room_id,))
-
-        if not await self.store.get_room(room_id):
-            raise NotFoundError("Unknown room id %s" % (room_id,))
-
-        if new_room_user_id is not None:
-            if not self.hs.is_mine_id(new_room_user_id):
-                raise SynapseError(
-                    400, "User must be our own: %s" % (new_room_user_id,)
-                )
-
         self._shutdown_in_progress_by_room.add(room_id)
         try:
             with await self.shutdown_lock.write(room_id):
@@ -1822,6 +1810,19 @@ class RoomShutdownBgHandler:
             raise SynapseError(
                 400, "History purge already in progress for %s" % (room_id,)
             )
+
+        if not RoomID.is_valid(room_id):
+            raise SynapseError(400, "%s is not a legal room ID" % (room_id,))
+
+        # await?
+        if not self.store.get_room(room_id):
+            raise NotFoundError("Unknown room id %s" % (room_id,))
+
+        if new_room_user_id is not None:
+            if not self.hs.is_mine_id(new_room_user_id):
+                raise SynapseError(
+                    400, "User must be our own: %s" % (new_room_user_id,)
+                )
 
         shutdown_id = random_string(16)
 
