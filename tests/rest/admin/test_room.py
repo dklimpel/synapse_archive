@@ -474,8 +474,10 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.url = "/_synapse/admin/v2/rooms/%s" % self.room_id
 
     @parameterized.expand(
-        ["DELETE", "GET"],
-        ["/_synapse/admin/v2/rooms/%s", "new"],
+        [
+            ("DELETE", "/_synapse/admin/v2/rooms/%s"),
+            ("GET", "new"),
+        ]
     )
     def test_requester_is_no_admin(self, method: str, url: str):
         """
