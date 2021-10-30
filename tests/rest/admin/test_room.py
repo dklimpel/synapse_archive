@@ -545,12 +545,11 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(200, channel.json_body, msg=channel.json_body)
-
-        self.assertIn("new_room_id", channel.json_body)
-        self.assertIn("kicked_users", channel.json_body)
-        self.assertIn("failed_to_kick_users", channel.json_body)
-        self.assertIn("local_aliases", channel.json_body)
+        self.assertEqual("completed", channel.json_body["status"])
+        self.assertIn("new_room_id", channel.json_body["result"])
+        self.assertIn("kicked_users", channel.json_body["result"])
+        self.assertIn("failed_to_kick_users", channel.json_body["result"])
+        self.assertIn("local_aliases", channel.json_body["result"])
 
     def test_new_room_user_is_not_local(self):
         """
