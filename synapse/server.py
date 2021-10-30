@@ -95,6 +95,7 @@ from synapse.handlers.register import RegistrationHandler
 from synapse.handlers.room import (
     RoomContextHandler,
     RoomCreationHandler,
+    RoomShutdownBgHandler,
     RoomShutdownHandler,
 )
 from synapse.handlers.room_batch import RoomBatchHandler
