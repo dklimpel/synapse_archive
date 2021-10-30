@@ -1515,7 +1515,7 @@ class ShutDownStatus:
     result: Dict = {}
 
     def asdict(self) -> JsonDict:
-        return {"status": ShutDownStatus.STATUS_TEXT[self.status]}
+        return {"status": ShutDownStatus.STATUS_TEXT[self.status], "result": self.result}
 
 
 class RoomShutdownBgHandler:
