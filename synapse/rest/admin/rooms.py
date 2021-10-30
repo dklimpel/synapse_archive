@@ -107,8 +107,9 @@ class RoomRestV2Servlet(RestServlet):
     async def on_DELETE(
         self, request: SynapseRequest, room_id: str
     ) -> Tuple[int, JsonDict]:
-        requester = await auth.get_user_by_req(request)
-        await assert_user_is_admin(auth, requester.user)
+
+        requester = await self.auth.get_user_by_req(request)
+        await assert_user_is_admin(self.auth, requester.user)
 
         content = parse_json_object_from_request(request)
 
@@ -136,7 +137,7 @@ class RoomRestV2Servlet(RestServlet):
                 Codes.BAD_JSON,
             )
 
-        ret = await self.room_shutdown_bg_handler.start_shutdown_room(
+        return await self.room_shutdown_bg_handler.start_shutdown_room(
             room_id=room_id,
             new_room_user_id=content.get("new_room_user_id"),
             new_room_name=content.get("room_name"),
