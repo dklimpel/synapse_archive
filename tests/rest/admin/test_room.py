@@ -17,7 +17,7 @@ import urllib.parse
 from typing import List, Optional
 from unittest.mock import Mock
 
-from parameterized import parameterized_class
+from parameterized import parameterized, parameterized_class
 
 import synapse.rest.admin
 from synapse.api.constants import EventTypes, Membership
@@ -473,7 +473,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
         self.url = "/_synapse/admin/v2/rooms/%s" % self.room_id
 
-    def test_requester_is_no_admin(self):
+    @parameterized.expand(["DELETE", "GET"], [self.url, "new"])
+    def test_requester_is_no_admin(self, method: str, url: str):
         """
         If the user is not a server admin, an error 403 is returned.
         """
