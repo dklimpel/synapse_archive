@@ -537,7 +537,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("shutdown_id", channel.json_body)
-        shutdown_id = channel.json_body
+        shutdown_id = channel.json_body["shutdown_id"]
 
         channel = self.make_request(
             "GET",
