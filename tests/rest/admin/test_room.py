@@ -627,19 +627,10 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
-        self.assertEqual(None, channel.json_body["result"]["new_room_id"])
         self.assertIsNone(channel.json_body["result"]["new_room_id"])
-        self.assertIn("kicked_users", channel.json_body["result"])
+        self.assertEqual(self.other_user, channel.json_body["result"]["kicked_users"][0])
         self.assertIn("failed_to_kick_users", channel.json_body["result"])
         self.assertIn("local_aliases", channel.json_body["result"])
-        
-        
-        
-        
-        self.assertEqual(None, channel.json_body["new_room_id"])
-        self.assertEqual(self.other_user, channel.json_body["kicked_users"][0])
-        self.assertIn("failed_to_kick_users", channel.json_body)
-        self.assertIn("local_aliases", channel.json_body)
 
         self._is_purged(self.room_id)
         self._is_blocked(self.room_id, expect=True)
