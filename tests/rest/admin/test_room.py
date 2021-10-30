@@ -772,7 +772,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         # Test that member has moved to new room
         self._is_member(
-            room_id=channel.json_body["new_room_id"], user_id=self.other_user
+            room_id=channel.json_body["result"]["new_room_id"], user_id=self.other_user
         )
 
         self._is_purged(self.room_id)
