@@ -101,7 +101,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
     def __init__(self, hs: "HomeServer"):
         self.hs = hs
         self.auth = hs.get_auth()
-        self.room_shutdown_bg_handler = hs.get_room_shutdown_bg_handler()
+        self.pagination_handler = hs.get_pagination_handler()
 
     async def on_GET(
         self, request: SynapseRequest, room_id: str
@@ -109,7 +109,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
 
         await assert_requester_is_admin(self.auth, request)
 
-        shutdown_status = self.room_shutdown_bg_handler.get_shutdown_status(room_id)
+        shutdown_status = self.pagination_handler.get_shutdown_status(room_id)
         if shutdown_status is None:
             raise NotFoundError("room_id '%s' not found" % room_id)
 
@@ -137,7 +137,6 @@ class RoomRestV2Servlet(RestServlet):
         self.hs = hs
         self.auth = hs.get_auth()
         self.store = hs.get_datastore()
-        self.room_shutdown_bg_handler = hs.get_room_shutdown_bg_handler()
         self.pagination_handler = hs.get_pagination_handler()
 
     async def on_DELETE(
@@ -179,7 +178,7 @@ class RoomRestV2Servlet(RestServlet):
         if not await self.store.get_room(room_id):
             raise NotFoundError("Unknown room id %s" % (room_id,))
 
-        self.room_shutdown_bg_handler.start_shutdown_room(
+        self.pagination_handler.start_shutdown_room(
             room_id=room_id,
             new_room_user_id=content.get("new_room_user_id"),
             new_room_name=content.get("room_name"),

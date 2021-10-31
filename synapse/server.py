@@ -95,7 +95,6 @@ from synapse.handlers.register import RegistrationHandler
 from synapse.handlers.room import (
     RoomContextHandler,
     RoomCreationHandler,
-    RoomShutdownBgHandler,
     RoomShutdownHandler,
 )
 from synapse.handlers.room_batch import RoomBatchHandler
@@ -446,10 +445,6 @@ class HomeServer(metaclass=abc.ABCMeta):
     @cache_in_self
     def get_room_shutdown_handler(self) -> RoomShutdownHandler:
         return RoomShutdownHandler(self)
-
-    @cache_in_self
-    def get_room_shutdown_bg_handler(self) -> RoomShutdownBgHandler:
-        return RoomShutdownBgHandler(self)
 
     @cache_in_self
     def get_state_handler(self) -> StateHandler:
