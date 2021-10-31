@@ -663,11 +663,11 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.reactor.advance(5)
 
-        status_channel = self.make_request(
-            "GET",
-            self.url_status,
-            access_token=self.admin_user_tok,
-        )
+        #status_channel = self.make_request(
+        #    "GET",
+        #    self.url_status,
+        #    access_token=self.admin_user_tok,
+        #)
 
         second_channel = self.make_request(
             "DELETE",
