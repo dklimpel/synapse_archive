@@ -4,6 +4,9 @@
 - [Room Members API](#room-members-api)
 - [Room State API](#room-state-api)
 - [Delete Room API](#delete-room-api)
+  * [Version 1 (old version)](#version-1-old-version)
+  * [Version 2 (new version)](#version-2-new-version)
+  * [Status of deleting rooms](#status-of-deleting-rooms)
   * [Undoing room shutdowns](#undoing-room-shutdowns)
 - [Make Room Admin API](#make-room-admin-api)
 - [Forward Extremities Admin API](#forward-extremities-admin-api)
@@ -560,7 +563,6 @@ The following fields are returned in the JSON response body:
   - `local_aliases` - An array of strings representing the local aliases that were migrated from
     the old room to the new.
   - `new_room_id` - A string representing the room ID of the new room.
-
 
 ## Undoing room deletions
 
