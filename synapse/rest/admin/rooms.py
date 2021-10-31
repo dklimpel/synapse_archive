@@ -109,11 +109,11 @@ class DeleteRoomStatusRestServlet(RestServlet):
 
         await assert_requester_is_admin(self.auth, request)
 
-        shutdown_status = self.pagination_handler.get_shutdown_status(room_id)
-        if shutdown_status is None:
+        purge_status = self.pagination_handler.get_purge_status(room_id)
+        if purge_status is None:
             raise NotFoundError("room_id '%s' not found" % room_id)
 
-        return 200, get_purge_status.asdict_with_result()
+        return 200, purge_status.asdict_with_result()
 
 
 class RoomRestV2Servlet(RestServlet):
