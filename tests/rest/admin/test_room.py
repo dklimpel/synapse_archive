@@ -644,7 +644,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def test_delete_same_room_twice(self):
         """Test that the status is removed after expiration."""
 
-        total_user = 15
+        total_user = 50
         for number in range(total_user):
             new_user_name = "user_" + str(number)
             new_user = self.register_user(new_user_name, "pass")
@@ -661,7 +661,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
-        self.reactor.advance(1)
+        self.reactor.advance(5)
 
         status_channel = self.make_request(
             "GET",
