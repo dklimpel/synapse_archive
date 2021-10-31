@@ -658,7 +658,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             self.url.encode("ascii"),
             content=body,
             access_token=self.admin_user_tok,
-            await_result=false,
+            await_result=False,
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
