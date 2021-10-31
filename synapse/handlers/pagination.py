@@ -19,7 +19,7 @@ import attr
 
 from twisted.python.failure import Failure
 
-from synapse.api.constants import EventTypes, Membership
+from synapse.api.constants import EventTypes, Membership, RoomCreationPreset
 from synapse.api.errors import SynapseError
 from synapse.api.filtering import Filter
 from synapse.logging.context import run_in_background
