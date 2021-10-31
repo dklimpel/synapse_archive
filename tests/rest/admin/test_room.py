@@ -665,9 +665,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         status_channel = self.make_request(
             "GET",
-            self.url_status.encode("ascii"),
+            self.url_status,
             access_token=self.admin_user_tok,
-            await_result=False,
         )
 
         second_channel = self.make_request(
