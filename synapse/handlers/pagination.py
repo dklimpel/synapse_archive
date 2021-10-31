@@ -704,7 +704,7 @@ class PaginationHandler:
                     self._purges_by_id[room_id].status = PurgeStatus.STATUS_ACTIVE
 
                     # first check that we have no users in this room
-                    if not force:
+                    if not force_purge:
                         joined = await self.store.is_host_joined(
                             room_id, self._server_name
                         )
