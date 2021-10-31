@@ -641,6 +641,44 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(404, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
+    def test_delete_same_room_twice(self):
+        """Test that the status is removed after expiration."""
+
+        total_user = 50
+        for number in range(total_user):
+            new_user = self.register_user("user_" + number, "pass")
+            new_user_tok = self.login("user_" + number, "pass")
+            self.helper.join(self.room_id, new_user, tok=new_user_tok)
+
+        body={"new_room_user_id": self.admin_user}
+
+        channel = self.make_request(
+            "DELETE",
+            self.url.encode("ascii"),
+            content=body,
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        channel = self.make_request(
+            "DELETE",
+            self.url.encode("ascii"),
+            content=body,
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        channel = self.make_request(
+            "GET",
+            self.url_status,
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("complete", channel.json_body["status"])
+
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
         Members will not be moved to a new room and will not receive a message.
