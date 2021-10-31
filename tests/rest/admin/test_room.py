@@ -524,7 +524,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         """
 
         channel = self.make_request(
-            "DELETE",
+            method,
             url % "invalidroom",
             content={},
             access_token=self.admin_user_tok,
