@@ -676,7 +676,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         fake_channel.await_result()
-        self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
+        self.assertEqual(200, fake_channel.code, msg=fake_channel.json_body)
+        self.assertEqual("complete", fake_channel.json_body["status"])
 
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
