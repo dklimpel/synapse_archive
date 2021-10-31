@@ -26,7 +26,7 @@ from synapse.logging.context import run_in_background
 from synapse.metrics.background_process_metrics import run_as_background_process
 from synapse.storage.state import StateFilter
 from synapse.streams.config import PaginationConfig
-from synapse.types import JsonDict, Requester
+from synapse.types import JsonDict, Requester, create_requester
 from synapse.util.async_helpers import ReadWriteLock
 from synapse.util.stringutils import random_string
 from synapse.visibility import filter_events_for_client
@@ -97,6 +97,8 @@ class PaginationHandler:
         self.store = hs.get_datastore()
         self.storage = hs.get_storage()
         self.state_store = self.storage.state
+        self.room_member_handler = hs.get_room_member_handler()
+        self._room_creation_handler = hs.get_room_creation_handler()
         self.clock = hs.get_clock()
         self._server_name = hs.hostname
 
