@@ -403,6 +403,9 @@ several minutes or longer.
 The local server will only have the power to move local user and room aliases to
 the new room. Users on other servers will be unaffected.
 
+To use it, you will need to authenticate by providing an ``access_token`` for a
+server admin: see [Admin API](../usage/administration/admin_api).
+
 ## Version 1 (old version)
 
 This version works synchronous. That means you get the response if the server has
@@ -429,9 +432,6 @@ with a body of:
 }
 ```
 
-To use it, you will need to authenticate by providing an ``access_token`` for a
-server admin: see [Admin API](../usage/administration/admin_api).
-
 A response body like the following is returned:
 
 ```json
@@ -448,10 +448,12 @@ A response body like the following is returned:
 }
 ```
 
+The parameters and response values have the same expression like in Version 2 of the API.
+
 ## Version 2 (new version)
 
 This version works asynchronous. That means you get the response from server immediately.
-The server works on that task in background. You can request the satus of this action.
+The server works on that task in background. You can request the status of this action.
 
 The API is:
 
@@ -471,10 +473,11 @@ with a body of:
 }
 ```
 
-To use it, you will need to authenticate by providing an ``access_token`` for a
-server admin: see [Admin API](../usage/administration/admin_api).
+An empty JSON dict is returned.
 
-There is no response body. Only the HTTP status 200.
+```json
+{}
+```
 
 **Parameters**
 
@@ -506,15 +509,57 @@ The following JSON body parameters are available:
 
 The JSON body must not be empty. The body must be at least `{}`.
 
+## Status of deleting rooms
+
+It is possible to query the status of the background task for deleting rooms.
+The status can be queried up to 24 hours after completion or a restart of Synapse.
+
+The API is:
+
+```
+GET /_synapse/admin/v2/rooms/<room_id>/delete_status
+```
+
+A response body like the following is returned:
+
+```json
+{
+    "status": "active",
+    "result": {
+        "kicked_users": [
+            "@foobar:example.com"
+        ],
+        "failed_to_kick_users": [],
+        "local_aliases": [
+            "#badroom:example.com",
+            "#evilsaloon:example.com"
+        ],
+        "new_room_id": "!newroomid:example.com"
+    }
+}
+```
+
+**Parameters**
+
+The following parameters should be set in the URL:
+
+* `room_id` - The ID of the room.
+
 **Response**
 
 The following fields are returned in the JSON response body:
 
-* `kicked_users` - An array of users (`user_id`) that were kicked.
-* `failed_to_kick_users` - An array of users (`user_id`) that that were not kicked.
-* `local_aliases` - An array of strings representing the local aliases that were migrated from
-                    the old room to the new.
-* `new_room_id` - A string representing the room ID of the new room.
+* `status` - The status will be one of:
+  - `remove members` - The process is removing users from the `room_id`.
+  - `active` - The process is purging the room from databse.
+  - `complete` - The process has completed successfully.
+  - `failed` - The process is aborted, an error has occurred.
+* `result` - An object containing information about the result of shutting down the room.
+  - `kicked_users` - An array of users (`user_id`) that were kicked.
+  - `failed_to_kick_users` - An array of users (`user_id`) that that were not kicked.
+  - `local_aliases` - An array of strings representing the local aliases that were migrated from
+    the old room to the new.
+  - `new_room_id` - A string representing the room ID of the new room.
 
 
 ## Undoing room deletions

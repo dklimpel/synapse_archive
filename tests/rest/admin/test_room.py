@@ -437,8 +437,6 @@ class DeleteRoomTestCase(unittest.HomeserverTestCase):
 
 
 class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
-    # fehlende tests: doppelt gleiche ID abfragen
-    # löschen des statuses
     servlets = [
         synapse.rest.admin.register_servlets,
         login.register_servlets,
@@ -514,15 +512,20 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(404, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
-    def test_room_is_not_valid(self):
+    @parameterized.expand(
+        [
+            ("DELETE", "/_synapse/admin/v2/rooms/%s"),
+            ("GET", "/_synapse/admin/v2/rooms/%s/delete_status"),
+        ]
+    )
+    def test_room_is_not_valid(self, method: str, url: str):
         """
         Check that invalid room names, return an error 400.
         """
-        url = "/_synapse/admin/v2/rooms/%s" % "invalidroom"
 
         channel = self.make_request(
             "DELETE",
-            url,
+            url % "invalidroom",
             content={},
             access_token=self.admin_user_tok,
         )
@@ -609,7 +612,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(Codes.BAD_JSON, channel.json_body["errcode"])
 
     def test_delete_expired_status(self):
-        """Test that the status is removed after expiration."""
+        """Test that the task status is removed after expiration."""
 
         channel = self.make_request(
             "DELETE",
@@ -629,7 +632,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
 
-        # get status after 24h
+        # get status after more than 24 hours
         self.reactor.advance(24 * 3600 + 10)
 
         channel = self.make_request(
@@ -642,10 +645,12 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
     def test_delete_same_room_twice(self):
-        """Test that the call for delete a room gives an exception."""
+        """Test that the call for delete a room at second time gives an exception."""
 
         body = {"new_room_user_id": self.admin_user}
 
+        # first call to delete room
+        # and do not wait for finish the task
         first_channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
@@ -654,6 +659,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
+        # second call to delete room
         second_channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
@@ -668,9 +674,11 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             second_channel.json_body["error"],
         )
 
+        # get result of first call
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
 
+        # check status after finish the task
         status_channel = self.make_request(
             "GET",
             self.url_status,

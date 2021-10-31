@@ -81,43 +81,8 @@ class DeleteRoomRestServlet(RestServlet):
         )
 
 
-class DeleteRoomStatusRestServlet(RestServlet):
-    """Delete a room from server.
-
-    It is a combination and improvement of shutdown and purge room.
-
-    Shuts down a room by removing all local users from the room.
-    Blocking all future invites and joins to the room is optional.
-
-    If desired any local aliases will be repointed to a new room
-    created by `new_room_user_id` and kicked users will be auto-
-    joined to the new room.
-
-    If 'purge' is true, it will remove all traces of a room from the database.
-    """
-
-    PATTERNS = admin_patterns("/rooms/(?P<room_id>[^/]+)/delete_status$", "v2")
-
-    def __init__(self, hs: "HomeServer"):
-        self.hs = hs
-        self.auth = hs.get_auth()
-        self.pagination_handler = hs.get_pagination_handler()
-
-    async def on_GET(
-        self, request: SynapseRequest, room_id: str
-    ) -> Tuple[int, JsonDict]:
-
-        await assert_requester_is_admin(self.auth, request)
-
-        purge_status = self.pagination_handler.get_purge_status(room_id)
-        if purge_status is None:
-            raise NotFoundError("room_id '%s' not found" % room_id)
-
-        return 200, purge_status.asdict_with_result()
-
-
 class RoomRestV2Servlet(RestServlet):
-    """Delete a room from server.
+    """Delete a room from server asynchronously with a background task.
 
     It is a combination and improvement of shutdown and purge room.
 
@@ -190,6 +155,32 @@ class RoomRestV2Servlet(RestServlet):
         )
 
         return 200, {}
+
+
+class DeleteRoomStatusRestServlet(RestServlet):
+    """Get the status of the delete room background task."""
+
+    PATTERNS = admin_patterns("/rooms/(?P<room_id>[^/]+)/delete_status$", "v2")
+
+    def __init__(self, hs: "HomeServer"):
+        self.hs = hs
+        self.auth = hs.get_auth()
+        self.pagination_handler = hs.get_pagination_handler()
+
+    async def on_GET(
+        self, request: SynapseRequest, room_id: str
+    ) -> Tuple[int, JsonDict]:
+
+        await assert_requester_is_admin(self.auth, request)
+
+        if not RoomID.is_valid(room_id):
+            raise SynapseError(400, "%s is not a legal room ID" % (room_id,))
+
+        purge_status = self.pagination_handler.get_purge_status(room_id)
+        if purge_status is None:
+            raise NotFoundError("No delete task for room_id '%s' found" % room_id)
+
+        return 200, purge_status.asdict_with_result()
 
 
 class ListRoomRestServlet(RestServlet):

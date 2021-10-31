@@ -81,8 +81,6 @@ class PaginationHandler:
     paginating during a purge.
     """
 
-    # Kommentare, weitere Tests?
-
     DEFAULT_MESSAGE = (
         "Sharing illegal content on this server is not permitted and rooms in"
         " violation will be blocked."
@@ -545,8 +543,10 @@ class PaginationHandler:
             block:
                 If set to `true`, this room will be added to a blocking list,
                 preventing future attempts to join the room. Defaults to `false`.
-            purge: If set to `true`, purge the given room from the database.
-            force_purge: If set to `true`, the room will be purged from database
+            purge:
+                If set to `true`, purge the given room from the database.
+            force_purge:
+                If set to `true`, the room will be purged from database
                 also if it fails to remove some users from room.
 
         Saves a dict containing the following keys in `PurgeStatus`:
@@ -771,8 +771,10 @@ class PaginationHandler:
             block:
                 If set to `true`, this room will be added to a blocking list,
                 preventing future attempts to join the room. Defaults to `false`.
-            purge: If set to `true`, purge the given room from the database.
-            force_purge: If set to `true`, the room will be purged from database
+            purge:
+                If set to `true`, purge the given room from the database.
+            force_purge:
+                If set to `true`, the room will be purged from database
                 also if it fails to remove some users from room.
         """
         if room_id in self._purges_in_progress_by_room:
