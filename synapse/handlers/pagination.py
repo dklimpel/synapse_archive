@@ -81,9 +81,7 @@ class PaginationHandler:
     paginating during a purge.
     """
 
-    # Migration ins Pagination
     # Kommentare, weitere Tests?
-    # Logs shutdown vs. remove / purge
 
     DEFAULT_MESSAGE = (
         "Sharing illegal content on this server is not permitted and rooms in"
@@ -621,9 +619,7 @@ class PaginationHandler:
                         continue
 
                     logger.info(
-                        "[shutdown_and_purge] Kicking %r from %r...",
-                        user_id,
-                        room_id
+                        "[shutdown_and_purge] Kicking %r from %r...", user_id, room_id
                     )
 
                     try:
@@ -705,7 +701,9 @@ class PaginationHandler:
                 }
 
                 if purge:
-                    logger.info("[shutdown_and_purge] starting purge room_id %s", room_id)
+                    logger.info(
+                        "[shutdown_and_purge] starting purge room_id %s", room_id
+                    )
                     self._purges_by_id[room_id].status = PurgeStatus.STATUS_ACTIVE
 
                     # first check that we have no users in this room

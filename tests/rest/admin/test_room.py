@@ -608,8 +608,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.BAD_JSON, channel.json_body["errcode"])
 
-    def test_delete_status_expire(self):
-        """Test that the status is removed after defined time"""
+    def test_delete_expired_status(self):
+        """Test that the status is removed after expiration."""
 
         channel = self.make_request(
             "DELETE",
