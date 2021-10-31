@@ -653,7 +653,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         body={"new_room_user_id": self.admin_user}
 
-        channel = self.make_request(
+        first_channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
             content=body,
@@ -661,28 +661,31 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
-        channel = self.make_request(
-            "GET",
-            self.url_status,
-            access_token=self.admin_user_tok,
-        )
+        #second_channel = self.make_request(
+        #    "GET",
+        #    self.url_status,
+        #    access_token=self.admin_user_tok,
+        #)
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual("complete", channel.json_body["status"])
+        #self.assertEqual(200, channel.code, msg=channel.json_body)
+        #self.assertEqual("complete", channel.json_body["status"])
 
-        channel = self.make_request(
+        second_channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
             content=body,
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(400, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
+        self.assertEqual(400, second_channel.code, msg=second_channel.json_body)
+        self.assertEqual(Codes.UNKNOWN, second_channel.json_body["errcode"])
         self.assertEqual(
             f"History purge already in progress for {self.room_id}", 
-            channel.json_body["error"],
+            second_channel.json_body["error"],
         )
+
+        first_channel.await_result()
+        self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
 
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
