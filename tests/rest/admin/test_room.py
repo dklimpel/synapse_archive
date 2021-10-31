@@ -608,6 +608,34 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.BAD_JSON, channel.json_body["errcode"])
 
+    def test_delete_status_expire(self):
+        """Test to purge a room and block it.
+        Members will not be moved to a new room and will not receive a message.
+        """
+
+        channel = self.make_request(
+            "DELETE",
+            self.url.encode("ascii"),
+            content={},
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+
+        channel = self.make_request(
+            "GET",
+            self.url_status,
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("complete", channel.json_body["status"])
+
+        self.reactor.advance(24 * 3600 + 10)
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual("complete", channel.json_body["status"])
+
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
         Members will not be moved to a new room and will not receive a message.

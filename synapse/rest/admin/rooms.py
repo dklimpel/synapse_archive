@@ -178,7 +178,7 @@ class RoomRestV2Servlet(RestServlet):
         if not await self.store.get_room(room_id):
             raise NotFoundError("Unknown room id %s" % (room_id,))
 
-        self.pagination_handler.start_shutdown_room(
+        self.pagination_handler.start_shutdown_and_purge_room(
             room_id=room_id,
             new_room_user_id=content.get("new_room_user_id"),
             new_room_name=content.get("room_name"),
@@ -186,7 +186,7 @@ class RoomRestV2Servlet(RestServlet):
             requester_user_id=requester.user.to_string(),
             block=block,
             purge=purge,
-            force=force_purge,
+            force_purge=force_purge,
         )
 
         return 200, {}

@@ -335,6 +335,7 @@ class PaginationHandler:
 
     async def purge_room(self, room_id: str, force: bool = False) -> None:
         """Purge the given room from the database.
+        This function is part the delete room v1 API.
 
         Args:
             room_id: room to be purged
@@ -494,7 +495,7 @@ class PaginationHandler:
 
         return chunk
 
-    async def _shutdown_room(
+    async def _shutdown_and_purge_room(
         self,
         room_id: str,
         requester_user_id: str,
@@ -503,12 +504,13 @@ class PaginationHandler:
         message: Optional[str] = None,
         block: bool = False,
         purge: bool = True,
-        force: bool = False,
+        force_purge: bool = False,
     ) -> None:
         """
-        Shuts down a room. Moves all local users and room aliases automatically
-        to a new room if `new_room_user_id` is set. Otherwise local users only
-        leave the room without any information.
+        Shuts down and purge a room. Moves all local users and room aliases
+        automatically to a new room if `new_room_user_id` is set.
+        Otherwise local users only leave the room without any information.
+        After that, the room will be removed from the database.
 
         The new room will be created with the user specified by the
         `new_room_user_id` parameter as room administrator and will contain a
@@ -540,8 +542,11 @@ class PaginationHandler:
             block:
                 If set to `true`, this room will be added to a blocking list,
                 preventing future attempts to join the room. Defaults to `false`.
+            purge: If set to `true`, purge the given room from the database.
+            force_purge: If set to `true`, the room will be purged from database
+                also if it fails to remove some users from room.
 
-        Returns: a dict containing the following keys:
+        Saves a dict containing the following keys in `PurgeStatus`:
             kicked_users: An array of users (`user_id`) that were kicked.
             failed_to_kick_users:
                 An array of users (`user_id`) that that were not kicked.
@@ -582,7 +587,7 @@ class PaginationHandler:
                     new_room_id = info["room_id"]
 
                     logger.info(
-                        "Shutting down room %r, joining to new room: %r",
+                        "[shutdown_and_purge] Shutting down room %r, joining to new room: %r",
                         room_id,
                         new_room_id,
                     )
@@ -599,7 +604,7 @@ class PaginationHandler:
                     )
                 else:
                     new_room_id = None
-                    logger.info("Shutting down room %r", room_id)
+                    logger.info("[shutdown_and_purge] Shutting down room %r", room_id)
 
                 self._purges_by_id[room_id].status = PurgeStatus.STATUS_REMOVE_MEMBERS
 
@@ -610,7 +615,11 @@ class PaginationHandler:
                     if not self.hs.is_mine_id(user_id):
                         continue
 
-                    logger.info("Kicking %r from %r...", user_id, room_id)
+                    logger.info(
+                        "[shutdown_and_purge] Kicking %r from %r...",
+                        user_id,
+                        room_id
+                    )
 
                     try:
                         # Kick users from room
@@ -655,7 +664,8 @@ class PaginationHandler:
                         kicked_users.append(user_id)
                     except Exception:
                         logger.exception(
-                            "Failed to leave old room and join new room for %r", user_id
+                            "[shutdown_and_purge] Failed to leave old room and join new room for %r",
+                            user_id,
                         )
                         failed_to_kick_users.append(user_id)
 
@@ -690,6 +700,7 @@ class PaginationHandler:
                 }
 
                 if purge:
+                    logger.info("[shutdown_and_purge] starting purge room_id %s", room_id)
                     self._purges_by_id[room_id].status = PurgeStatus.STATUS_ACTIVE
 
                     # first check that we have no users in this room
@@ -704,12 +715,13 @@ class PaginationHandler:
 
                     await self.storage.purge_events.purge_room(room_id)
 
-            logger.info("[shutdown] complete")
+            logger.info("[shutdown_and_purge] complete")
             self._purges_by_id[room_id].status = PurgeStatus.STATUS_COMPLETE
         except Exception:
             f = Failure()
             logger.error(
-                "[shutdown] failed", exc_info=(f.type, f.value, f.getTracebackObject())  # type: ignore
+                "[shutdown_and_purge] failed",
+                exc_info=(f.type, f.value, f.getTracebackObject()),  # type: ignore
             )
             self._purges_by_id[room_id].status = PurgeStatus.STATUS_FAILED
         finally:
@@ -721,7 +733,7 @@ class PaginationHandler:
 
             self.hs.get_reactor().callLater(24 * 3600, clear_purge)
 
-    def start_shutdown_room(
+    def start_shutdown_and_purge_room(
         self,
         room_id: str,
         requester_user_id: str,
@@ -730,18 +742,35 @@ class PaginationHandler:
         message: Optional[str] = None,
         block: bool = False,
         purge: bool = True,
-        force: bool = False,
+        force_purge: bool = False,
     ) -> None:
-        """Start off a history purge on a room.
+        """Start off shut down and purge on a room.
 
         Args:
-            room_id: The room to purge from
-            token: topological token to delete events before
-            delete_local_events: True to delete local events as well as
-                remote ones
-
-        Returns:
-            unique ID for this purge transaction.
+            room_id: The ID of the room to shut down.
+            requester_user_id:
+                User who requested the action and put the room on the
+                blocking list.
+            new_room_user_id:
+                If set, a new room will be created with this user ID
+                as the creator and admin, and all users in the old room will be
+                moved into that room. If not set, no new room will be created
+                and the users will just be removed from the old room.
+            new_room_name:
+                A string representing the name of the room that new users will
+                be invited to. Defaults to `Content Violation Notification`
+            message:
+                A string containing the first message that will be sent as
+                `new_room_user_id` in the new room. Ideally this will clearly
+                convey why the original room was shut down.
+                Defaults to `Sharing illegal content on this server is not
+                permitted and rooms in violation will be blocked.`
+            block:
+                If set to `true`, this room will be added to a blocking list,
+                preventing future attempts to join the room. Defaults to `false`.
+            purge: If set to `true`, purge the given room from the database.
+            force_purge: If set to `true`, the room will be purged from database
+                also if it fails to remove some users from room.
         """
         if room_id in self._purges_in_progress_by_room:
             raise SynapseError(
@@ -756,7 +785,7 @@ class PaginationHandler:
 
         # we log the purge_id here so that it can be tied back to the
         # request id in the log lines.
-        logger.info("[shutdown] starting shutdown room_id %s", room_id)
+        logger.info("[shutdown_and_purge] starting shutdown room_id %s", room_id)
 
         self._purges_by_id[room_id] = PurgeStatus()
         run_in_background(
@@ -768,5 +797,5 @@ class PaginationHandler:
             message,
             block,
             purge,
-            force,
+            force_purge,
         )

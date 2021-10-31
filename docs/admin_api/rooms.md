@@ -407,8 +407,9 @@ the new room. Users on other servers will be unaffected.
 
 This version works synchronous. That means you get the response if the server has
 finised this action. This may take a long time. If you requests the same action
-a second time if the server is not finished the first one, can the server hang up.
+a second time, if the server is not finished the first one, can the server hang up.
 This is fixed in Version 2 of this API. The parameters are the same in both APIs.
+This API will become deprecated in the future.
 
 The API is:
 
