@@ -661,16 +661,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
-        #self.reactor.advance(0.1)
-
         fake_channel = self.make_request(
-            "GET",
-            self.url_status,
-            access_token=self.admin_user_tok,
-            await_result=False,
-        )
-
-        status_channel = self.make_request(
             "GET",
             self.url_status,
             access_token=self.admin_user_tok,
@@ -691,14 +682,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             second_channel.json_body["error"],
         )
 
-        status_channel.await_result()
-        self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
-        self.assertEqual("complete", status_channel.json_body["status"])
-
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
-
-
 
         status_channel = self.make_request(
             "GET",
