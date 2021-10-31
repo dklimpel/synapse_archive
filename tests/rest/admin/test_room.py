@@ -661,12 +661,12 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
-        fake_channel = self.make_request(
-            "GET",
-            self.url_status,
-            access_token=self.admin_user_tok,
-            await_result=False,
-        )
+        #fake_channel = self.make_request(
+        #    "GET",
+        #    self.url_status,
+        #    access_token=self.admin_user_tok,
+        #    await_result=False,
+        #)
 
         second_channel = self.make_request(
             "DELETE",
