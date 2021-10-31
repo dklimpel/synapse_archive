@@ -633,6 +633,12 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.reactor.advance(24 * 3600 * 1000 + 10)
 
+        channel = self.make_request(
+            "GET",
+            self.url_status,
+            access_token=self.admin_user_tok,
+        )
+
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
 
