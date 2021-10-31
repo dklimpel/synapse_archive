@@ -686,7 +686,15 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
 
-        status_channel.await_result()
+        #status_channel.await_result()
+        #self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
+        #self.assertEqual("complete", status_channel.json_body["status"])
+
+        status_channel = self.make_request(
+            "GET",
+            self.url_status,
+            access_token=self.admin_user_tok,
+        )
         self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
         self.assertEqual("complete", status_channel.json_body["status"])
 
