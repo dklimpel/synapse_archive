@@ -113,7 +113,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
         if shutdown_status is None:
             raise NotFoundError("room_id '%s' not found" % room_id)
 
-        return 200, shutdown_status.asdict()
+        return 200, get_purge_status.asdict_with_result()
 
 
 class RoomRestV2Servlet(RestServlet):
