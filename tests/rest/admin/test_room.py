@@ -663,7 +663,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         #self.reactor.advance(0.1)
 
-        status_channel = self.make_request(
+        fake_channel = self.make_request(
             "GET",
             self.url_status,
             access_token=self.admin_user_tok,
