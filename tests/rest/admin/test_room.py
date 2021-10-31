@@ -644,13 +644,6 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def test_delete_same_room_twice(self):
         """Test that the status is removed after expiration."""
 
-        total_user = 5
-        for number in range(total_user):
-            new_user_name = "user_" + str(number)
-            new_user = self.register_user(new_user_name, "pass")
-            new_user_tok = self.login(new_user_name, "pass")
-            #self.helper.join(self.room_id, new_user, tok=new_user_tok)
-
         body={"new_room_user_id": self.admin_user}
 
         first_channel = self.make_request(
@@ -661,12 +654,12 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
-        #fake_channel = self.make_request(
-        #    "GET",
-        #    self.url_status,
-        #    access_token=self.admin_user_tok,
-        #    await_result=False,
-        #)
+        fake_channel = self.make_request(
+            "GET",
+            self.url_status,
+            access_token=self.admin_user_tok,
+            await_result=False,
+        )
 
         second_channel = self.make_request(
             "DELETE",
@@ -681,6 +674,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             f"History purge already in progress for {self.room_id}", 
             second_channel.json_body["error"],
         )
+
+        fake_channel.await_result()
+        self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
 
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
