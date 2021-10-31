@@ -451,7 +451,8 @@ A response body like the following is returned:
 }
 ```
 
-The parameters and response values have the same expression like in Version 2 of the API.
+The parameters and response values have the same expression like in
+[version 2](#version-2-new-version) of the API.
 
 ## Version 2 (new version)
 
@@ -515,7 +516,8 @@ The JSON body must not be empty. The body must be at least `{}`.
 ## Status of deleting rooms
 
 It is possible to query the status of the background task for deleting rooms.
-The status can be queried up to 24 hours after completion or a restart of Synapse.
+The status can be queried up to 24 hours after completion of the task
+or a restart of Synapse.
 
 The API is:
 
@@ -558,10 +560,12 @@ The following fields are returned in the JSON response body:
   - `complete` - The process has completed successfully.
   - `failed` - The process is aborted, an error has occurred.
 * `result` - An object containing information about the result of shutting down the room.
+  *Note:* The result is shown after removing the room members. The delete process can
+  still be running. Please pay attention to the `status`.
   - `kicked_users` - An array of users (`user_id`) that were kicked.
   - `failed_to_kick_users` - An array of users (`user_id`) that that were not kicked.
-  - `local_aliases` - An array of strings representing the local aliases that were migrated from
-    the old room to the new.
+  - `local_aliases` - An array of strings representing the local aliases that were
+  migrated from the old room to the new.
   - `new_room_id` - A string representing the room ID of the new room.
 
 ## Undoing room deletions
