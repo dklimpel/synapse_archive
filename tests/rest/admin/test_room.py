@@ -642,9 +642,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
     def test_delete_same_room_twice(self):
-        """Test that the status is removed after expiration."""
+        """Test that the call for delete a room gives an exception."""
 
-        body={"new_room_user_id": self.admin_user}
+        body = {"new_room_user_id": self.admin_user}
 
         first_channel = self.make_request(
             "DELETE",
@@ -664,7 +664,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(400, second_channel.code, msg=second_channel.json_body)
         self.assertEqual(Codes.UNKNOWN, second_channel.json_body["errcode"])
         self.assertEqual(
-            f"History purge already in progress for {self.room_id}", 
+            f"History purge already in progress for {self.room_id}",
             second_channel.json_body["error"],
         )
 
