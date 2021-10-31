@@ -631,7 +631,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
 
-        self.reactor.advance(24 * 3600 + 10)
+        self.reactor.advance(24 * 3600 * 1000 + 10)
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
