@@ -654,13 +654,6 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
-        fake_channel = self.make_request(
-            "GET",
-            self.url_status,
-            access_token=self.admin_user_tok,
-            await_result=False,
-        )
-
         second_channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
@@ -668,16 +661,12 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        #self.assertEqual(400, second_channel.code, msg=second_channel.json_body)
-        #self.assertEqual(Codes.UNKNOWN, second_channel.json_body["errcode"])
-        #self.assertEqual(
-        #    f"History purge already in progress for {self.room_id}", 
-        #    second_channel.json_body["error"],
-        #)
-
-        fake_channel.await_result()
-        self.assertEqual(200, fake_channel.code, msg=fake_channel.json_body)
-        self.assertEqual("complete", fake_channel.json_body["status"])
+        self.assertEqual(400, second_channel.code, msg=second_channel.json_body)
+        self.assertEqual(Codes.UNKNOWN, second_channel.json_body["errcode"])
+        self.assertEqual(
+            f"History purge already in progress for {self.room_id}", 
+            second_channel.json_body["error"],
+        )
 
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
