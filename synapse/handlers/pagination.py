@@ -97,10 +97,13 @@ class PaginationHandler:
         self.store = hs.get_datastore()
         self.storage = hs.get_storage()
         self.state_store = self.storage.state
-        self.room_member_handler = hs.get_room_member_handler()
-        self._room_creation_handler = hs.get_room_creation_handler()
         self.clock = hs.get_clock()
         self._server_name = hs.hostname
+
+        self.room_member_handler = hs.get_room_member_handler()
+        self._room_creation_handler = hs.get_room_creation_handler()
+        self._replication = hs.get_replication_data_handler()
+        self.event_creation_handler = hs.get_event_creation_handler()
 
         self.pagination_lock = ReadWriteLock()
         self._purges_in_progress_by_room: Set[str] = set()
