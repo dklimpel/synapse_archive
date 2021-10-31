@@ -644,7 +644,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def test_delete_same_room_twice(self):
         """Test that the status is removed after expiration."""
 
-        total_user = 50
+        total_user = 15
         for number in range(total_user):
             new_user_name = "user_" + str(number)
             new_user = self.register_user(new_user_name, "pass")
@@ -679,7 +679,12 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(400, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
+        self.assertEqual(
+            f"History purge already in progress for {self.room_id}", 
+            channel.json_body["error"],
+        )
 
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
