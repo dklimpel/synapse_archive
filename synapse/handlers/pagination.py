@@ -789,7 +789,7 @@ class PaginationHandler:
 
         self._purges_by_id[room_id] = PurgeStatus()
         run_in_background(
-            self._shutdown_room,
+            self._shutdown_and_purge_room,
             room_id,
             requester_user_id,
             new_room_user_id,
