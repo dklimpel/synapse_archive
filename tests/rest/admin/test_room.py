@@ -661,6 +661,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             await_result=False,
         )
 
+        self.reactor.advance(1)
+
         status_channel = self.make_request(
             "GET",
             self.url_status,
