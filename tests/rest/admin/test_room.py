@@ -609,9 +609,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(Codes.BAD_JSON, channel.json_body["errcode"])
 
     def test_delete_status_expire(self):
-        """Test to purge a room and block it.
-        Members will not be moved to a new room and will not receive a message.
-        """
+        """Test that the status is removed after defined time"""
 
         channel = self.make_request(
             "DELETE",
@@ -631,7 +629,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body["status"])
 
-        self.reactor.advance(24 * 3600 * 1000 + 10)
+        # get status after 24h
+        self.reactor.advance(24 * 3600 + 10)
 
         channel = self.make_request(
             "GET",
@@ -639,8 +638,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual("complete", channel.json_body["status"])
+        self.assertEqual(404, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
