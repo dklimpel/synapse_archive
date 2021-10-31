@@ -649,7 +649,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             new_user_name = "user_" + str(number)
             new_user = self.register_user(new_user_name, "pass")
             new_user_tok = self.login(new_user_name, "pass")
-            self.helper.join(self.room_id, new_user, tok=new_user_tok)
+            #self.helper.join(self.room_id, new_user, tok=new_user_tok)
 
         body={"new_room_user_id": self.admin_user}
 
