@@ -542,6 +542,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -615,6 +616,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -670,6 +672,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # get result of first call
         first_channel.await_result()
         self.assertEqual(200, first_channel.code, msg=first_channel.json_body)
+        self.assertIn("purge_id", first_channel.json_body)
 
         # check status after finish the task
         status_channel = self.make_request(
@@ -679,8 +682,6 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
         self.assertEqual("complete", status_channel.json_body["status"])
-
-    # test_delete_same_room_twice.skip = "Disabled by default because it's flaky"
 
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
@@ -704,6 +705,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -746,6 +748,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -789,6 +792,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -846,6 +850,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -903,6 +908,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIsInstance(channel.json_body["purge_id"], int)
 
         channel = self.make_request(
             "GET",
@@ -1013,7 +1019,7 @@ class RoomTestCase(unittest.HomeserverTestCase):
         )
 
         # Check request completed successfully
-        self.assertEqual(200, int(channel.code), msg=channel.json_body)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
 
         # Check that response json body contains a "rooms" key
         self.assertTrue(
