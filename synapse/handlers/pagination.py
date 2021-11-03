@@ -335,7 +335,7 @@ class PaginationHandler:
             room_id: room_id that is purged
         """
         ret = []
-        for purge_id in self._purges_by_room.get(room_id):
+        for purge_id in self._purges_by_room.get(room_id) or []:
             ret += [self._purges_by_id.get(purge_id)]
         return ret
 
