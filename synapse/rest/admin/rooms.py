@@ -145,7 +145,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
 
         ret = {}
         for purge in purge_status:
-            ret =+ purge.asdict_with_result()
+            ret.append(purge.asdict_with_result())
         return 200, ret
 
 
