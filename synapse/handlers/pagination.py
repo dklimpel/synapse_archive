@@ -336,7 +336,7 @@ class PaginationHandler:
         """
         ret = []
         for purge_id in self._purges_by_room.get(room_id):
-            ret += self._purges_by_id.get(purge_id)
+            ret += [self._purges_by_id.get(purge_id)]
         return ret
 
     async def purge_room(self, room_id: str, force: bool = False) -> None:
