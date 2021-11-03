@@ -328,6 +328,17 @@ class PaginationHandler:
         """
         return self._purges_by_id.get(purge_id)
 
+    def get_purge_status_by_room(self, room_id: str) -> Optional[List[PurgeStatus]]:
+        """Get the current status of all active purge by room
+
+        Args:
+            room_id: room_id that is purged
+        """
+        ret = []
+        for purge_id in self._purges_by_room.get(room_id):
+            ret += self._purges_by_id.get(purge_id)
+        return ret
+
     async def purge_room(self, room_id: str, force: bool = False) -> None:
         """Purge the given room from the database.
         This function is part the delete room v1 API.
