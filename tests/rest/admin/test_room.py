@@ -542,7 +542,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
@@ -616,7 +616,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
@@ -705,7 +705,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
@@ -748,7 +748,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
@@ -792,7 +792,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
@@ -850,7 +850,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
@@ -908,7 +908,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertIsInstance(channel.json_body["purge_id"], int)
+        self.assertIn("purge_id", channel.json_body)
 
         channel = self.make_request(
             "GET",
