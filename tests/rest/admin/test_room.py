@@ -607,16 +607,50 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def test_delete_expired_status(self):
         """Test that the task status is removed after expiration."""
 
+        # first task
         channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
-            content={},
+            content={"purge": False},
             access_token=self.admin_user_tok,
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
-        purge_id = channel.json_body["purge_id"]
+        purge_id1 = channel.json_body["purge_id"]
+
+        # go ahead
+        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME / 2)
+
+        # second task
+        channel = self.make_request(
+            "DELETE",
+            self.url.encode("ascii"),
+            content={"purge": True},
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertIn("purge_id", channel.json_body)
+        purge_id2 = channel.json_body["purge_id"]
+
+        # get status
+        channel = self.make_request(
+            "GET",
+            self.url_status,
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(2, len(channel.json_body["delete_status"]))
+        self.assertEqual("complete", channel.json_body["delete_status"][0]["status"])
+        self.assertEqual("complete", channel.json_body["delete_status"][1]["status"])
+        self.assertEqual(purge_id1, channel.json_body["delete_status"][0]["purge_id"])
+        self.assertEqual(purge_id2, channel.json_body["delete_status"][1]["purge_id"])
+
+        # get status after more than clearing time for first task
+        # second task is not cleared
+        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME / 2)
 
         channel = self.make_request(
             "GET",
@@ -624,10 +658,13 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self._test_result(channel, purge_id, self.other_user)
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body["delete_status"]))
+        self.assertEqual("complete", channel.json_body["delete_status"][0]["status"])
+        self.assertEqual(purge_id2, channel.json_body["delete_status"][0]["purge_id"])
 
-        # get status after more than crearing times
-        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME + 10)
+        # get status after more than clearing time for all tasks
+        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME / 2)
 
         channel = self.make_request(
             "GET",

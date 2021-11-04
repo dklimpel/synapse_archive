@@ -461,6 +461,8 @@ The parameters and response values have the same format as
 
 ## Version 2 (new version)
 
+**Note**: This API is new, experimental and "subject to change".
+
 This version works asynchronously, meaning you get the response from server immediately
 while the server works on that task in background. You can then request the status of the action
 to check if it has completed.
