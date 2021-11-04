@@ -628,6 +628,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
 
@@ -685,6 +686,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", status_channel.json_body[0]["status"])
 
     def test_purge_room_and_block(self):
@@ -718,6 +720,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
@@ -761,6 +764,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
@@ -805,6 +809,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
@@ -863,6 +868,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertEqual(
             self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
