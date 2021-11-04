@@ -686,8 +686,11 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
         self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
+        self.assertEqual(1, len(status_channel.json_body))
         self.assertEqual("complete", status_channel.json_body[0]["status"])
+        self.assertEqual(
+            first_channel.json_body["purge_id"], status_channel.json_body[0]["purge_id"]
+        )
 
     def test_purge_room_and_block(self):
         """Test to purge a room and block it.
@@ -712,6 +715,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
+        purge_id = channel.json_body["purge_id"]
 
         channel = self.make_request(
             "GET",
@@ -719,9 +723,11 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
+        self._test_result(channel, purge_id, self.other_user)
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
+        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
         self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
             self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
@@ -756,6 +762,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
+        purge_id = channel.json_body["purge_id"]
 
         channel = self.make_request(
             "GET",
@@ -766,6 +773,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
+        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
         self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
             self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
@@ -801,6 +809,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
+        purge_id = channel.json_body["purge_id"]
 
         channel = self.make_request(
             "GET",
@@ -811,6 +820,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
+        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
         self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
             self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
@@ -860,6 +870,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
+        purge_id = channel.json_body["purge_id"]
 
         channel = self.make_request(
             "GET",
@@ -870,6 +881,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
+        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
         self.assertEqual(
             self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
         )
@@ -919,6 +931,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
+        purge_id = channel.json_body["purge_id"]
 
         channel = self.make_request(
             "GET",
@@ -928,6 +941,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual("complete", channel.json_body[0]["status"])
+        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
         self.assertEqual(
             self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
         )
@@ -947,7 +961,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # Assert we can no longer peek into the room
         self._assert_peek(self.room_id, expect_code=403)
 
-    def _is_blocked(self, room_id, expect=True):
+    def _is_blocked(self, room_id: str, expect:bool=True) -> None:
         """Assert that the room is blocked or not"""
         d = self.store.is_room_blocked(room_id)
         if expect:
@@ -955,17 +969,17 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         else:
             self.assertIsNone(self.get_success(d))
 
-    def _has_no_members(self, room_id):
+    def _has_no_members(self, room_id: str) -> None:
         """Assert there is now no longer anyone in the room"""
         users_in_room = self.get_success(self.store.get_users_in_room(room_id))
         self.assertEqual([], users_in_room)
 
-    def _is_member(self, room_id, user_id):
+    def _is_member(self, room_id: str, user_id: str) -> None:
         """Test that user is member of the room"""
         users_in_room = self.get_success(self.store.get_users_in_room(room_id))
         self.assertIn(user_id, users_in_room)
 
-    def _is_purged(self, room_id):
+    def _is_purged(self, room_id: str) -> None:
         """Test that the following tables have been purged of all rows related to the room."""
         for table in PURGE_TABLES:
             count = self.get_success(
@@ -979,7 +993,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
             self.assertEqual(count, 0, msg=f"Rows not purged in {table}")
 
-    def _assert_peek(self, room_id, expect_code):
+    def _assert_peek(self, room_id: str, expect_code: int) -> None:
         """Assert that the admin user can (or cannot) peek into the room."""
 
         url = f"rooms/{room_id}/initialSync"
@@ -994,6 +1008,28 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
+    def _test_result(
+        self, channel: FakeChannel, purge_id, kicked_user: str
+    ) -> None:
+        """
+        Test that the result ist the expected
+
+        Args:
+            channel: channel which should validated
+            purge_id: id of this purge
+            kicked_user: a user_id which is kicked from the room
+        
+        """
+        self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.json_body))
+        self.assertEqual("complete", channel.json_body[0]["status"])
+        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
+        self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
+        self.assertEqual(
+            kicked_user, channel.json_body[0]["result"]["kicked_users"][0]
+        )
+        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
+        self.assertIn("local_aliases", channel.json_body[0]["result"])
 
 class RoomTestCase(unittest.HomeserverTestCase):
     """Test /room admin API."""
