@@ -992,7 +992,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertIn("local_aliases", channel.json_body[0]["result"])
 
         if expect_new_room:
-            self.assertIn("new_room_id", channel.json_body[0]["result"])
+            self.assertIsNotNone(channel.json_body[0]["result"]["new_room_id"])
         else:
             self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
 
