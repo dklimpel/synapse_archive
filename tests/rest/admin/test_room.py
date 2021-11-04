@@ -27,6 +27,7 @@ from synapse.rest.client import directory, events, login, room
 
 from tests import unittest
 from tests.server import FakeChannel
+from pickle import FALSE
 
 """Tests admin REST events for /rooms paths."""
 
@@ -969,7 +970,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         channel: FakeChannel,
         purge_id,
         kicked_user: str,
-        expect_new_room: bool = Flase,
+        expect_new_room: bool = False,
     ) -> None:
         """
         Test that the result ist the expected
