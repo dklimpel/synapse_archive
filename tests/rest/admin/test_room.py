@@ -649,7 +649,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         # get status after more than clearing time for first task
         # second task is not cleared
-        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME / 2)
+        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME / 2 + 1)
 
         channel = self.make_request(
             "GET",
