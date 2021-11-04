@@ -143,17 +143,17 @@ class DeleteRoomStatusRestServlet(RestServlet):
         if purge_ids is None:
             raise NotFoundError("No delete task for room_id '%s' found" % room_id)
 
-        ret = []
+        response = []
         for purge_id in purge_ids:
             purge = self._pagination_handler.get_purge_status(purge_id)
             if purge:
-                ret += [
+                response += [
                     {
                         "purge_id": purge_id,
                         **purge.asdict_with_result(),
                     }
                 ]
-        return 200, { "delete_status": ret }
+        return 200, { "delete_status": response }
 
 
 class ListRoomRestServlet(RestServlet):

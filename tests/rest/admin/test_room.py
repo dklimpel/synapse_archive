@@ -554,7 +554,6 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self._test_result(channel, purge_id, self.other_user, expect_new_room=True)
-        self.assertEqual(200, channel.code, msg=channel.json_body)
 
     def test_new_room_user_is_not_local(self):
         """
@@ -607,7 +606,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
     def test_delete_expired_status(self):
         """Test that the task status is removed after expiration."""
 
-        # first task
+        # first task, do not purge, that we can create a second task
         channel = self.make_request(
             "DELETE",
             self.url.encode("ascii"),
@@ -1003,10 +1002,10 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         expect_new_room: bool = False,
     ) -> None:
         """
-        Test that the result ist the expected
+        Test that the result is the expected
 
         Args:
-            channel: channel which should validated
+            channel: channel that should validated
             purge_id: id of this purge
             kicked_user: a user_id which is kicked from the room
             expect_new_room: if we expect that a new room was created
