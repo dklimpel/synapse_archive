@@ -851,7 +851,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self._test_result(channel, purge_id, self.other_user)
+        self._test_result(channel, purge_id, self.other_user, expect_new_room=True)
 
         # Test that member has moved to new room
         self._is_member(
@@ -903,7 +903,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self._test_result(channel, purge_id, self.other_user)
+        self._test_result(channel, purge_id, self.other_user, expect_new_room=True))
 
         # Test that member has moved to new room
         self._is_member(
@@ -917,7 +917,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         # Assert we can no longer peek into the room
         self._assert_peek(self.room_id, expect_code=403)
 
-    def _is_blocked(self, room_id: str, expect:bool=True) -> None:
+    def _is_blocked(self, room_id: str, expect: bool = True) -> None:
         """Assert that the room is blocked or not"""
         d = self.store.is_room_blocked(room_id)
         if expect:
@@ -965,7 +965,11 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
     def _test_result(
-        self, channel: FakeChannel, purge_id, kicked_user: str
+        self,
+        channel: FakeChannel,
+        purge_id,
+        kicked_user: str,
+        expect_new_room: bool = Flase,
     ) -> None:
         """
         Test that the result ist the expected
@@ -974,18 +978,23 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             channel: channel which should validated
             purge_id: id of this purge
             kicked_user: a user_id which is kicked from the room
-        
+            expect_new_room: if we expect that a new room was created
         """
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertEqual(1, len(channel.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
-        self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
         self.assertEqual(
             kicked_user, channel.json_body[0]["result"]["kicked_users"][0]
         )
         self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
         self.assertIn("local_aliases", channel.json_body[0]["result"])
+
+        if expect_new_room:
+            self.assertIn(channel.json_body[0]["result"]["new_room_id"])
+        else:
+            self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
+
 
 class RoomTestCase(unittest.HomeserverTestCase):
     """Test /room admin API."""
