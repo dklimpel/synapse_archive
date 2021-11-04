@@ -321,7 +321,9 @@ class PaginationHandler:
             def clear_purge() -> None:
                 del self._purges_by_id[purge_id]
 
-            self.hs.get_reactor().callLater(CLEAR_PURGE_TIME, clear_purge)
+            self.hs.get_reactor().callLater(
+                PaginationHandler.CLEAR_PURGE_TIME, clear_purge
+            )
 
     def get_purge_status(self, purge_id: str) -> Optional[PurgeStatus]:
         """Get the current status of an active purge
