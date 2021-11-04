@@ -153,7 +153,7 @@ class DeleteRoomStatusRestServlet(RestServlet):
                         **purge.asdict_with_result(),
                     }
                 ]
-        return 200, { "purges": ret }
+        return 200, { "delete_status": ret }
 
 
 class ListRoomRestServlet(RestServlet):

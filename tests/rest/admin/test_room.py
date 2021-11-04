@@ -848,7 +848,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         # Test that member has moved to new room
         self._is_member(
-            room_id=channel.json_body[0]["result"]["new_room_id"], user_id=self.other_user
+            room_id=channel.json_body["delete_status"][0]["result"]["new_room_id"],
+            user_id=self.other_user,
         )
 
         self._is_purged(self.room_id)
@@ -900,7 +901,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         # Test that member has moved to new room
         self._is_member(
-            room_id=channel.json_body[0]["result"]["new_room_id"],
+            room_id=channel.json_body["delete_status"][0]["result"]["new_room_id"],
             user_id=self.other_user,
         )
 
@@ -974,19 +975,26 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             expect_new_room: if we expect that a new room was created
         """
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
+        self.assertEqual(1, len(channel.json_body["delete_status"]))
+        self.assertEqual("complete", channel.json_body["delete_status"][0]["status"])
+        self.assertEqual(purge_id, channel.json_body["delete_status"][0]["purge_id"])
         self.assertEqual(
-            kicked_user, channel.json_body[0]["result"]["kicked_users"][0]
+            kicked_user,
+            channel.json_body["delete_status"][0]["result"]["kicked_users"][0],
         )
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
+        self.assertIn(
+            "failed_to_kick_users", channel.json_body["delete_status"][0]["result"]
+        )
+        self.assertIn("local_aliases", channel.json_body["delete_status"][0]["result"])
 
         if expect_new_room:
-            self.assertIsNotNone(channel.json_body[0]["result"]["new_room_id"])
+            self.assertIsNotNone(
+                channel.json_body["delete_status"][0]["result"]["new_room_id"]
+            )
         else:
-            self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
+            self.assertIsNone(
+                channel.json_body["delete_status"][0]["result"]["new_room_id"]
+            )
 
 
 class RoomTestCase(unittest.HomeserverTestCase):
