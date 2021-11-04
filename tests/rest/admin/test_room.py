@@ -27,7 +27,6 @@ from synapse.rest.client import directory, events, login, room
 
 from tests import unittest
 from tests.server import FakeChannel
-from pickle import FALSE
 
 """Tests admin REST events for /rooms paths."""
 
@@ -554,7 +553,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self._test_result(channel, purge_id, self.other_user)
+        self._test_result(channel, purge_id, self.other_user, expect_new_room=True)
         self.assertEqual(200, channel.code, msg=channel.json_body)
 
     def test_new_room_user_is_not_local(self):
