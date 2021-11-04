@@ -145,10 +145,11 @@ class DeleteRoomStatusRestServlet(RestServlet):
 
         ret = []
         for purge_id in purge_ids:
+            purge = self._pagination_handler.get_purge_status(purge_id)
             ret += [
                 {
                     "purge_id": purge_id,
-                    **self._pagination_handler.get_purge_status(purge_id),
+                    **purge.asdict_with_result(),
                 }
             ]
         return 200, ret
