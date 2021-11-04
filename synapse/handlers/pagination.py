@@ -619,8 +619,8 @@ class PaginationHandler:
             def clear_purge() -> None:
                 del self._purges_by_id[purge_id]
                 self._purges_by_room[room_id].remove(purge_id)
-                if not _purges_by_room[room_id]:
-                    del _purges_by_room[room_id]
+                if notself. _purges_by_room[room_id]:
+                    del self._purges_by_room[room_id]
 
             self.hs.get_reactor().callLater(CLEAR_PURGE_TIME, clear_purge)
 
