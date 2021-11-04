@@ -620,7 +620,10 @@ class PaginationHandler:
                 if not self._purges_by_room[room_id]:
                     del self._purges_by_room[room_id]
 
-            self.hs.get_reactor().callLater(CLEAR_PURGE_TIME, clear_purge)
+            self.hs.get_reactor().callLater(
+                PaginationHandler.CLEAR_PURGE_TIME,
+                clear_purge,
+            )
 
     def start_shutdown_and_purge_room(
         self,
