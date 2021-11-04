@@ -82,6 +82,9 @@ class PaginationHandler:
     paginating during a purge.
     """
 
+    # remove the purge from the list 24 hours after it completes
+    CLEAR_PURGE_TIME = 3600 * 24
+
     def __init__(self, hs: "HomeServer"):
         self.hs = hs
         self.auth = hs.get_auth()
@@ -318,7 +321,7 @@ class PaginationHandler:
             def clear_purge() -> None:
                 del self._purges_by_id[purge_id]
 
-            self.hs.get_reactor().callLater(24 * 3600, clear_purge)
+            self.hs.get_reactor().callLater(CLEAR_PURGE_TIME, clear_purge)
 
     def get_purge_status(self, purge_id: str) -> Optional[PurgeStatus]:
         """Get the current status of an active purge
@@ -328,16 +331,13 @@ class PaginationHandler:
         """
         return self._purges_by_id.get(purge_id)
 
-    def get_purge_status_by_room(self, room_id: str) -> Optional[List[PurgeStatus]]:
-        """Get the current status of all active purge by room
+    def get_purge_ids_by_room(self, room_id: str) -> List[str]:
+        """Get all active purge ids by room
 
         Args:
             room_id: room_id that is purged
         """
-        ret = []
-        for purge_id in self._purges_by_room.get(room_id) or []:
-            ret += [self._purges_by_id.get(purge_id)]
-        return ret
+        return self._purges_by_room.get(room_id)
 
     async def purge_room(self, room_id: str, force: bool = False) -> None:
         """Purge the given room from the database.
@@ -620,7 +620,7 @@ class PaginationHandler:
                 if not _purges_by_room[room_id]:
                     del _purges_by_room[room_id]
 
-            self.hs.get_reactor().callLater(24 * 3600, clear_purge)
+            self.hs.get_reactor().callLater(CLEAR_PURGE_TIME, clear_purge)
 
     def start_shutdown_and_purge_room(
         self,
