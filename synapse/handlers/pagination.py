@@ -333,7 +333,7 @@ class PaginationHandler:
         """
         return self._purges_by_id.get(purge_id)
 
-    def get_purge_ids_by_room(self, room_id: str) -> List[str]:
+    def get_purge_ids_by_room(self, room_id: str) -> Optional[List[str]]:
         """Get all active purge ids by room
 
         Args:
