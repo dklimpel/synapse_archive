@@ -552,6 +552,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
+        self.assertEqual(1, len(channel.code.json_body))
         self.assertEqual("complete", channel.json_body[0]["status"])
         self.assertIn("new_room_id", channel.json_body[0]["result"])
         self.assertIn("kicked_users", channel.json_body[0]["result"])
