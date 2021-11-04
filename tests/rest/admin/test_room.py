@@ -546,6 +546,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(200, channel.code, msg=channel.json_body)
         self.assertIn("purge_id", channel.json_body)
+        purge_id = channel.json_body["purge_id"]
 
         channel = self.make_request(
             "GET",
@@ -680,7 +681,10 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
         self._test_result(
-            status_channel, first_channel.json_body["purge_id"], self.other_user
+            status_channel,
+            first_channel.json_body["purge_id"],
+            self.other_user,
+            expect_new_room=True,
         )
 
     def test_purge_room_and_block(self):
