@@ -903,7 +903,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self._test_result(channel, purge_id, self.other_user, expect_new_room=True))
+        self._test_result(channel, purge_id, self.other_user, expect_new_room=True)
 
         # Test that member has moved to new room
         self._is_member(
