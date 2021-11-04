@@ -725,16 +725,6 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         )
 
         self._test_result(channel, purge_id, self.other_user)
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
-        self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
-        self.assertEqual(
-            self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
-        )
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
 
         self._is_purged(self.room_id)
         self._is_blocked(self.room_id, expect=True)
@@ -771,16 +761,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
-        self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
-        self.assertEqual(
-            self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
-        )
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
+        self._test_result(channel, purge_id, self.other_user)
 
         self._is_purged(self.room_id)
         self._is_blocked(self.room_id, expect=False)
@@ -818,16 +799,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
-        self.assertIsNone(channel.json_body[0]["result"]["new_room_id"])
-        self.assertEqual(
-            self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
-        )
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
+        self._test_result(channel, purge_id, self.other_user)
 
         with self.assertRaises(AssertionError):
             self._is_purged(self.room_id)
@@ -879,16 +851,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
-        self.assertEqual(
-            self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
-        )
-        self.assertIn("new_room_id", channel.json_body[0]["result"])
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
+        self._test_result(channel, purge_id, self.other_user)
 
         # Test that member has moved to new room
         self._is_member(
@@ -940,15 +903,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
-        self.assertEqual(
-            self.other_user, channel.json_body[0]["result"]["kicked_users"][0]
-        )
-        self.assertIn("new_room_id", channel.json_body[0]["result"])
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
+        self._test_result(channel, purge_id, self.other_user)
 
         # Test that member has moved to new room
         self._is_member(
