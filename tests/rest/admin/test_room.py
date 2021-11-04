@@ -553,13 +553,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
+        self._test_result(channel, purge_id, self.other_user)
         self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertIn("new_room_id", channel.json_body[0]["result"])
-        self.assertIn("kicked_users", channel.json_body[0]["result"])
-        self.assertIn("failed_to_kick_users", channel.json_body[0]["result"])
-        self.assertIn("local_aliases", channel.json_body[0]["result"])
 
     def test_new_room_user_is_not_local(self):
         """
@@ -629,10 +624,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             access_token=self.admin_user_tok,
         )
 
-        self.assertEqual(200, channel.code, msg=channel.json_body)
-        self.assertEqual(1, len(channel.json_body))
-        self.assertEqual("complete", channel.json_body[0]["status"])
-        self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
+        self._test_result(channel, purge_id, self.other_user)
 
         # get status after more than crearing times
         self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME + 10)
@@ -687,11 +679,8 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             self.url_status,
             access_token=self.admin_user_tok,
         )
-        self.assertEqual(200, status_channel.code, msg=status_channel.json_body)
-        self.assertEqual(1, len(status_channel.json_body))
-        self.assertEqual("complete", status_channel.json_body[0]["status"])
-        self.assertEqual(
-            first_channel.json_body["purge_id"], status_channel.json_body[0]["purge_id"]
+        self._test_result(
+            status_channel, first_channel.json_body["purge_id"], self.other_user
         )
 
     def test_purge_room_and_block(self):
