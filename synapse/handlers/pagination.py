@@ -38,6 +38,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+CLEAR_PURGE_TIME2 = 3600 * 24
+
 @attr.s(slots=True, auto_attribs=True)
 class PurgeStatus:
     """Object tracking the status of a purge and shut down room request

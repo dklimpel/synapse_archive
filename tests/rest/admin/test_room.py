@@ -22,7 +22,7 @@ from parameterized import parameterized
 import synapse.rest.admin
 from synapse.api.constants import EventTypes, Membership
 from synapse.api.errors import Codes
-from synapse.handlers.pagination.PaginationHandler import CLEAR_PURGE_TIME
+from synapse.handlers.pagination import CLEAR_PURGE_TIME2
 from synapse.rest.client import directory, events, login, room
 
 from tests import unittest
