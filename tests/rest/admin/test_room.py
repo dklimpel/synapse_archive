@@ -22,7 +22,7 @@ from parameterized import parameterized
 import synapse.rest.admin
 from synapse.api.constants import EventTypes, Membership
 from synapse.api.errors import Codes
-from synapse.handlers.pagination import CLEAR_PURGE_TIME2
+from synapse.handlers.pagination import PaginationHandler
 from synapse.rest.client import directory, events, login, room
 
 from tests import unittest
@@ -631,7 +631,7 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
         self.assertEqual(purge_id, channel.json_body[0]["purge_id"])
 
         # get status after more than crearing times
-        self.reactor.advance(CLEAR_PURGE_TIME + 10)
+        self.reactor.advance(PaginationHandler.CLEAR_PURGE_TIME + 10)
 
         channel = self.make_request(
             "GET",

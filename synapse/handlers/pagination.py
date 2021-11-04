@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-CLEAR_PURGE_TIME2 = 3600 * 24
+CLEAR_PURGE_TIME = 3600 * 24
 
 @attr.s(slots=True, auto_attribs=True)
 class PurgeStatus:
