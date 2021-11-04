@@ -521,6 +521,8 @@ The JSON body must not be empty. The body must be at least `{}`.
 
 ## Status of deleting rooms
 
+**Note**: This API is new, experimental and "subject to change".
+
 It is possible to query the status of the background task for deleting rooms.
 The status can be queried up to 24 hours after completion of the task,
 or until Synapse is restarted (whichever happens first).
