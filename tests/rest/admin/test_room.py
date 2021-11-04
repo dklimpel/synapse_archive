@@ -26,6 +26,7 @@ from synapse.handlers.pagination import PaginationHandler
 from synapse.rest.client import directory, events, login, room
 
 from tests import unittest
+from tests.server import FakeChannel
 
 """Tests admin REST events for /rooms paths."""
 
