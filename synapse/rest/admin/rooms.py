@@ -139,7 +139,7 @@ class DeleteRoomStatusByRoomIdRestServlet(RestServlet):
         if not RoomID.is_valid(room_id):
             raise SynapseError(400, "%s is not a legal room ID" % (room_id,))
 
-        delete_ids = self._pagination_handler.get_purge_ids_by_room(room_id)
+        delete_ids = self._pagination_handler.get_delete_ids_by_room(room_id)
         if delete_ids is None:
             raise NotFoundError("No delete task for room_id '%s' found" % room_id)
 
