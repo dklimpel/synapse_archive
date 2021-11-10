@@ -640,7 +640,7 @@ class PaginationHandler:
                     await self.storage.purge_events.purge_room(room_id)
 
             logger.info("complete")
-            self._delete_by_id[purge_id].status = DeleteStatus.STATUS_COMPLETE
+            self._delete_by_id[delete_id].status = DeleteStatus.STATUS_COMPLETE
         except Exception:
             f = Failure()
             logger.error(
