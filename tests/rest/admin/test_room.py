@@ -1026,7 +1026,9 @@ class DeleteRoomV2TestCase(unittest.HomeserverTestCase):
             HTTPStatus.OK, channel_room_id.code, msg=channel_room_id.json_body
         )
         self.assertEqual(1, len(channel_room_id.json_body["results"]))
-        self.assertEqual(delete_id, channel_room_id.json_body["results"][0]["delete_id"])
+        self.assertEqual(
+            delete_id, channel_room_id.json_body["results"][0]["delete_id"]
+        )
 
         # get information by delete_id
         channel_delete_id = self.make_request(
