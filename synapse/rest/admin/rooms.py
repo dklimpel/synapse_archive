@@ -171,7 +171,7 @@ class DeleteRoomStatusByDeleteIdRestServlet(RestServlet):
 
         await assert_requester_is_admin(self._auth, request)
 
-        delete_status = self._pagination_handler.get_delete_status(purge_id)
+        delete_status = self._pagination_handler.get_delete_status(delete_id)
         if delete_status is None:
             raise NotFoundError("delete id '%s' not found" % delete_id)
 
