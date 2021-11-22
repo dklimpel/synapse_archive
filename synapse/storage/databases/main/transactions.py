@@ -534,8 +534,8 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
             args = []
             where_statement = ""
-            if name:
-                args.extend(["%" + name.lower() + "%"])
+            if destination:
+                args.extend(["%" + destination.lower() + "%"])
                 where_statement = "WHERE LOWER(destination) LIKE ?"
 
             sql_base = f"FROM destinations {where_statement} "
