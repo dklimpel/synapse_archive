@@ -360,7 +360,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 url.encode("ascii"),
                 access_token=self.admin_user_tok,
             )
-            self.assertEqual(expected_http_code, channel.code, msg=channel.json_body)
+            self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
 
             # Check that destinations were returned
             self.assertTrue("destinations" in channel.json_body)
@@ -370,9 +370,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
             # Check that the expected number of destinations were returned
             expected_destination_count = 1 if expected_destination else 0
             self.assertEqual(len(destinations), expected_destination_count)
-            self.assertEqual(
-                channel.json_body["total"], expected_destination_count
-            )
+            self.assertEqual(channel.json_body["total"], expected_destination_count)
 
             if expected_destination:
                 # Check that the first returned destination is correct
