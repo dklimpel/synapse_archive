@@ -240,20 +240,101 @@ class FederationTestCase(unittest.HomeserverTestCase):
         # Check that all fields are available
         self._check_fields(channel.json_body["destinations"])
 
+    def test_order_by(self):
+        """
+        Testing order list with parameter `order_by`
+        """
+
+        def _order_test(
+            expected_destination_list: List[str],
+            order_by: Optional[str],
+            dir: Optional[str] = None,
+        ):
+            """Request the list of users in a certain order. Assert that order is what
+            we expect
+            Args:
+                expected_destination_list: The list of user_id in the order we expect to get
+                    back from the server
+                order_by: The type of ordering to give the server
+                dir: The direction of ordering to give the server
+            """
+    
+            url = self.url
+            if order_by is not None:
+                url += f"order_by={order_by}&"
+            if dir is not None and dir in ("b", "f"):
+                url += f"dir={dir}"
+            channel = self.make_request(
+                "GET",
+                url,
+                access_token=self.admin_user_tok,
+            )
+            self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+            self.assertEqual(channel.json_body["total"], len(expected_destination_list))
+    
+            returned_order = [row["destination"] for row in channel.json_body["destinations"]]
+            self.assertEqual(expected_destination_list, returned_order)
+            self._check_fields(channel.json_body["destinations"])
+
+        destinations_src = [
+            ("sub1.example.com", 100, 400, 200, 300),
+            ("sub1.example.com", 200, 300, 100, 100),
+            ("sub1.example.com", 300, 200, 400, 200),
+            ("sub1.example.com", 400, 100, 100, 400),
+        ]
+        dest = []
+        for destination, failure_ts, retry_last_ts, retry_interval, last_successful_stream_ordering in destinations_src:
+            dest.append(destination)
+            self.get_success(
+                self.store.set_destination_retry_timings(
+                    destination, failure_ts, retry_last_ts, retry_interval
+                )
+            )
+            self.get_success(
+                self.store.set_destination_last_successful_stream_ordering(
+                    destination, last_successful_stream_ordering
+                )
+            )
+
+
+        # order by default (destination)
+        _order_test([dest[1], dest[2], dest[3]], None)
+        _order_test([self.admin_user, user1, user2], None, "f")
+        _order_test([user2, user1, self.admin_user], None, "b")
+
+        # order by destination
+        _order_test([self.admin_user, user1, user2], "destination")
+        _order_test([self.admin_user, user1, user2], "destination", "f")
+        _order_test([user2, user1, self.admin_user], "destination", "b")
+
+        # order by retry_last_ts
+        _order_test([user2, user1, self.admin_user], "retry_last_ts")
+        _order_test([user2, user1, self.admin_user], "retry_last_ts", "f")
+        _order_test([self.admin_user, user1, user2], "retry_last_ts", "b")
+
+        # order by retry_interval
+        _order_test([self.admin_user, user1, user2], "retry_interval")
+        _order_test([self.admin_user, user1, user2], "retry_interval", "f")
+        _order_test([self.admin_user, user1, user2], "retry_interval", "b")
+
+        # order by failure_ts
+        _order_test([user1, user2, self.admin_user], "failure_ts")
+        _order_test([user1, user2, self.admin_user], "failure_ts", "f")
+        _order_test([self.admin_user, user1, user2], "failure_ts", "b")
+
+        # order by last_successful_stream_ordering
+        _order_test([self.admin_user, user2, user1], "last_successful_stream_ordering")
+        _order_test([self.admin_user, user2, user1], "last_successful_stream_ordering", "f")
+        _order_test([user1, self.admin_user, user2], "last_successful_stream_ordering", "b")
+
     def _create_destinations(self, number_destinations: int):
         """"""
-        for i in range(1, number_destinations + 1):
+        for i in range(0, number_destinations):
             dest = f"sub{i}.example.com"
-            now_ms = self.clock.time_msec()
-            d = self.store.set_destination_retry_timings(
-                dest, now_ms, 1000000000 - now_ms, 100 * i
+            self.get_success(self.store.set_destination_retry_timings(dest, 50, 50, 50))
+            self.get_success(
+                self.store.set_destination_last_successful_stream_ordering(dest, 100)
             )
-            self.get_success(d)
-
-            d = self.store.set_destination_last_successful_stream_ordering(
-                dest, 100 * i
-            )
-            self.get_success(d)
 
     def _check_fields(self, content: JsonDict):
         """Checks that the expected destination attributes are present in content
