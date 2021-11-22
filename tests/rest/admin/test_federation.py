@@ -296,7 +296,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
             )
 
         # order by default (destination)
-        _order_test([dest[0][0], dest[1][0], dest[2][0], None)
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], None)
         _order_test([self.admin_user, user1, user2], None, "f")
         _order_test([user2, user1, self.admin_user], None, "b")
 
