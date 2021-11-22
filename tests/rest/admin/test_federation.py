@@ -260,7 +260,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 dir: The direction of ordering to give the server
             """
 
-            url = self.url
+            url = f"{self.url}?"
             if order_by is not None:
                 url += f"order_by={order_by}&"
             if dir is not None and dir in ("b", "f"):
