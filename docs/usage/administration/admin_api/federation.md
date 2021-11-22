@@ -8,7 +8,6 @@ This API allows a server administrator to manage the federation.
 
 This API gets the current destination retry timing info for a remote server.
 
-
 The API is:
 
 A standard request with no filtering:
@@ -75,7 +74,7 @@ The following fields are returned in the JSON response body:
     the remote server before trying again, in ms.
   - `failure_ts` - integer - The first time Synapse tried and failed to reach the
     remote server, in ms.
-  - `last_successful_stream_ordering` - integer - The streamordering of the most
+  - `last_successful_stream_ordering` - integer - The stream ordering of the most
     recent successfully-sent [PDU](Understanding-Synapse-Performance-Issues-Through-Grafana-Graphs.md#federation)
     to this destination or `null` if this information has not been tracked yet.
 - `next_token`: string representing a positive integer - Indication for pagination. See above.
