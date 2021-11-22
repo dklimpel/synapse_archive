@@ -313,6 +313,11 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _order_test([dest[0][0], dest[1][0], dest[2][0]], "destination", "f")
         _order_test([dest[2][0], dest[1][0], dest[0][0]], "destination", "b")
 
+        # order by failure_ts
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "failure_ts")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "failure_ts", "f")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "failure_ts", "b")
+
         # order by retry_last_ts
         _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts")
         _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts", "f")
@@ -322,11 +327,6 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval")
         _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval", "f")
         _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_interval", "b")
-
-        # order by failure_ts
-        _order_test([user1, user2, self.admin_user], "failure_ts")
-        _order_test([user1, user2, self.admin_user], "failure_ts", "f")
-        _order_test([self.admin_user, user1, user2], "failure_ts", "b")
 
         # order by last_successful_stream_ordering
         _order_test([self.admin_user, user2, user1], "last_successful_stream_ordering")
