@@ -124,8 +124,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         """
 
         number_destinations = 20
-        # Create one less user (since there's already an admin user).
-        self._create_destinations(number_destinations - 1)
+        self._create_destinations(number_destinations)
 
         channel = self.make_request(
             "GET",
@@ -145,8 +144,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         """
 
         number_destinations = 20
-        # Create one less user (since there's already an admin user).
-        self._create_destinations(number_destinations - 1)
+        self._create_destinations(number_destinations)
 
         channel = self.make_request(
             "GET",
@@ -166,8 +164,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         """
 
         number_destinations = 20
-        # Create one less user (since there's already an admin user).
-        self._create_destinations(number_destinations - 1)
+        self._create_destinations(number_destinations)
 
         #  `next_token` does not appear
         # Number of results is the number of entries
