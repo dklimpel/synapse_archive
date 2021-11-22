@@ -324,9 +324,9 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts", "b")
 
         # order by retry_interval
-        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval")
-        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval", "f")
-        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_interval", "b")
+        _order_test([dest[1][0], dest[0][0], dest[2][0]], "retry_interval")
+        _order_test([dest[1][0], dest[0][0], dest[2][0]], "retry_interval", "f")
+        _order_test([dest[2][0], dest[0][0], dest[1][0]], "retry_interval", "b")
 
         # order by last_successful_stream_ordering
         _order_test([self.admin_user, user2, user1], "last_successful_stream_ordering")
