@@ -29,17 +29,17 @@ logger = logging.getLogger(__name__)
 
 
 class FederationDestinationRestServlet(RestServlet):
-    """Get request to list all local users.
+    """Get request to list all destinations.
     This needs user to have administrator access in Synapse.
 
     GET /_synapse/admin/v1/federation/destinations?from=0&limit=10
 
     returns:
-        200 OK with list of users if success otherwise an error.
+        200 OK with list of destinations if success otherwise an error.
 
     The parameters `from` and `limit` are required only for pagination.
     By default, a `limit` of 100 is used.
-    The parameter `name` can be used to filter by user id or display name.
+    The parameter `destination` can be used to filter by destination.
     The parameter `order_by` can be used to order the result.
     """
 

@@ -31,7 +31,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
     def prepare(self, reactor, clock, hs: HomeServer):
         self.store = hs.get_datastore()
-        self.admin_user = self.register_user("admin", "pass", admin=True)
+        self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
 
         self.url = "/_synapse/admin/v1/federation/destinations"
@@ -101,7 +101,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
     def test_limit(self):
         """
-        Testing list of users with limit
+        Testing list of destinations with limit
         """
 
         number_destinations = 20
@@ -121,7 +121,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
     def test_from(self):
         """
-        Testing list of users with a defined starting point (from)
+        Testing list of destinations with a defined starting point (from)
         """
 
         number_destinations = 20
@@ -141,7 +141,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
     def test_limit_and_from(self):
         """
-        Testing list of users with a defined starting point and limit
+        Testing list of destinations with a defined starting point and limit
         """
 
         number_destinations = 20
@@ -251,11 +251,12 @@ class FederationTestCase(unittest.HomeserverTestCase):
             order_by: Optional[str],
             dir: Optional[str] = None,
         ):
-            """Request the list of users in a certain order. Assert that order is what
-            we expect
+            """Request the list of destinations in a certain order.
+            Assert that order is what we expect
+
             Args:
-                expected_destination_list: The list of user_id in the order we expect to get
-                    back from the server
+                expected_destination_list: The list of user_id in the order
+                    we expect to get back from the server
                 order_by: The type of ordering to give the server
                 dir: The direction of ordering to give the server
             """
@@ -345,15 +346,13 @@ class FederationTestCase(unittest.HomeserverTestCase):
         def _search_test(
             expected_destination: Optional[str],
             search_term: str,
-            expected_http_code: int = HTTPStatus.OK,
         ):
-            """Search for a room and check that the returned room's id is a match
+            """Search for a destination and check that the returned destinationis a match
 
             Args:
-                expected_destination: The room_id expected to be returned by the API. Set
-                    to None to expect zero results for the search
+                expected_destination: The room_id expected to be returned by the API.
+                    Set to None to expect zero results for the search
                 search_term: The term to search for room names with
-                expected_http_code: The expected http code for the request
             """
             url = f"{self.url}?destination={search_term}"
             channel = self.make_request(
@@ -362,9 +361,6 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 access_token=self.admin_user_tok,
             )
             self.assertEqual(expected_http_code, channel.code, msg=channel.json_body)
-
-            if expected_http_code != HTTPStatus.OK:
-                return
 
             # Check that destinations were returned
             self.assertTrue("destinations" in channel.json_body)
@@ -385,7 +381,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         number_destinations = 3
         self._create_destinations(number_destinations)
 
-        # Test searching by room name
+        # Test searching
         _search_test("sub0.example.com", "0")
         _search_test("sub0.example.com", "sub0")
 
@@ -399,7 +395,11 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _search_test(None, "bar")
 
     def _create_destinations(self, number_destinations: int):
-        """"""
+        """Create a number of destinations
+
+        Args:
+            number_destinations: Number of destinations to be created
+        """
         for i in range(0, number_destinations):
             dest = f"sub{i}.example.com"
             self.get_success(self.store.set_destination_retry_timings(dest, 50, 50, 50))
@@ -409,6 +409,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
     def _check_fields(self, content: JsonDict):
         """Checks that the expected destination attributes are present in content
+
         Args:
             content: List that is checked for content
         """

@@ -46,17 +46,7 @@ _UpdateTransactionRow = namedtuple(
 
 
 class DestinationSortOrder(Enum):
-    """
-    Enum to define the sorting method used when returning users
-
-    MEDIA_LENGTH = ordered by size of uploaded media.
-    MEDIA_COUNT = ordered by number of uploaded media.
-    USER_ID = ordered alphabetically by `user_id`.
-    NAME = ordered alphabetically by `user_id`. This is for compatibility reasons,
-    as the user_id is returned in the name field in the response in list users admin API.
-    DISPLAYNAME = ordered alphabetically by `displayname`
-    GUEST = ordered by `is_guest`
-    """
+    """Enum to define the sorting method used when returning destinations."""
 
     DESTINATION = "destination"
     RETRY_LAST_TS = "retry_last_ts"
@@ -510,18 +500,19 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
         order_by: str = DestinationSortOrder.DESTINATION.value,
         direction: str = "f",
     ) -> Tuple[List[JsonDict], int]:
-        """Function to retrieve a paginated list of users from
-        users list. This will return a json list of users and the
-        total number of users matching the filter criteria.
+        """Function to retrieve a paginated list of destinations.
+        This will return a json list of destinations and the
+        total number of destinations matching the filter criteria.
 
         Args:
             start: start number to begin the query from
             limit: number of rows to retrieve
-            destination: search for local part of user_id or display name
+            destination: search string in destination
             order_by: the sort order of the returned list
             direction: sort ascending or descending
         Returns:
-            A tuple of a list of mappings from user to information and a count of total users.
+            A tuple of a list of mappings from destination to information
+            and a count of total destinations.
         """
 
         def get_destinations_paginate_txn(txn):
