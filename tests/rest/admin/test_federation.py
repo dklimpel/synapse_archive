@@ -290,7 +290,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
             failure_ts,
             retry_last_ts,
             retry_interval,
-            last_successful_stream_ordering
+            last_successful_stream_ordering,
         ) in dest:
             self.get_success(
                 self.store.set_destination_retry_timings(
@@ -339,6 +339,66 @@ class FederationTestCase(unittest.HomeserverTestCase):
             [dest[0][0], dest[2][0], dest[1][0]], "last_successful_stream_ordering", "b"
         )
 
+    def test_search_term(self):
+        """Test that searching for a room works correctly"""
+
+        def _search_test(
+            expected_room_id: Optional[str],
+            search_term: str,
+            expected_http_code: int = HTTPStatus.OK,
+        ):
+            """Search for a room and check that the returned room's id is a match
+
+            Args:
+                expected_destination: The room_id expected to be returned by the API. Set
+                    to None to expect zero results for the search
+                search_term: The term to search for room names with
+                expected_http_code: The expected http code for the request
+            """
+            url = f"{self.url}?destination={search_term}"
+            channel = self.make_request(
+                "GET",
+                url.encode("ascii"),
+                access_token=self.admin_user_tok,
+            )
+            self.assertEqual(expected_http_code, channel.code, msg=channel.json_body)
+
+            if expected_http_code != HTTPStatus.OK:
+                return
+
+            # Check that destinations were returned
+            self.assertTrue("destinations" in channel.json_body)
+            self._check_fields(channel.json_body["destinations"])
+            destinations = channel.json_body["destinations"]
+
+            # Check that the expected number of destinations were returned
+            expected_destination_count = 1 if expected_destination else 0
+            self.assertEqual(len(destinations), expected_destination_count)
+            self.assertEqual(
+                channel.json_body["total_rooms"], expected_destination_count
+            )
+
+            if expected_destination:
+                # Check that the first returned destination is correct
+                self.assertEqual(expected_destination, destinations[0]["destination"])
+
+        number_destinations = 3
+        self._create_destinations(number_destinations)
+
+        # Test searching by room name
+        _search_test("sub0.example.com", "0")
+        _search_test("sub0.example.com", "sub0")
+
+        _search_test("sub1.example.com", "1")
+        _search_test("sub1.example.com", "1.")
+
+        # Test case insensitive
+        _search_test("sub0.example.com", "SUB0")
+
+        _search_test(None, "foo")
+        _search_test(None, "bar")
+        _search_test(None, "", expected_http_code=HTTPStatus.BAD_REQUEST)
+
     def _create_destinations(self, number_destinations: int):
         """"""
         for i in range(0, number_destinations):
@@ -359,4 +419,3 @@ class FederationTestCase(unittest.HomeserverTestCase):
             self.assertIn("retry_interval", c)
             self.assertIn("failure_ts", c)
             self.assertIn("last_successful_stream_ordering", c)
-
