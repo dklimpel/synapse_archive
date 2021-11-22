@@ -319,9 +319,9 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _order_test([dest[2][0], dest[1][0], dest[0][0]], "failure_ts", "b")
 
         # order by retry_last_ts
-        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts")
-        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts", "f")
-        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_last_ts", "b")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_last_ts")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_last_ts", "f")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts", "b")
 
         # order by retry_interval
         _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval")
