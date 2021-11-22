@@ -15,10 +15,11 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Tuple
 
-from synapse.api.errors import SynapseError
-from synapse.http.servlet import RestServlet
+from synapse.api.errors import Codes, SynapseError
+from synapse.http.servlet import  RestServlet, parse_integer, parse_string
 from synapse.http.site import SynapseRequest
 from synapse.rest.admin._base import admin_patterns, assert_requester_is_admin
+from synapse.storage.databases.main.transactions import DestinationSortOrder
 from synapse.types import JsonDict
 
 if TYPE_CHECKING:
@@ -90,7 +91,7 @@ class FederationDestinationRestServlet(RestServlet):
         )
         response = {"destinations": destinations, "total": total}
         if (start + limit) < total:
-            ret["next_token"] = str(start + len(destinations))
+            response["next_token"] = str(start + len(destinations))
 
         return HTTPStatus.OK, response
 
