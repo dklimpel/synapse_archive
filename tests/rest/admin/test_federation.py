@@ -98,12 +98,136 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
 
+    def test_limit(self):
+        """
+        Testing list of users with limit
+        """
+
+        number_destinations = 20
+        self._create_destinations(number_destinations)
+
+        channel = self.make_request(
+            "GET",
+            self.url + "?limit=5",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(len(channel.json_body["destinations"]), 5)
+        self.assertEqual(channel.json_body["next_token"], "5")
+        self._check_fields(channel.json_body["destinations"])
+
+    def test_from(self):
+        """
+        Testing list of users with a defined starting point (from)
+        """
+
+        number_destinations = 20
+        # Create one less user (since there's already an admin user).
+        self._create_destinations(number_destinations - 1)
+
+        channel = self.make_request(
+            "GET",
+            self.url + "?from=5",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(len(channel.json_body["destinations"]), 15)
+        self.assertNotIn("next_token", channel.json_body)
+        self._check_fields(channel.json_body["destinations"])
+
+    def test_limit_and_from(self):
+        """
+        Testing list of users with a defined starting point and limit
+        """
+
+        number_destinations = 20
+        # Create one less user (since there's already an admin user).
+        self._create_destinations(number_destinations - 1)
+
+        channel = self.make_request(
+            "GET",
+            self.url + "?from=5&limit=10",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(channel.json_body["next_token"], "15")
+        self.assertEqual(len(channel.json_body["destinations"]), 10)
+        self._check_fields(channel.json_body["destinations"])
+
+    def test_next_token(self):
+        """
+        Testing that `next_token` appears at the right place
+        """
+
+        number_destinations = 20
+        # Create one less user (since there's already an admin user).
+        self._create_destinations(number_destinations - 1)
+
+        #  `next_token` does not appear
+        # Number of results is the number of entries
+        channel = self.make_request(
+            "GET",
+            self.url + "?limit=20",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(len(channel.json_body["destinations"]), number_destinations)
+        self.assertNotIn("next_token", channel.json_body)
+
+        #  `next_token` does not appear
+        # Number of max results is larger than the number of entries
+        channel = self.make_request(
+            "GET",
+            self.url + "?limit=21",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(len(channel.json_body["destinations"]), number_destinations)
+        self.assertNotIn("next_token", channel.json_body)
+
+        #  `next_token` does appear
+        # Number of max results is smaller than the number of entries
+        channel = self.make_request(
+            "GET",
+            self.url + "?limit=19",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(len(channel.json_body["destinations"]), 19)
+        self.assertEqual(channel.json_body["next_token"], "19")
+
+        # Check
+        # Set `from` to value of `next_token` for request remaining entries
+        #  `next_token` does not appear
+        channel = self.make_request(
+            "GET",
+            self.url + "?from=19",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(channel.json_body["total"], number_destinations)
+        self.assertEqual(len(channel.json_body["destinations"]), 1)
+        self.assertNotIn("next_token", channel.json_body)
+
     def test_list_all_destinations(self):
         """
-        List all users, including deactivated users.
+        List all destinations.
         """
-        number = 5
-        self._create_destinations(number)
+        number_destinations = 5
+        self._create_destinations(number_destinations)
 
         channel = self.make_request(
             "GET",
@@ -113,8 +237,8 @@ class FederationTestCase(unittest.HomeserverTestCase):
         )
 
         self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
-        self.assertEqual(number, len(channel.json_body["destinations"]))
-        self.assertEqual(number, channel.json_body["total"])
+        self.assertEqual(number_destinations, len(channel.json_body["destinations"]))
+        self.assertEqual(number_destinations, channel.json_body["total"])
 
         # Check that all fields are available
         self._check_fields(channel.json_body["destinations"])
