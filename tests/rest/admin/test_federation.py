@@ -17,6 +17,7 @@ import synapse.rest.admin
 from synapse.api.errors import Codes
 from synapse.rest.client import login
 from synapse.server import HomeServer
+from synapse.types import JsonDict
 
 from tests import unittest
 
