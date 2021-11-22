@@ -375,7 +375,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
             expected_destination_count = 1 if expected_destination else 0
             self.assertEqual(len(destinations), expected_destination_count)
             self.assertEqual(
-                channel.json_body["total_rooms"], expected_destination_count
+                channel.json_body["total"], expected_destination_count
             )
 
             if expected_destination:
