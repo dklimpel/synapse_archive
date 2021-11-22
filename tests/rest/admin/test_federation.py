@@ -277,14 +277,12 @@ class FederationTestCase(unittest.HomeserverTestCase):
             self.assertEqual(expected_destination_list, returned_order)
             self._check_fields(channel.json_body["destinations"])
 
-        destinations_src = [
-            ("sub-a.example.com", 100, 400, 200, 300),
-            ("sub-b.example.com", 200, 300, 100, 100),
-            ("sub-c.example.com", 300, 200, 400, 200),
-            ("sub-d.example.com", 400, 100, 100, 400),
+        dest = [
+            ("sub-a.example.com", 100, 300, 200, 300),
+            ("sub-b.example.com", 200, 200, 100, 100),
+            ("sub-c.example.com", 300, 100, 300, 200),
         ]
-        dest = []
-        for destination, failure_ts, retry_last_ts, retry_interval, last_successful_stream_ordering in destinations_src:
+        for destination, failure_ts, retry_last_ts, retry_interval, last_successful_stream_ordering in dest:
             dest.append(destination)
             self.get_success(
                 self.store.set_destination_retry_timings(
@@ -297,9 +295,8 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 )
             )
 
-        self.assertEqual(dest[0], destinations_src[0][0], destinations_src[0])
         # order by default (destination)
-        _order_test([dest[1], dest[2], dest[3]], None)
+        _order_test([dest[0][0], dest[1][0], dest[2][0], None)
         _order_test([self.admin_user, user1, user2], None, "f")
         _order_test([user2, user1, self.admin_user], None, "b")
 
