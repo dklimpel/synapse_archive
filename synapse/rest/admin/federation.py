@@ -76,11 +76,11 @@ class FederationDestinationRestServlet(RestServlet):
             "order_by",
             default=DestinationSortOrder.DESTINATION.value,
             allowed_values=(
-                DestinationSortOrder.DESTINATION,
-                DestinationSortOrder.RETRY_LAST_TS,
-                DestinationSortOrder.RETTRY_INTERVAL,
-                DestinationSortOrder.FAILURE_TS,
-                DestinationSortOrder.LAST_SUCCESSFUL_STREAM_ORDERING,
+                DestinationSortOrder.DESTINATION.value,
+                DestinationSortOrder.RETRY_LAST_TS.value,
+                DestinationSortOrder.RETTRY_INTERVAL.value,
+                DestinationSortOrder.FAILURE_TS.value,
+                DestinationSortOrder.LAST_SUCCESSFUL_STREAM_ORDERING.value,
             ),
         )
 

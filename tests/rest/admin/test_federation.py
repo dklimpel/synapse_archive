@@ -58,22 +58,40 @@ class FederationTestCase(unittest.HomeserverTestCase):
         If parameters are invalid, an error is returned.
         """
 
-        # empty content
+        # negative limit
         channel = self.make_request(
-            "POST",
-            self.url,
-            content={},
+            "GET",
+            self.url + "?limit=-5",
             access_token=self.admin_user_tok,
         )
 
         self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
-        self.assertEqual(Codes.MISSING_PARAM, channel.json_body["errcode"])
+        self.assertEqual(Codes.INVALID_PARAM, channel.json_body["errcode"])
 
-        # job_name invalid
+        # negative from
         channel = self.make_request(
-            "POST",
-            self.url,
-            content={"job_name": "unknown"},
+            "GET",
+            self.url + "?from=-5",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.INVALID_PARAM, channel.json_body["errcode"])
+
+        # unkown order_by
+        channel = self.make_request(
+            "GET",
+            self.url + "?order_by=bar",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
+
+        # invalid search order
+        channel = self.make_request(
+            "GET",
+            self.url + "?dir=bar",
             access_token=self.admin_user_tok,
         )
 
