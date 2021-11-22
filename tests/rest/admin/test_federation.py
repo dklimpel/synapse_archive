@@ -343,7 +343,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         """Test that searching for a room works correctly"""
 
         def _search_test(
-            expected_room_id: Optional[str],
+            expected_destination: Optional[str],
             search_term: str,
             expected_http_code: int = HTTPStatus.OK,
         ):
