@@ -297,7 +297,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 )
             )
 
-        self.assertEqual(dest[1], destinations_src[1][1], destinations_src[1])
+        self.assertEqual(dest[0], destinations_src[0][0], destinations_src[0])
         # order by default (destination)
         _order_test([dest[1], dest[2], dest[3]], None)
         _order_test([self.admin_user, user1, user2], None, "f")
