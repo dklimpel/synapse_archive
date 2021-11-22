@@ -340,7 +340,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         )
 
     def test_search_term(self):
-        """Test that searching for a room works correctly"""
+        """Test that searching for a destination works correctly"""
 
         def _search_test(
             expected_destination: Optional[str],
@@ -397,7 +397,6 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
         _search_test(None, "foo")
         _search_test(None, "bar")
-        _search_test(None, "", expected_http_code=HTTPStatus.BAD_REQUEST)
 
     def _create_destinations(self, number_destinations: int):
         """"""
