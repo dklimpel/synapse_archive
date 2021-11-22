@@ -97,13 +97,51 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.UNKNOWN, channel.json_body["errcode"])
 
-    def test_get_destinations(self):
-        """Test that background updates add to database and be processed."""
+    def test_list_all_destinations(self):
+        """
+        List all users, including deactivated users.
+        """
+        number = 5
+        self._create_destinations(number)
 
         channel = self.make_request(
             "GET",
             self.url,
+            {},
             access_token=self.admin_user_tok,
         )
 
         self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        self.assertEqual(number, len(channel.json_body["destinations"]))
+        self.assertEqual(number, channel.json_body["total"])
+
+        # Check that all fields are available
+        self._check_fields(channel.json_body["destinations"])
+
+    def _create_destinations(self, number_destinations: int):
+        """"""
+        for i in range(1, number_destinations + 1):
+            dest = f"sub{i}.example.com"
+            now_ms = self.clock.time_msec()
+            d = self.store.set_destination_retry_timings(
+                dest, now_ms, 1000000000 - now_ms, 100 * i
+            )
+            self.get_success(d)
+
+            d = self.store.set_destination_last_successful_stream_ordering(
+                dest, 100 * i
+            )
+            self.get_success(d)
+
+    def _check_fields(self, content: JsonDict):
+        """Checks that the expected destination attributes are present in content
+        Args:
+            content: List that is checked for content
+        """
+        for c in content:
+            self.assertIn("destination", c)
+            self.assertIn("retry_last_ts", c)
+            self.assertIn("retry_interval", c)
+            self.assertIn("failure_ts", c)
+            self.assertIn("last_successful_stream_ordering", c)
+
