@@ -259,7 +259,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 order_by: The type of ordering to give the server
                 dir: The direction of ordering to give the server
             """
-    
+
             url = self.url
             if order_by is not None:
                 url += f"order_by={order_by}&"
@@ -272,8 +272,10 @@ class FederationTestCase(unittest.HomeserverTestCase):
             )
             self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
             self.assertEqual(channel.json_body["total"], len(expected_destination_list))
-    
-            returned_order = [row["destination"] for row in channel.json_body["destinations"]]
+
+            returned_order = [
+                row["destination"] for row in channel.json_body["destinations"]
+            ]
             self.assertEqual(expected_destination_list, returned_order)
             self._check_fields(channel.json_body["destinations"])
 
@@ -282,8 +284,13 @@ class FederationTestCase(unittest.HomeserverTestCase):
             ("sub-b.example.com", 200, 200, 100, 100),
             ("sub-c.example.com", 300, 100, 300, 200),
         ]
-        for destination, failure_ts, retry_last_ts, retry_interval, last_successful_stream_ordering in dest:
-            dest.append(destination)
+        for (
+            destination,
+            failure_ts,
+            retry_last_ts,
+            retry_interval,
+            last_successful_stream_ordering
+        ) in dest:
             self.get_success(
                 self.store.set_destination_retry_timings(
                     destination, failure_ts, retry_last_ts, retry_interval
@@ -297,8 +304,8 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
         # order by default (destination)
         _order_test([dest[0][0], dest[1][0], dest[2][0]], None)
-        _order_test([self.admin_user, user1, user2], None, "f")
-        _order_test([user2, user1, self.admin_user], None, "b")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], None, "f")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], None, "b")
 
         # order by destination
         _order_test([self.admin_user, user1, user2], "destination")
