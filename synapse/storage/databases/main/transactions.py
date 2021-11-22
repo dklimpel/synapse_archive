@@ -44,6 +44,26 @@ _UpdateTransactionRow = namedtuple(
 )
 
 
+class DestinationSortOrder(Enum):
+    """
+    Enum to define the sorting method used when returning users
+
+    MEDIA_LENGTH = ordered by size of uploaded media.
+    MEDIA_COUNT = ordered by number of uploaded media.
+    USER_ID = ordered alphabetically by `user_id`.
+    NAME = ordered alphabetically by `user_id`. This is for compatibility reasons,
+    as the user_id is returned in the name field in the response in list users admin API.
+    DISPLAYNAME = ordered alphabetically by `displayname`
+    GUEST = ordered by `is_guest`
+    """
+
+    DESTINATION = "destination"
+    RETRY_LAST_TS = "retry_last_ts"
+    RETTRY_INTERVAL = "retry_interval"
+    FAILURE_TS = "failure_ts"
+    LAST_SUCCESSFUL_STREAM_ORDERING = "last_successful_stream_ordering"
+
+
 @attr.s(slots=True, frozen=True, auto_attribs=True)
 class DestinationRetryTimings:
     """The current destination retry timing info for a remote server."""
@@ -480,3 +500,59 @@ class TransactionWorkerStore(CacheInvalidationWorkerStore):
 
         destinations = [row[0] for row in txn]
         return destinations
+
+    async def get_destinations_paginate(
+        self,
+        start: int,
+        limit: int,
+        destination: Optional[str] = None,
+        order_by: str = DestinationSortOrder.DESTINATION.value,
+        direction: str = "f",
+    ) -> Tuple[List[JsonDict], int]:
+        """Function to retrieve a paginated list of users from
+        users list. This will return a json list of users and the
+        total number of users matching the filter criteria.
+
+        Args:
+            start: start number to begin the query from
+            limit: number of rows to retrieve
+            destination: search for local part of user_id or display name
+            order_by: the sort order of the returned list
+            direction: sort ascending or descending
+        Returns:
+            A tuple of a list of mappings from user to information and a count of total users.
+        """
+
+        def get_destinations_paginate_txn(txn):
+            order_by_column = DestinationSortOrder(order_by).value
+
+            if direction == "b":
+                order = "DESC"
+            else:
+                order = "ASC"
+
+            args = []
+            where_statement = ""
+            if name:
+                args.extend(["%" + name.lower() + "%"])
+                where_statement = "WHERE LOWER(destination) LIKE ?"
+
+            sql_base = f"FROM destinations {where_statement} "
+            sql = f"SELECT COUNT(*) as total_destinations {sql_base}"
+            txn.execute(sql, args)
+            count = txn.fetchone()[0]
+
+            sql = f"""
+                SELECT destination, retry_last_ts, retry_interval, failure_ts,
+                last_successful_stream_ordering
+                {sql_base}
+                ORDER BY {order_by_column} {order}, destination ASC
+                LIMIT ? OFFSET ?
+            """
+            txn.execute(sql, args + [limit, start])
+            destinations = self.db_pool.cursor_to_dict(txn)
+            return destinations, count
+
+        return await self.db_pool.runInteraction(
+            "get_destinations_paginate_txn", get_destinations_paginate_txn
+        )
