@@ -279,6 +279,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
             self.assertEqual(expected_destination_list, returned_order)
             self._check_fields(channel.json_body["destinations"])
 
+        # create destinations
         dest = [
             ("sub-a.example.com", 100, 300, 200, 300),
             ("sub-b.example.com", 200, 200, 100, 100),
@@ -308,19 +309,19 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _order_test([dest[2][0], dest[1][0], dest[0][0]], None, "b")
 
         # order by destination
-        _order_test([self.admin_user, user1, user2], "destination")
-        _order_test([self.admin_user, user1, user2], "destination", "f")
-        _order_test([user2, user1, self.admin_user], "destination", "b")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "destination")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "destination", "f")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "destination", "b")
 
         # order by retry_last_ts
-        _order_test([user2, user1, self.admin_user], "retry_last_ts")
-        _order_test([user2, user1, self.admin_user], "retry_last_ts", "f")
-        _order_test([self.admin_user, user1, user2], "retry_last_ts", "b")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_last_ts", "f")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_last_ts", "b")
 
         # order by retry_interval
-        _order_test([self.admin_user, user1, user2], "retry_interval")
-        _order_test([self.admin_user, user1, user2], "retry_interval", "f")
-        _order_test([self.admin_user, user1, user2], "retry_interval", "b")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval")
+        _order_test([dest[2][0], dest[1][0], dest[0][0]], "retry_interval", "f")
+        _order_test([dest[0][0], dest[1][0], dest[2][0]], "retry_interval", "b")
 
         # order by failure_ts
         _order_test([user1, user2, self.admin_user], "failure_ts")
