@@ -89,6 +89,7 @@ class ListDestinationsRestServlet(RestServlet):
 
         return HTTPStatus.OK, response
 
+
 class DestinationsRestServlet(RestServlet):
     """Get details of a destination.
     This needs user to have administrator access in Synapse.
