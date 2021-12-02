@@ -426,7 +426,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual("sub0.example.com", channel.json_body["destination"])
 
         # Check that all fields are available
-        # convert channel.json_body into a list
+        # convert channel.json_body into a List
         self._check_fields([channel.json_body])
 
     def _create_destinations(self, number_destinations: int):
@@ -442,7 +442,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 self.store.set_destination_last_successful_stream_ordering(dest, 100)
             )
 
-    def _check_fields(self, content: JsonDict):
+    def _check_fields(self, content: List[JsonDict]):
         """Checks that the expected destination attributes are present in content
 
         Args:
