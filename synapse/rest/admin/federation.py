@@ -57,14 +57,14 @@ class FederationDestinationRestServlet(RestServlet):
 
         if start < 0:
             raise SynapseError(
-                400,
+                HTTPStatus.BAD_REQUEST,
                 "Query parameter from must be a string representing a positive integer.",
                 errcode=Codes.INVALID_PARAM,
             )
 
         if limit < 0:
             raise SynapseError(
-                400,
+                HTTPStatus.BAD_REQUEST,
                 "Query parameter limit must be a string representing a positive integer.",
                 errcode=Codes.INVALID_PARAM,
             )
@@ -75,13 +75,7 @@ class FederationDestinationRestServlet(RestServlet):
             request,
             "order_by",
             default=DestinationSortOrder.DESTINATION.value,
-            allowed_values=(
-                DestinationSortOrder.DESTINATION.value,
-                DestinationSortOrder.RETRY_LAST_TS.value,
-                DestinationSortOrder.RETTRY_INTERVAL.value,
-                DestinationSortOrder.FAILURE_TS.value,
-                DestinationSortOrder.LAST_SUCCESSFUL_STREAM_ORDERING.value,
-            ),
+            allowed_values=[dest.value for dest in DestinationSortOrder],
         )
 
         direction = parse_string(request, "dir", default="f", allowed_values=("f", "b"))
