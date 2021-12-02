@@ -426,7 +426,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual("sub0.example.com", channel.json_body["destination"])
 
         # Check that all fields are available
-        self._check_fields(channel.json_body)
+        self._check_fields([channel.json_body])
 
     def _create_destinations(self, number_destinations: int):
         """Create a number of destinations
