@@ -123,7 +123,9 @@ class DestinationsRestServlet(RestServlet):
 
         response = {
             "destination": destination,
-            **destination_retry_timings,
+            "failure_ts": destination_retry_timings.failure_ts,
+            "retry_last_ts": destination_retry_timings.retry_last_ts,
+            "retry_interval": destination_retry_timings.retry_interval,
             "last_successful_stream_ordering": last_successful_stream_ordering,
         }
 
