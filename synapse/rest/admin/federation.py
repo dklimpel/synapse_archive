@@ -117,8 +117,10 @@ class DestinationsRestServlet(RestServlet):
         if not destination_retry_timings:
             raise NotFoundError("Unknown destination")
 
-        last_successful_stream_ordering = await self._store.get_destination_last_successful_stream_ordering(
-            destination
+        last_successful_stream_ordering = (
+            await self._store.get_destination_last_successful_stream_ordering(
+                destination
+            )
         )
 
         response = {
