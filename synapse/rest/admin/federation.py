@@ -162,6 +162,6 @@ class WakeDestinationRestServlet(RestServlet):
         #):
         #    raise NotFoundError("Unknown destination")
 
-        self._notifier.notify_remote_server_up(destination)
+        await self._notifier.notify_remote_server_up(destination)
 
         return HTTPStatus.OK, {}
