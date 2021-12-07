@@ -16,11 +16,14 @@ from typing import List, Optional
 
 from parameterized import parameterized
 
+from twisted.test.proto_helpers import MemoryReactor
+
 import synapse.rest.admin
 from synapse.api.errors import Codes
 from synapse.rest.client import login
 from synapse.server import HomeServer
 from synapse.types import JsonDict
+from synapse.util import Clock
 
 from tests import unittest
 
@@ -31,7 +34,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         login.register_servlets,
     ]
 
-    def prepare(self, reactor, clock, hs: HomeServer):
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastore()
         self.register_user("admin", "pass", admin=True)
         self.admin_user_tok = self.login("admin", "pass")
@@ -40,11 +43,12 @@ class FederationTestCase(unittest.HomeserverTestCase):
 
     @parameterized.expand(
         [
-            ("/_synapse/admin/v1/federation/destinations",),
-            ("/_synapse/admin/v1/federation/destinations/dummy",),
+            ("GET", "/_synapse/admin/v1/federation/destinations"),
+            ("GET", "/_synapse/admin/v1/federation/destinations/dummy"),
+            ("POST", "/_synapse/admin/v1/federation/destinations/dummy/retry"),
         ]
     )
-    def test_requester_is_no_admin(self, url: str):
+    def test_requester_is_no_admin(self, method: str, url: str) -> None:
         """
         If the user is not a server admin, an error 403 is returned.
         """
@@ -53,7 +57,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         other_user_tok = self.login("user", "pass")
 
         channel = self.make_request(
-            "GET",
+            method,
             url,
             content={},
             access_token=other_user_tok,
@@ -62,7 +66,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(HTTPStatus.FORBIDDEN, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.FORBIDDEN, channel.json_body["errcode"])
 
-    def test_invalid_parameter(self):
+    def test_invalid_parameter(self) -> None:
         """
         If parameters are invalid, an error is returned.
         """
@@ -117,7 +121,17 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(HTTPStatus.NOT_FOUND, channel.code, msg=channel.json_body)
         self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
 
-    def test_limit(self):
+        # invalid destination
+        channel = self.make_request(
+            "POST",
+            self.url + "/dummy/retry",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.NOT_FOUND, channel.code, msg=channel.json_body)
+        self.assertEqual(Codes.NOT_FOUND, channel.json_body["errcode"])
+
+    def test_limit(self) -> None:
         """
         Testing list of destinations with limit
         """
@@ -137,7 +151,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(channel.json_body["next_token"], "5")
         self._check_fields(channel.json_body["destinations"])
 
-    def test_from(self):
+    def test_from(self) -> None:
         """
         Testing list of destinations with a defined starting point (from)
         """
@@ -157,7 +171,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertNotIn("next_token", channel.json_body)
         self._check_fields(channel.json_body["destinations"])
 
-    def test_limit_and_from(self):
+    def test_limit_and_from(self) -> None:
         """
         Testing list of destinations with a defined starting point and limit
         """
@@ -177,7 +191,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(len(channel.json_body["destinations"]), 10)
         self._check_fields(channel.json_body["destinations"])
 
-    def test_next_token(self):
+    def test_next_token(self) -> None:
         """
         Testing that `next_token` appears at the right place
         """
@@ -238,7 +252,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         self.assertEqual(len(channel.json_body["destinations"]), 1)
         self.assertNotIn("next_token", channel.json_body)
 
-    def test_list_all_destinations(self):
+    def test_list_all_destinations(self) -> None:
         """
         List all destinations.
         """
@@ -259,7 +273,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
         # Check that all fields are available
         self._check_fields(channel.json_body["destinations"])
 
-    def test_order_by(self):
+    def test_order_by(self) -> None:
         """
         Testing order list with parameter `order_by`
         """
@@ -358,13 +372,13 @@ class FederationTestCase(unittest.HomeserverTestCase):
             [dest[0][0], dest[2][0], dest[1][0]], "last_successful_stream_ordering", "b"
         )
 
-    def test_search_term(self):
+    def test_search_term(self) -> None:
         """Test that searching for a destination works correctly"""
 
         def _search_test(
             expected_destination: Optional[str],
             search_term: str,
-        ):
+        ) -> None:
             """Search for a destination and check that the returned destinationis a match
 
             Args:
@@ -410,11 +424,11 @@ class FederationTestCase(unittest.HomeserverTestCase):
         _search_test(None, "foo")
         _search_test(None, "bar")
 
-    def test_get_single_destination(self):
+    def test_get_single_destination(self) -> None:
         """
         Get one specific destinations.
         """
-        self._create_destinations(5)
+        self._create_destinations(1)
 
         channel = self.make_request(
             "GET",
@@ -429,7 +443,26 @@ class FederationTestCase(unittest.HomeserverTestCase):
         # convert channel.json_body into a List
         self._check_fields([channel.json_body])
 
-    def _create_destinations(self, number_destinations: int):
+    def test_wake_destination(self) -> None:
+        """
+        Wake one specific destinations.
+        """
+        self._create_destinations(1)
+
+        channel = self.make_request(
+            "POST",
+            self.url + "/sub0.example.com/retry",
+            access_token=self.admin_user_tok,
+        )
+
+        self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
+        # self.assertEqual("sub0.example.com", channel.json_body["destination"])
+
+        # Check that all fields are available
+        # convert channel.json_body into a List
+        # self._check_fields([channel.json_body])
+
+    def _create_destinations(self, number_destinations: int) -> None:
         """Create a number of destinations
 
         Args:
@@ -442,7 +475,7 @@ class FederationTestCase(unittest.HomeserverTestCase):
                 self.store.set_destination_last_successful_stream_ordering(dest, 100)
             )
 
-    def _check_fields(self, content: List[JsonDict]):
+    def _check_fields(self, content: List[JsonDict]) -> None:
         """Checks that the expected destination attributes are present in content
 
         Args:

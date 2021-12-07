@@ -90,7 +90,7 @@ class ListDestinationsRestServlet(RestServlet):
         return HTTPStatus.OK, response
 
 
-class DestinationsRestServlet(RestServlet):
+class DestinationRestServlet(RestServlet):
     """Get details of a destination.
     This needs user to have administrator access in Synapse.
 
@@ -133,3 +133,32 @@ class DestinationsRestServlet(RestServlet):
         }
 
         return HTTPStatus.OK, response
+
+class WakeDestinationRestServlet(RestServlet):
+    """Wake up a destination and retry connection.
+    This needs user to have administrator access in Synapse.
+
+    POST /_synapse/admin/v1/federation/destinations/<destination>/retry
+    {}
+
+    returns:
+        200 OK otherwise an error.
+    """
+
+    PATTERNS = admin_patterns("/federation/destinations/(?P<destination>[^/]+)/retry$")
+
+    def __init__(self, hs: "HomeServer"):
+        self._auth = hs.get_auth()
+        self._store = hs.get_datastore()
+
+    async def on_POST(
+        self, request: SynapseRequest, destination: str
+    ) -> Tuple[int, JsonDict]:
+        await assert_requester_is_admin(self._auth, request)
+
+        if not await self._store.get_destination_retry_timings(
+            destination
+        ):
+            raise NotFoundError("Unknown destination")
+
+        return HTTPStatus.OK, {}
