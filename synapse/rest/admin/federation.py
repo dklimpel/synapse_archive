@@ -157,11 +157,11 @@ class WakeDestinationRestServlet(RestServlet):
     ) -> Tuple[int, JsonDict]:
         await assert_requester_is_admin(self._auth, request)
 
-        #if not await self._store.get_destination_retry_timings(
-        #    destination
-        #):
-        #    raise NotFoundError("Unknown destination")
+        if not await self._store.get_destination_retry_timings(
+            destination
+        ):
+            raise NotFoundError("Unknown destination")
 
-        await self._notifier.notify_remote_server_up(destination)
+        self._notifier.notify_remote_server_up(destination)
 
         return HTTPStatus.OK, {}
