@@ -53,7 +53,7 @@ class UsernameAvailableTestCase(unittest.HomeserverTestCase):
         """
 
         url = "%s?username=%s" % (self.url, "allowed")
-        channel = self.make_request("GET", url, None, self.admin_user_tok)
+        channel = self.make_request("GET", url, access_token=self.admin_user_tok)
 
         self.assertEqual(HTTPStatus.OK, channel.code, msg=channel.json_body)
         self.assertTrue(channel.json_body["available"])
@@ -64,7 +64,7 @@ class UsernameAvailableTestCase(unittest.HomeserverTestCase):
         """
 
         url = "%s?username=%s" % (self.url, "disallowed")
-        channel = self.make_request("GET", url, None, self.admin_user_tok)
+        channel = self.make_request("GET", url, access_token=self.admin_user_tok)
 
         self.assertEqual(
             HTTPStatus.BAD_REQUEST,
