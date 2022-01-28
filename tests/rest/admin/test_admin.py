@@ -16,7 +16,7 @@ import os
 import urllib.parse
 from http import HTTPStatus
 from unittest.mock import Mock
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
@@ -155,10 +155,14 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
 
-        self.fetches = []
+        self.fetches: List[Tuple[Any, str, str, Optional[Any]]] = []
 
         async def get_file(
-            destination: str, path: str, output_stream, args=None, max_size=None
+            destination: str,
+            path: str,
+            output_stream: Any,
+            args: Optional[Any]=None,
+            max_size: Optional[int]=None
         ) -> Tuple[int, Dict, str, int]:
             """
             Returns tuple of file length, response headers,
