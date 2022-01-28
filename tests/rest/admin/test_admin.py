@@ -16,7 +16,7 @@ import os
 import urllib.parse
 from http import HTTPStatus
 from unittest.mock import Mock
-from typing import List
+from typing import List, Optional
 
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
@@ -298,7 +298,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         # Attempt to access the media
         self._ensure_quarantined(admin_user_tok, server_name_and_media_id)
 
-    def test_quarantine_all_media_in_room(self, override_url_template: str = None) -> None:
+    def test_quarantine_all_media_in_room(
+        self, override_url_template: Optional[str] = None
+    ) -> None:
         self.register_user("room_admin", "pass", admin=True)
         admin_user_tok = self.login("room_admin", "pass")
 
