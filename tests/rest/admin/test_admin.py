@@ -15,7 +15,6 @@
 import os
 import urllib.parse
 from http import HTTPStatus
-from unittest.mock import Mock
 from typing import Any, Dict, List, Optional, Tuple
 
 from twisted.internet.defer import Deferred
@@ -178,7 +177,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
         return hs
 
-    def _ensure_quarantined(self, admin_user_tok: str, server_and_media_id: str) -> None:
+    def _ensure_quarantined(
+        self, admin_user_tok: str, server_and_media_id: str
+    ) -> None:
         """Ensure a piece of media is quarantined when trying to access it."""
         channel = make_request(
             self.reactor,
