@@ -21,6 +21,8 @@ from http import HTTPStatus
 from typing import List, Optional
 from unittest.mock import Mock, patch
 
+from twisted.test.proto_helpers import MemoryReactor
+
 from parameterized import parameterized, parameterized_class
 
 import synapse.rest.admin
@@ -31,6 +33,7 @@ from synapse.rest.client import devices, login, logout, profile, room, sync
 from synapse.rest.media.v1.filepath import MediaFilePaths
 from synapse.server import HomeServer
 from synapse.types import JsonDict, UserID
+from synapse.util import Clock
 
 from tests import unittest
 from tests.server import FakeSite, make_request
