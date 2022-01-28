@@ -18,6 +18,7 @@ from twisted.test.proto_helpers import MemoryReactor
 import synapse.rest.admin
 from synapse.api.errors import Codes, SynapseError
 from synapse.rest.client import login
+from synapse.server import HomeServer
 from synapse.util import Clock
 
 from tests import unittest
