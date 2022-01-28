@@ -15,14 +15,12 @@
 import os
 import urllib.parse
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional
 
-from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
 
 import synapse.rest.admin
 from synapse.http.server import JsonResource
-from synapse.logging.context import make_deferred_yieldable
 from synapse.rest.admin import VersionServlet
 from synapse.rest.client import groups, login, room
 from synapse.server import HomeServer
