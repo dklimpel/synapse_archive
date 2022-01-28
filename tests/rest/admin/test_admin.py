@@ -155,8 +155,6 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
 
-        client = Mock()
-
         self.storage_path = self.mktemp()
         self.media_store_path = self.mktemp()
         os.mkdir(self.storage_path)
@@ -176,7 +174,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         }
         config["media_storage_providers"] = [provider_config]
 
-        hs = self.setup_test_homeserver(config=config, federation_http_client=client)
+        hs = self.setup_test_homeserver(config=config)
 
         return hs
 
