@@ -65,8 +65,8 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
 
         self.hs.config.registration.registration_shared_secret = "shared"
 
-        self.hs.get_media_repository: Mock = Mock()
-        self.hs.get_deactivate_account_handler = Mock()
+        self.hs.get_media_repository = Mock()  # type: ignore[assignment]
+        self.hs.get_deactivate_account_handler = Mock()  # type: ignore[assignment]
 
         return self.hs
 
