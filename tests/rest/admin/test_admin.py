@@ -16,6 +16,7 @@ import os
 import urllib.parse
 from http import HTTPStatus
 from unittest.mock import Mock
+from typing import List
 
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
@@ -126,7 +127,7 @@ class DeleteGroupTestCase(unittest.HomeserverTestCase):
 
         self.assertEqual(expect_code, channel.code, msg=channel.json_body)
 
-    def _get_groups_user_is_in(self, access_token: str) -> None:
+    def _get_groups_user_is_in(self, access_token: str) -> List[str]:
         """Returns the list of groups the user is in (given their access token)"""
         channel = self.make_request("GET", b"/joined_groups", access_token=access_token)
 
