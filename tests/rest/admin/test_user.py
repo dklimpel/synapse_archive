@@ -208,7 +208,7 @@ class UserRegisterTestCase(unittest.HomeserverTestCase):
         and type.
         """
 
-        def nonce():
+        def nonce() -> str:
             channel = self.make_request("GET", self.url)
             return channel.json_body["nonce"]
 
@@ -3045,7 +3045,7 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
         self.assertEqual(0, channel.json_body["total"])
         self.assertEqual(0, len(channel.json_body["deleted_media"]))
 
-    def test_get_media(self):
+    def test_get_media(self) -> None:
         """Tests that a normal lookup for media is successful"""
 
         number_media = 5
@@ -3276,7 +3276,7 @@ class UserMediaRestTestCase(unittest.HomeserverTestCase):
         expected_media_list: List[str],
         order_by: Optional[str],
         dir: Optional[str] = None,
-    ):
+    ) -> None:
         """Request the list of media in a certain order. Assert that order is what
         we expect
         Args:
@@ -3533,7 +3533,7 @@ class WhoisRestTestCase(unittest.HomeserverTestCase):
         self.admin_user_tok = self.login("admin", "pass")
 
         self.other_user = self.register_user("user", "pass")
-        self.url = self.url_prefix % self.other_user
+        self.url = self.url_prefix % self.other_user  # type: ignore[attr-defined]
 
     def test_no_auth(self) -> None:
         """
@@ -3562,7 +3562,7 @@ class WhoisRestTestCase(unittest.HomeserverTestCase):
         """
         Tests that a lookup for a user that is not a local returns a HTTPStatus.BAD_REQUEST
         """
-        url = self.url_prefix % "@unknown_person:unknown_domain"
+        url = self.url_prefix % "@unknown_person:unknown_domain"  # type: ignore[attr-defined]
 
         channel = self.make_request(
             "GET",
