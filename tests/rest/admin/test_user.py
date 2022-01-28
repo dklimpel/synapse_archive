@@ -454,7 +454,7 @@ class UsersListTestCase(unittest.HomeserverTestCase):
     ]
     url = "/_synapse/admin/v2/users"
 
-    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: Homeserver) -> None:
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.store = hs.get_datastore()
 
         self.admin_user = self.register_user("admin", "pass", admin=True)
