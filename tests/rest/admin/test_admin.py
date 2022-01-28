@@ -155,32 +155,7 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
 
-        self.fetches: List[Tuple[Any, str, str, Optional[Any]]] = []
-
-        async def get_file(
-            destination: str,
-            path: str,
-            output_stream: Any,
-            args: Optional[Any]=None,
-            max_size: Optional[int]=None
-        ) -> Tuple[int, Dict, str, int]:
-            """
-            Returns tuple of file length, response headers,
-            absolute URI, and response code.
-            """
-
-            def write_to(r):
-                data, response = r
-                output_stream.write(data)
-                return response
-
-            d = Deferred()
-            d.addCallback(write_to)
-            self.fetches.append((d, destination, path, args))
-            return await make_deferred_yieldable(d)
-
         client = Mock()
-        client.get_file = get_file
 
         self.storage_path = self.mktemp()
         self.media_store_path = self.mktemp()
