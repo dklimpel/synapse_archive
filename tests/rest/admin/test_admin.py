@@ -26,6 +26,7 @@ from synapse.http.server import JsonResource
 from synapse.logging.context import make_deferred_yieldable
 from synapse.rest.admin import VersionServlet
 from synapse.rest.client import groups, login, room
+from synapse.server import HomeServer
 from synapse.util import Clock
 
 from tests import unittest
@@ -152,11 +153,13 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
         self.download_resource = self.media_repo.children[b"download"]
         self.upload_resource = self.media_repo.children[b"upload"]
 
-    def make_homeserver(self, reactor, clock) -> None:
+    def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
 
         self.fetches = []
 
-        async def get_file(destination, path, output_stream, args=None, max_size=None):
+        async def get_file(
+            destination: str, path: str, output_stream, args=None, max_size=None
+        ):
             """
             Returns tuple[int,dict,str,int] of file length, response headers,
             absolute URI, and response code.
