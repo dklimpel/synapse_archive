@@ -36,7 +36,7 @@ from tests.test_utils import SMALL_PNG
 class VersionTestCase(unittest.HomeserverTestCase):
     url = "/_synapse/admin/v1/server_version"
 
-    def create_test_resource(self) -> None:
+    def create_test_resource(self) -> JsonResource:
         resource = JsonResource(self.hs)
         VersionServlet(self.hs).register(resource)
         return resource
