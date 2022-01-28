@@ -16,7 +16,7 @@ import os
 import urllib.parse
 from http import HTTPStatus
 from unittest.mock import Mock
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from twisted.internet.defer import Deferred
 from twisted.test.proto_helpers import MemoryReactor
@@ -159,9 +159,9 @@ class QuarantineMediaTestCase(unittest.HomeserverTestCase):
 
         async def get_file(
             destination: str, path: str, output_stream, args=None, max_size=None
-        ):
+        ) -> Tuple[int, Dict, str, int]:
             """
-            Returns tuple[int,dict,str,int] of file length, response headers,
+            Returns tuple of file length, response headers,
             absolute URI, and response code.
             """
 
