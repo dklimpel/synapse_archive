@@ -21,9 +21,9 @@ from http import HTTPStatus
 from typing import List, Optional
 from unittest.mock import Mock, patch
 
-from twisted.test.proto_helpers import MemoryReactor
-
 from parameterized import parameterized, parameterized_class
+
+from twisted.test.proto_helpers import MemoryReactor
 
 import synapse.rest.admin
 from synapse.api.constants import UserTypes
