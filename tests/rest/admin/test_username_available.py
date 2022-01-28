@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from http import HTTPStatus
+
 from twisted.test.proto_helpers import MemoryReactor
 
 import synapse.rest.admin
