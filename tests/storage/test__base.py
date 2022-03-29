@@ -15,11 +15,16 @@
 
 import secrets
 
+from twisted.test.proto_helpers import MemoryReactor
+
+from synapse.server import HomeServer
+from synapse.util import Clock
+
 from tests import unittest
 
 
 class UpsertManyTests(unittest.HomeserverTestCase):
-    def prepare(self, reactor, clock, hs):
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
         self.storage = hs.get_datastores().main
 
         self.table_name = "table_" + secrets.token_hex(6)
@@ -44,7 +49,7 @@ class UpsertManyTests(unittest.HomeserverTestCase):
         for i in res:
             yield (i["id"], i["username"], i["value"])
 
-    def test_upsert_many(self):
+    def test_upsert_many(self) -> None:
         """
         Upsert_many will perform the upsert operation across a batch of data.
         """

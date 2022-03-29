@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Any, Dict
 from unittest.mock import Mock
 
 from twisted.internet import defer
+from twisted.test.proto_helpers import MemoryReactor
 
 from synapse.api.constants import UserTypes
+from synapse.server import HomeServer
+from synapse.util import Clock
 
 from tests import unittest
 from tests.test_utils import make_awaitable
@@ -32,7 +36,7 @@ def gen_3pids(count):
 
 
 class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
-    def default_config(self):
+    def default_config(self) -> Dict[str, Any]:
         config = default_config("test")
 
         config.update({"limit_usage_by_mau": True, "max_mau_value": 50})
@@ -44,8 +48,8 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
 
         return config
 
-    def prepare(self, reactor, clock, homeserver):
-        self.store = homeserver.get_datastores().main
+    def prepare(self, reactor: MemoryReactor, clock: Clock, hs: HomeServer) -> None:
+        self.store = hs.get_datastores().main
         # Advance the clock a bit
         reactor.advance(FORTY_DAYS)
 
@@ -245,7 +249,7 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
         )
         self.get_success(d)
 
-        self.store.upsert_monthly_active_user = Mock(return_value=make_awaitable(None))
+        self.store.upsert_monthly_active_user = Mock(return_value=make_awaitable(None))  # type: ignore[assignment]
 
         d = self.store.populate_monthly_active_users(user_id)
         self.get_success(d)
@@ -253,7 +257,7 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
         self.store.upsert_monthly_active_user.assert_not_called()
 
     def test_populate_monthly_users_should_update(self):
-        self.store.upsert_monthly_active_user = Mock(return_value=make_awaitable(None))
+        self.store.upsert_monthly_active_user = Mock(return_value=make_awaitable(None))  # type: ignore[assignment]
 
         self.store.is_trial_user = Mock(return_value=defer.succeed(False))
 
@@ -266,9 +270,9 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
         self.store.upsert_monthly_active_user.assert_called_once()
 
     def test_populate_monthly_users_should_not_update(self):
-        self.store.upsert_monthly_active_user = Mock(return_value=make_awaitable(None))
+        self.store.upsert_monthly_active_user = Mock(return_value=make_awaitable(None))  # type: ignore[assignment]
 
-        self.store.is_trial_user = Mock(return_value=defer.succeed(False))
+        self.store.is_trial_user = Mock(return_value=defer.succeed(False))  # type: ignore[assignment]
         self.store.user_last_seen_monthly_active = Mock(
             return_value=defer.succeed(self.hs.get_clock().time_msec())
         )

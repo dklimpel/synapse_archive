@@ -16,7 +16,7 @@ import shutil
 import tempfile
 from binascii import unhexlify
 from io import BytesIO
-from typing import Any, BinaryIO, Dict, List, Optional, Union
+from typing import Any, BinaryIO, Dict, List, Optional, Tuple, Union
 from unittest.mock import Mock
 from urllib import parse
 
@@ -201,7 +201,9 @@ class MediaRepoTests(unittest.HomeserverTestCase):
 
     def make_homeserver(self, reactor: MemoryReactor, clock: Clock) -> HomeServer:
 
-        self.fetches = []
+        self.fetches: List[
+            Tuple[Any, str, str, Optional[Dict[str, Union[str, List[str]]]]]
+        ] = []
 
         def get_file(
             destination: str,
