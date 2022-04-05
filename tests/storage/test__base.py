@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import secrets
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, Generator, List, Tuple
 
 from twisted.test.proto_helpers import MemoryReactor
 
@@ -48,7 +48,7 @@ class UpsertManyTests(unittest.HomeserverTestCase):
 
     def _dump_to_tuple(
         self, res: List[Dict[str, Any]]
-    ) -> Generator[int, str, str]:
+    ) -> Generator[Tuple[int, str, str]]:
         for i in res:
             yield (i["id"], i["username"], i["value"])
 
