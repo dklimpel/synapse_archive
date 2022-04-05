@@ -39,7 +39,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         self.mock_key = "foo"
 
     @defer.inlineCallbacks
-    def test_executes_given_function(self) -> Generator[defer.Deferred, Any, None]:
+    def test_executes_given_function(self) -> Generator[Deferred, None, None]:
         cb = Mock(return_value=defer.succeed(self.mock_http_response))
         res = yield self.cache.fetch_or_execute(
             self.mock_key, cb, "some_arg", keyword="arg"
@@ -48,7 +48,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         self.assertEqual(res, self.mock_http_response)
 
     @defer.inlineCallbacks
-    def test_deduplicates_based_on_key(self) -> Generator[defer.Deferred, Any, None]:
+    def test_deduplicates_based_on_key(self) -> Generator[Deferred, None, None]:
         cb = Mock(return_value=defer.succeed(self.mock_http_response))
         for i in range(3):  # invoke multiple times
             res = yield self.cache.fetch_or_execute(
@@ -61,14 +61,14 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
     @defer.inlineCallbacks
     def test_logcontexts_with_async_result(
         self,
-    ) -> Generator[defer.Deferred, Any, None]:
+    ) -> Generator[Deferred, str, None]:
         @defer.inlineCallbacks
         def cb() -> Generator[defer.Deferred, Any, str]:
             yield Clock(reactor).sleep(0)
             return "yay"
 
         @defer.inlineCallbacks
-        def test() -> Generator[defer.Deferred, Any, None]:
+        def test() -> Generator[Deferred, None, None]:
             with LoggingContext("c") as c1:
                 res = yield self.cache.fetch_or_execute(self.mock_key, cb)
                 self.assertIs(current_context(), c1)
@@ -81,7 +81,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
         self.assertIs(current_context(), SENTINEL_CONTEXT)
 
     @defer.inlineCallbacks
-    def test_does_not_cache_exceptions(self) -> Generator[defer.Deferred, Any, None]:
+    def test_does_not_cache_exceptions(self) -> Generator[Deferred, None, None]:
         """Checks that, if the callback throws an exception, it is called again
         for the next request.
         """
@@ -107,7 +107,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
             self.assertIs(current_context(), test_context)
 
     @defer.inlineCallbacks
-    def test_does_not_cache_failures(self) -> Generator[defer.Deferred, Any, None]:
+    def test_does_not_cache_failures(self) -> Generator[Deferred, None, None]:
         """Checks that, if the callback returns a failure, it is called again
         for the next request.
         """
@@ -133,7 +133,7 @@ class HttpTransactionCacheTestCase(unittest.TestCase):
             self.assertIs(current_context(), test_context)
 
     @defer.inlineCallbacks
-    def test_cleans_up(self) -> Generator[defer.Deferred, Any, None]:
+    def test_cleans_up(self) -> Generator[Deferred, None, None]:
         cb = Mock(return_value=defer.succeed(self.mock_http_response))
         yield self.cache.fetch_or_execute(self.mock_key, cb, "an arg")
         # should NOT have cleaned up yet
