@@ -48,7 +48,7 @@ class UpsertManyTests(unittest.HomeserverTestCase):
 
     def _dump_to_tuple(
         self, res: List[Dict[str, Any]]
-    ) -> Generator[Tuple[int, None, None]]:
+    ) -> Generator[Tuple[int, str, str], None, None]:
         for i in res:
             yield (i["id"], i["username"], i["value"])
 
