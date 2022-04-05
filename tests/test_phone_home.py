@@ -46,5 +46,6 @@ class PhoneHomeStatsTestCase(HomeserverTestCase):
         past_stats = [(self.hs.get_clock().time(), old_resource)]
         stats: JsonDict = {}
         self.reactor.advance(1)
-        self.get_success(phone_stats_home(self.hs, stats, past_stats))
+        # `old_resource` has type `Mock` instead of `struct_rusage`
+        self.get_success(phone_stats_home(self.hs, stats, past_stats))  # type: ignore[arg-type]
         self.assertApproximates(stats["cpu_average"], 100, tolerance=2.5)
