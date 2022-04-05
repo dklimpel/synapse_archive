@@ -334,9 +334,7 @@ class MonthlyActiveUsersTestCase(unittest.HomeserverTestCase):
             )
         )
 
-        self.get_success(
-            self.store.upsert_monthly_active_user(support_user_id)
-        )
+        self.get_success(self.store.upsert_monthly_active_user(support_user_id))
 
         count = self.get_success(self.store.get_monthly_active_count())
         self.assertEqual(count, 0)
