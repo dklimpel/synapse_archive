@@ -36,7 +36,17 @@ what sort order was used:
 """
 
 import logging
-from typing import TYPE_CHECKING, Any, Collection, Dict, List, Optional, Set, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Collection,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+)
 
 import attr
 from frozendict import frozendict
@@ -742,7 +752,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
                 " LIMIT 1"
             )
             txn.execute(sql, (room_id, stream_ordering))
-            return txn.fetchone()
+            return cast(Tuple[int, int, str], txn.fetchone())
 
         return await self.db_pool.runInteraction(
             "get_room_event_before_stream_ordering", _f
@@ -770,7 +780,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
         self,
         txn: LoggingTransaction,
         event_id: str,
-        allow_none: bool = False,
+        allow_none: Literal[False] = False,
     ) -> int:
         return self.db_pool.simple_select_one_onecol_txn(
             txn=txn,
