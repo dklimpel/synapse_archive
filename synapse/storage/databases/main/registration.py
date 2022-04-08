@@ -615,8 +615,8 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
 
         def f(txn: LoggingTransaction) -> Dict[str, str]:
             sql = "SELECT name, password_hash FROM users WHERE lower(name) = lower(?)"
-            txn.execute(
-            result = cast(List[Tuple[str, str]], txn.fetchall()))
+            txn.execute()
+            result = cast(List[Tuple[str, str]], txn.fetchall())
             return dict(result)
 
         return await self.db_pool.runInteraction("get_users_by_id_case_insensitive", f)

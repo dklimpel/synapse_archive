@@ -328,7 +328,7 @@ class ApplicationServiceTransactionWorkerStore(
 
         def _get_oldest_unsent_txn(
             txn: LoggingTransaction,
-        ) -> Optional[AppServiceTransaction]:
+        ) -> Optional[Dict[str, Any]]:
             # Monotonically increasing txn ids, so just select the smallest
             # one in the txns table (we delete them when they are sent)
             txn.execute(
