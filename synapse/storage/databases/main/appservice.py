@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 import re
-from typing import TYPE_CHECKING, List, Optional, Pattern, Tuple
+from typing import TYPE_CHECKING, Collection, List, Optional, Pattern, Tuple
 
 from synapse.appservice import (
     ApplicationService,
@@ -295,7 +295,7 @@ class ApplicationServiceTransactionWorkerStore(
             service: The application service which was sent this transaction.
         """
 
-        def _complete_appservice_txn(txn: LoggingTransaction):
+        def _complete_appservice_txn(txn: LoggingTransaction) -> None:
             # Set current txn_id for AS to 'txn_id'
             self.db_pool.simple_upsert_txn(
                 txn,
@@ -386,7 +386,7 @@ class ApplicationServiceTransactionWorkerStore(
 
         def get_new_events_for_appservice_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[int, List[EventBase]]:
+        ) -> Tuple[int, Collection[str]]:
             sql = (
                 "SELECT e.stream_ordering, e.event_id"
                 " FROM events AS e"

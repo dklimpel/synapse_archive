@@ -616,7 +616,7 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
         def f(txn: LoggingTransaction) -> Dict[str, str]:
             sql = "SELECT name, password_hash FROM users WHERE lower(name) = lower(?)"
             txn.execute(sql, (user_id,))
-            return dict(txn)
+            return dict(self.db_pool.cursor_to_dict(txn))
 
         return await self.db_pool.runInteraction("get_users_by_id_case_insensitive", f)
 
@@ -1223,7 +1223,7 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
 
     def set_expiration_date_for_user_txn(
         self, txn: LoggingTransaction, user_id: str, use_delta: bool = False
-    ):
+    ) -> None:
         """Sets an expiration date to the account with the given user ID.
 
         Args:
