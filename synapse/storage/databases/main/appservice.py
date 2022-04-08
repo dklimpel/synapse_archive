@@ -260,7 +260,7 @@ class ApplicationServiceTransactionWorkerStore(
             A new transaction.
         """
 
-        def _create_appservice_txn(txn: LoggingTransaction):
+        def _create_appservice_txn(txn: LoggingTransaction) -> AppServiceTransaction:
             new_txn_id = self._as_txn_seq_gen.get_next_id_txn(txn)
 
             # Insert new txn into txn table
@@ -295,7 +295,7 @@ class ApplicationServiceTransactionWorkerStore(
             service: The application service which was sent this transaction.
         """
 
-        def _complete_appservice_txn(txn):
+        def _complete_appservice_txn(txn: LoggingTransaction):
             # Set current txn_id for AS to 'txn_id'
             self.db_pool.simple_upsert_txn(
                 txn,
@@ -326,7 +326,9 @@ class ApplicationServiceTransactionWorkerStore(
             An AppServiceTransaction or None.
         """
 
-        def _get_oldest_unsent_txn(txn: LoggingTransaction):
+        def _get_oldest_unsent_txn(
+            txn: LoggingTransaction,
+        ) -> Optional[AppServiceTransaction]:
             # Monotonically increasing txn ids, so just select the smallest
             # one in the txns table (we delete them when they are sent)
             txn.execute(
@@ -368,7 +370,7 @@ class ApplicationServiceTransactionWorkerStore(
         )
 
     async def set_appservice_last_pos(self, pos: int) -> None:
-        def set_appservice_last_pos_txn(txn: LoggingTransaction):
+        def set_appservice_last_pos_txn(txn: LoggingTransaction) -> None:
             txn.execute(
                 "UPDATE appservice_stream_position SET stream_ordering = ?", (pos,)
             )
@@ -382,7 +384,9 @@ class ApplicationServiceTransactionWorkerStore(
     ) -> Tuple[int, List[EventBase]]:
         """Get all new events for an appservice"""
 
-        def get_new_events_for_appservice_txn(txn: LoggingTransaction):
+        def get_new_events_for_appservice_txn(
+            txn: LoggingTransaction,
+        ) -> Tuple[int, List[EventBase]]:
             sql = (
                 "SELECT e.stream_ordering, e.event_id"
                 " FROM events AS e"
@@ -420,7 +424,7 @@ class ApplicationServiceTransactionWorkerStore(
                 % (type,)
             )
 
-        def get_type_stream_id_for_appservice_txn(txn: LoggingTransaction):
+        def get_type_stream_id_for_appservice_txn(txn: LoggingTransaction) -> int:
             stream_id_type = "%s_stream_id" % type
             txn.execute(
                 # We do NOT want to escape `stream_id_type`.
@@ -448,7 +452,7 @@ class ApplicationServiceTransactionWorkerStore(
                 % (stream_type,)
             )
 
-        def set_appservice_stream_type_pos_txn(txn: LoggingTransaction):
+        def set_appservice_stream_type_pos_txn(txn: LoggingTransaction) -> None:
             stream_id_type = "%s_stream_id" % stream_type
             txn.execute(
                 "UPDATE application_services_state SET %s = ? WHERE as_id=?"
