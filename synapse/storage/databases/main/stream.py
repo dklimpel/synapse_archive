@@ -46,6 +46,7 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    cast,
 )
 
 import attr
