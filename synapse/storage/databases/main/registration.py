@@ -615,7 +615,7 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
 
         def f(txn: LoggingTransaction) -> Dict[str, str]:
             sql = "SELECT name, password_hash FROM users WHERE lower(name) = lower(?)"
-            txn.execute()
+            txn.execute(sql, (user_id,))
             result = cast(List[Tuple[str, str]], txn.fetchall())
             return dict(result)
 
