@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 import re
-from typing import TYPE_CHECKING, Collection, List, Optional, Pattern, Tuple
+from typing import TYPE_CHECKING, Any,Collection, Dict, List, Optional, Pattern, Tuple
 
 from synapse.appservice import (
     ApplicationService,
