@@ -997,7 +997,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
         """
 
         def get_all_new_events_stream_txn(
-            txn: LoggingTransaction
+            txn: LoggingTransaction,
         ) -> Tuple[int, Collection[str]]:
             sql = (
                 "SELECT e.stream_ordering, e.event_id"
