@@ -42,7 +42,6 @@ from typing import (
     Collection,
     Dict,
     List,
-    Literal,
     Optional,
     Set,
     Tuple,
@@ -753,7 +752,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
                 " LIMIT 1"
             )
             txn.execute(sql, (room_id, stream_ordering))
-            return cast(Tuple[int, int, str], txn.fetchone())
+            return cast(Optional[Tuple[int, int, str]], txn.fetchone())
 
         return await self.db_pool.runInteraction(
             "get_room_event_before_stream_ordering", _f
@@ -998,7 +997,7 @@ class StreamWorkerStore(EventsWorkerStore, SQLBaseStore):
 
         def get_all_new_events_stream_txn(
             txn: LoggingTransaction,
-        ) -> Tuple[int, Collection[str]]:
+        ) -> Tuple[int, List[str]]:
             sql = (
                 "SELECT e.stream_ordering, e.event_id"
                 " FROM events AS e"

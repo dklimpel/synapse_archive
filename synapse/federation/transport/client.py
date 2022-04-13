@@ -44,6 +44,7 @@ from synapse.api.urls import (
 from synapse.events import EventBase, make_event_from_dict
 from synapse.federation.units import Transaction
 from synapse.http.matrixfederationclient import ByteParser
+from synapse.http.types import QueryParams
 from synapse.types import JsonDict
 
 logger = logging.getLogger(__name__)
@@ -255,7 +256,7 @@ class TransportLayerClient:
         self,
         destination: str,
         query_type: str,
-        args: dict,
+        args: QueryParams,
         retry_on_dns_fail: bool,
         ignore_backoff: bool = False,
         prefix: str = FEDERATION_V1_PREFIX,
@@ -503,7 +504,7 @@ class TransportLayerClient:
         else:
             path = _create_v1_path("/publicRooms")
 
-            args: Dict[str, Any] = {
+            args: Dict[str, Union[str, Iterable[str]]] = {
                 "include_all_networks": "true" if include_all_networks else "false"
             }
             if third_party_instance_id:
@@ -1377,16 +1378,6 @@ class SendJoinParser(ByteParser[SendJoinResponse]):
             ijson.items_coro(
                 _event_list_parser(room_version, self._response.auth_events),
                 prefix + "auth_chain.item",
-                use_float=True,
-            ),
-            # TODO Remove the unstable prefix when servers have updated.
-            #
-            # By re-using the same event dictionary this will cause the parsing of
-            # org.matrix.msc3083.v2.event and event to stomp over each other.
-            # Generally this should be fine.
-            ijson.kvitems_coro(
-                _event_parser(self._response.event_dict),
-                prefix + "org.matrix.msc3083.v2.event",
                 use_float=True,
             ),
             ijson.kvitems_coro(
