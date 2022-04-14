@@ -49,7 +49,7 @@ from synapse.storage.databases.main.events_worker import EventCacheEntry
 from synapse.storage.databases.main.search import SearchEntry
 from synapse.storage.util.id_generators import AbstractStreamIdGenerator
 from synapse.storage.util.sequence import SequenceGenerator
-from synapse.types import StateMap, get_domain_from_id
+from synapse.types import JsonDict, StateMap, get_domain_from_id
 from synapse.util import json_encoder
 from synapse.util.iterutils import batch_iter, sorted_topologically
 
@@ -236,7 +236,7 @@ class PersistEventsStore:
         results: List[str] = []
 
         def _get_events_which_are_prevs_txn(
-            txn: LoggingTransaction, batch: int
+            txn: LoggingTransaction, batch: Collection[str]
         ) -> None:
             sql = """
             SELECT prev_event_id, internal_metadata
@@ -288,7 +288,7 @@ class PersistEventsStore:
         existing_prevs = set()
 
         def _get_prevs_before_rejected_txn(
-            txn: LoggingTransaction, batch: int
+            txn: LoggingTransaction, batch: Collection[str]
         ) -> None:
             to_recursively_check = batch
 
@@ -1377,7 +1377,7 @@ class PersistEventsStore:
             # nothing to do here
             return
 
-        def event_dict(event):
+        def event_dict(event: EventBase) -> JsonDict:
             d = event.get_dict()
             d.pop("redacted", None)
             d.pop("redacted_because", None)
@@ -1502,7 +1502,7 @@ class PersistEventsStore:
         events_and_contexts: List[Tuple[EventBase, EventContext]],
         all_events_and_contexts: List[Tuple[EventBase, EventContext]],
         inhibit_local_membership_updates: bool = False,
-    ):
+    ) -> None:
         """Update all the miscellaneous tables for new events
 
         Args:
