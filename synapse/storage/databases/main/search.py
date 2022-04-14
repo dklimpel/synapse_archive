@@ -652,8 +652,8 @@ class SearchStore(SearchBackgroundUpdateStore):
         else:
             raise Exception("Unrecognized database engine")
 
-        #args.append(limit)
-        args2: List[Any] = args + [limit]
+        # mypy expect to append only `str`, not a `int`
+        args.append(limit)  # type: ignore[list-item]
 
         results = await self.db_pool.execute(
             "search_rooms", self.db_pool.cursor_to_dict, sql, *args2
