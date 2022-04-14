@@ -28,6 +28,7 @@ from typing import (
     Sequence,
     Set,
     Tuple,
+    Union,
 )
 
 import attr
@@ -2325,7 +2326,9 @@ class PersistEventsStore:
 
         self._update_backward_extremeties(txn, events)
 
-    def _update_backward_extremeties(self, txn, events: List[EventBase]):
+    def _update_backward_extremeties(
+        self, txn: LoggingTransaction, events: List[EventBase]
+    ) -> None:
         """Updates the event_backward_extremities tables based on the new/updated
         events being persisted.
 
