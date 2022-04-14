@@ -29,7 +29,6 @@ from synapse.storage.database import (
 from synapse.storage.databases.main.events_worker import EventRedactBehaviour
 from synapse.storage.engines import PostgresEngine, Sqlite3Engine
 from synapse.types import JsonDict
-from mypy.typeshed.stdlib.2.__builtin__ import int
 
 if TYPE_CHECKING:
     from synapse.server import HomeServer
