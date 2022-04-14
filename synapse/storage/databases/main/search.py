@@ -653,10 +653,10 @@ class SearchStore(SearchBackgroundUpdateStore):
             raise Exception("Unrecognized database engine")
 
         #args.append(limit)
-        args.extend([limit])
+        args2: List[Any] = args + [limit]
 
         results = await self.db_pool.execute(
-            "search_rooms", self.db_pool.cursor_to_dict, sql, *args
+            "search_rooms", self.db_pool.cursor_to_dict, sql, *args2
         )
 
         results = list(filter(lambda row: row["room_id"] in room_ids, results))
