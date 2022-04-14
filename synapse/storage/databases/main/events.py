@@ -2217,7 +2217,7 @@ class PersistEventsStore:
         )
 
     def _store_rejections_txn(
-        self, txn: LoggingTransaction, event_id: str, reason: str
+        self, txn: LoggingTransaction, event_id: str, reason: Union[bool, str]
     ) -> None:
         self.db_pool.simple_insert_txn(
             txn,
@@ -2306,7 +2306,7 @@ class PersistEventsStore:
         )
 
     def _handle_mult_prev_events(
-        self, txn: LoggingTransaction, events
+        self, txn: LoggingTransaction, events: List[EventBase]
     ) -> None:
         """
         For the given event, update the event edges table and forward and
@@ -2325,7 +2325,7 @@ class PersistEventsStore:
 
         self._update_backward_extremeties(txn, events)
 
-    def _update_backward_extremeties(self, txn, events):
+    def _update_backward_extremeties(self, txn, events: List[EventBase]):
         """Updates the event_backward_extremities tables based on the new/updated
         events being persisted.
 
