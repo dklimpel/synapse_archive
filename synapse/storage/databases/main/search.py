@@ -656,7 +656,7 @@ class SearchStore(SearchBackgroundUpdateStore):
         args.append(limit)  # type: ignore[arg-type]
 
         results = await self.db_pool.execute(
-            "search_rooms", self.db_pool.cursor_to_dict, sql, *args2
+            "search_rooms", self.db_pool.cursor_to_dict, sql, *args
         )
 
         results = list(filter(lambda row: row["room_id"] in room_ids, results))
