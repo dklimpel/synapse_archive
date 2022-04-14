@@ -1146,9 +1146,7 @@ class PersistEventsStore:
                 txn, room_id, members_changed
             )
 
-    def _upsert_room_version_txn(
-        self, txn: LoggingTransaction, room_id: str
-    ) -> None:
+    def _upsert_room_version_txn(self, txn: LoggingTransaction, room_id: str) -> None:
         """Update the room version in the database based off current state
         events.
 
@@ -1605,7 +1603,7 @@ class PersistEventsStore:
     def _add_to_cache(
         self,
         txn: LoggingTransaction,
-        events_and_contexts: List[Tuple[EventBase, EventContext]]
+        events_and_contexts: List[Tuple[EventBase, EventContext]],
     ) -> None:
         to_prefill = []
 
@@ -2034,17 +2032,13 @@ class PersistEventsStore:
             txn, table="event_relations", keyvalues={"event_id": redacted_event_id}
         )
 
-    def _store_room_topic_txn(
-        self, txn: LoggingTransaction, event: EventBase
-    ) -> None:
+    def _store_room_topic_txn(self, txn: LoggingTransaction, event: EventBase) -> None:
         if isinstance(event.content.get("topic"), str):
             self.store_event_search_txn(
                 txn, event, "content.topic", event.content["topic"]
             )
 
-    def _store_room_name_txn(
-        self, txn: LoggingTransaction, event: EventBase
-    ) -> None:
+    def _store_room_name_txn(self, txn: LoggingTransaction, event: EventBase) -> None:
         if isinstance(event.content.get("name"), str):
             self.store_event_search_txn(
                 txn, event, "content.name", event.content["name"]
