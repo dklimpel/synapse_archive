@@ -600,7 +600,7 @@ class SearchStore(SearchBackgroundUpdateStore):
                 " FROM event_search"
                 " WHERE vector @@ to_tsquery('english', ?) AND "
             )
-            args = [search_query, search_query] + args
+            args: List[Any] = [search_query, search_query] + args
 
             count_sql = (
                 "SELECT room_id, count(*) as count FROM event_search"
@@ -626,7 +626,7 @@ class SearchStore(SearchBackgroundUpdateStore):
                 " CROSS JOIN events USING (event_id)"
                 " WHERE "
             )
-            args = [search_query] + args
+            args: List[Any] = [search_query] + args
 
             count_sql = (
                 "SELECT room_id, count(*) as count FROM event_search"
