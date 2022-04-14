@@ -28,7 +28,6 @@ from synapse.storage.database import (
 )
 from synapse.storage.databases.main.events_worker import EventRedactBehaviour
 from synapse.storage.engines import BaseDatabaseEngine, PostgresEngine, Sqlite3Engine
-from synapse.storage.types import Connection
 from synapse.types import JsonDict
 
 if TYPE_CHECKING:
@@ -265,7 +264,7 @@ class SearchBackgroundUpdateStore(SearchWorkerStore):
         converting them back to be GIN as per the actual schema.
         """
 
-        def create_index(conn: Connection) -> None:
+        def create_index(conn: LoggingDatabaseConnection) -> None:
             conn.rollback()
 
             # we have to set autocommit, because postgres refuses to
@@ -314,7 +313,7 @@ class SearchBackgroundUpdateStore(SearchWorkerStore):
 
         if not have_added_index:
 
-            def create_index(conn: Connection) -> None:
+            def create_index(conn: LoggingDatabaseConnection) -> None:
                 conn.rollback()
                 conn.set_session(autocommit=True)
                 c = conn.cursor()
