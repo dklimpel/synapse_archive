@@ -600,7 +600,7 @@ class SearchStore(SearchBackgroundUpdateStore):
                 " FROM event_search"
                 " WHERE vector @@ to_tsquery('english', ?) AND "
             )
-            args: List[Any] = [search_query, search_query] + args
+            args = [search_query, search_query] + args
 
             count_sql = (
                 "SELECT room_id, count(*) as count FROM event_search"
@@ -626,7 +626,7 @@ class SearchStore(SearchBackgroundUpdateStore):
                 " CROSS JOIN events USING (event_id)"
                 " WHERE "
             )
-            args: List[Any] = [search_query] + args
+            args = [search_query] + args
 
             count_sql = (
                 "SELECT room_id, count(*) as count FROM event_search"
@@ -652,7 +652,8 @@ class SearchStore(SearchBackgroundUpdateStore):
         else:
             raise Exception("Unrecognized database engine")
 
-        args.append(limit)
+        #args.append(limit)
+        args.extend([limit])
 
         results = await self.db_pool.execute(
             "search_rooms", self.db_pool.cursor_to_dict, sql, *args
