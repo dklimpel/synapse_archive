@@ -705,7 +705,9 @@ class DeviceInboxWorkerStore(SQLBaseStore):
     ) -> int:
         assert self._can_write_to_device
 
-        def add_messages_txn(txn: LoggingTransaction, now_ms: int, stream_id: int):
+        def add_messages_txn(
+            txn: LoggingTransaction, now_ms: int, stream_id: int
+        ) -> None:
             # Check if we've already inserted a matching message_id for that
             # origin. This can happen if the origin doesn't receive our
             # acknowledgement from the first time we received the message.
@@ -870,7 +872,7 @@ class DeviceInboxBackgroundUpdateStore(SQLBaseStore):
     async def _background_drop_index_device_inbox(
         self, progress: JsonDict, batch_size: int
     ) -> int:
-        def reindex_txn(conn: LoggingDatabaseConnection):
+        def reindex_txn(conn: LoggingDatabaseConnection) -> None:
             txn = conn.cursor()
             txn.execute("DROP INDEX IF EXISTS device_inbox_stream_id")
             txn.close()
