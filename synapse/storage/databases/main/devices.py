@@ -1212,7 +1212,7 @@ class DeviceBackgroundUpdateStore(SQLBaseStore):
     async def _drop_device_list_streams_non_unique_indexes(
         self, progress: JsonDict, batch_size: int
     ) -> int:
-        def f(conn):
+        def f(conn: LoggingDatabaseConnection) -> None:
             txn = conn.cursor()
             txn.execute("DROP INDEX IF EXISTS device_lists_remote_cache_id")
             txn.execute("DROP INDEX IF EXISTS device_lists_remote_extremeties_id")
@@ -1647,7 +1647,7 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
         user_id: str,
         device_ids: Collection[str],
         stream_ids: List[int],
-    ):
+    ) -> None:
         txn.call_after(
             self._device_list_stream_cache.entity_has_changed,
             user_id,
@@ -1787,7 +1787,10 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
             txn: LoggingTransaction,
         ) -> List[Tuple[str, str, str, int, Optional[Dict[str, str]]]]:
             txn.execute(sql, (limit,))
-            return txn.fetchall()
+            return cast(
+                List[Tuple[str, str, str, int, Optional[Dict[str, str]]]],
+                txn.fetchall(),
+            )
 
         return await self.db_pool.runInteraction(
             "get_uncoverted_outbound_room_pokes", get_uncoverted_outbound_room_pokes_txn
