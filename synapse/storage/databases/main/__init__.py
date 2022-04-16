@@ -30,7 +30,7 @@ from synapse.storage.util.id_generators import (
     MultiWriterIdGenerator,
     StreamIdGenerator,
 )
-from synapse.types import JsonDict, get_domain_from_id
+from synapse.types import Cursor, JsonDict, get_domain_from_id
 from synapse.util.caches.stream_change_cache import StreamChangeCache
 
 from .account_data import AccountDataStore
@@ -270,7 +270,9 @@ class DataStore(
             A tuple of a list of mappings from user to information and a count of total users.
         """
 
-        def get_users_paginate_txn(txn: LoggingTransaction):
+        def get_users_paginate_txn(
+            txn: LoggingTransaction,
+        ) -> Tuple[List[JsonDict], int]:
             filters = []
             args = [self.hs.config.server.server_name]
 
@@ -343,7 +345,7 @@ class DataStore(
 
 
 def check_database_before_upgrade(
-    cur, database_engine: BaseDatabaseEngine, config: HomeServerConfig
+    cur: Cursor, database_engine: BaseDatabaseEngine, config: HomeServerConfig
 ) -> None:
     """Called before upgrading an existing database to check that it is broadly sane
     compared with the configuration.
