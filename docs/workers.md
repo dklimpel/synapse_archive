@@ -350,7 +350,7 @@ stream_writers:
     events: event_persister1
 ```
 
-An example for a configuration for a stream writer worker:
+An example for a configuration for a stream writer:
 
 ```yaml
 {{#include systemd-with-workers/workers/event_persister.yaml}}
