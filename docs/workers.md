@@ -429,6 +429,12 @@ run_background_tasks_on: background_worker
 You might also wish to investigate the `update_user_directory` and
 `media_instance_running_background_jobs` settings.
 
+An example for a dedicated background worker instance:
+
+```yaml
+{{#include systemd-with-workers/workers/background_worker.yaml}}
+```
+
 ### `synapse.app.pusher`
 
 Handles sending push notifications to sygnal and email. Doesn't handle any
