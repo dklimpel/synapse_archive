@@ -138,20 +138,7 @@ as the `listeners` option in the shared config.
 For example:
 
 ```yaml
-worker_app: synapse.app.generic_worker
-worker_name: worker1
-
-# The replication listener on the main synapse process.
-worker_replication_host: 127.0.0.1
-worker_replication_http_port: 9093
-
-worker_listeners:
-  - type: http
-    port: 8083
-    resources:
-      - names: [client, federation]
-
-worker_log_config: /home/matrix/synapse/config/worker1_log_config.yaml
+{{#include systemd-with-workers/workers/generic_worker.yaml}}
 ```
 
 ...is a full configuration for a generic worker instance, which will expose a
