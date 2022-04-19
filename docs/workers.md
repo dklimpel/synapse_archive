@@ -350,6 +350,12 @@ stream_writers:
     events: event_persister1
 ```
 
+An example for a configuration for a stream writer worker:
+
+```yaml
+{{#include systemd-with-workers/workers/event_persister.yaml}}
+```
+
 Some of the streams have associated endpoints which, for maximum efficiency, should
 be routed to the workers handling that stream. See below for the currently supported
 streams and the endpoints associated with them:
