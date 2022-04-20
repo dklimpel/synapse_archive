@@ -296,7 +296,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
                 """
 
             txn.execute(sql, (room_id,))
-            res = {}
+            res: Dict[str, MemberSummary] = {}
             for count, membership in txn:
                 res.setdefault(membership, MemberSummary([], count))
 
@@ -709,7 +709,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
     async def _get_joined_users_from_context(
         self,
         room_id: str,
-        state_group: int,
+        state_group: Optional[int],
         current_state_ids: Optional[StateMap[str]],
         cache_context: _CacheContext,
         event: Optional[EventBase] = None,
