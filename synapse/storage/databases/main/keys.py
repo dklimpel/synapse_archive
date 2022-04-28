@@ -196,11 +196,7 @@ class KeyStore(SQLBaseStore):
 
         def _get_server_keys_json_txn(
             txn: LoggingTransaction,
-<<<<<<< HEAD
-        ) -> Dict[Tuple[str, Optional[str], Optional[str]], List[dict]]:
-=======
         ) -> Dict[Tuple[str, Optional[str], Optional[str]], List[Dict[str, Any]]]:
->>>>>>> refs/remotes/synapse/develop
             results = {}
             for server_name, key_id, from_server in server_keys:
                 keyvalues = {"server_name": server_name}
