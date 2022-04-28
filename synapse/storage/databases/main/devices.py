@@ -1714,7 +1714,9 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
                     next(stream_id_iterator),
                     user_id,
                     device_id,
-                    False,
+                    not self.hs.is_mine_id(
+                        user_id
+                    ),  # We only need to send out update for *our* users
                     now,
                     encoded_context if whitelisted_homeserver(destination) else "{}",
                 )
@@ -1757,7 +1759,8 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
                     device_id,
                     room_id,
                     stream_id,
-                    False,
+                    # We only need to calculate outbound pokes for local users
+                    not self.hs.is_mine_id(user_id),
                     encoded_context,
                 )
                 for room_id in room_ids
@@ -1787,10 +1790,17 @@ class DeviceStore(DeviceWorkerStore, DeviceBackgroundUpdateStore):
             txn: LoggingTransaction,
         ) -> List[Tuple[str, str, str, int, Optional[Dict[str, str]]]]:
             txn.execute(sql, (limit,))
-            return cast(
-                List[Tuple[str, str, str, int, Optional[Dict[str, str]]]],
-                txn.fetchall(),
-            )
+
+            return [
+                (
+                    user_id,
+                    device_id,
+                    room_id,
+                    stream_id,
+                    db_to_json(opentracing_context),
+                )
+                for user_id, device_id, room_id, stream_id, opentracing_context in txn
+            ]
 
         return await self.db_pool.runInteraction(
             "get_uncoverted_outbound_room_pokes", get_uncoverted_outbound_room_pokes_txn

@@ -27,7 +27,6 @@ from typing import (
 )
 
 import attr
-from frozendict import frozendict
 
 from synapse.api.constants import EventContentFields, EventTypes, RelationTypes
 from synapse.api.errors import Codes, SynapseError
@@ -204,7 +203,9 @@ def _copy_field(src: JsonDict, dst: JsonDict, field: List[str]) -> None:
     key_to_move = field.pop(-1)
     sub_dict = src
     for sub_field in field:  # e.g. sub_field => "content"
-        if sub_field in sub_dict and type(sub_dict[sub_field]) in [dict, frozendict]:
+        if sub_field in sub_dict and isinstance(
+            sub_dict[sub_field], collections.abc.Mapping
+        ):
             sub_dict = sub_dict[sub_field]
         else:
             return
@@ -402,6 +403,7 @@ class EventClientSerializer:
         *,
         config: SerializeEventConfig = _DEFAULT_SERIALIZE_EVENT_CONFIG,
         bundle_aggregations: Optional[Dict[str, "BundledAggregations"]] = None,
+        apply_edits: bool = True,
     ) -> JsonDict:
         """Serializes a single event.
 
@@ -409,10 +411,10 @@ class EventClientSerializer:
             event: The event being serialized.
             time_now: The current time in milliseconds
             config: Event serialization config
-            bundle_aggregations: Whether to include the bundled aggregations for this
-                event. Only applies to non-state events. (State events never include
-                bundled aggregations.)
-
+            bundle_aggregations: A map from event_id to the aggregations to be bundled
+               into the event.
+            apply_edits: Whether the content of the event should be modified to reflect
+               any replacement in `bundle_aggregations[<event_id>].replace`.
         Returns:
             The serialized event
         """
@@ -430,8 +432,9 @@ class EventClientSerializer:
                     event,
                     time_now,
                     config,
-                    bundle_aggregations[event.event_id],
+                    event_aggregations,
                     serialized_event,
+                    apply_edits=apply_edits,
                 )
 
         return serialized_event
@@ -470,16 +473,18 @@ class EventClientSerializer:
         config: SerializeEventConfig,
         aggregations: "BundledAggregations",
         serialized_event: JsonDict,
+        apply_edits: bool,
     ) -> None:
         """Potentially injects bundled aggregations into the unsigned portion of the serialized event.
 
         Args:
             event: The event being serialized.
             time_now: The current time in milliseconds
+            config: Event serialization config
             aggregations: The bundled aggregation to serialize.
             serialized_event: The serialized event which may be modified.
-            config: Event serialization config
-
+            apply_edits: Whether the content of the event should be modified to reflect
+               any replacement in `aggregations.replace`.
         """
         serialized_aggregations = {}
 
@@ -490,9 +495,10 @@ class EventClientSerializer:
             serialized_aggregations[RelationTypes.REFERENCE] = aggregations.references
 
         if aggregations.replace:
-            # If there is an edit, apply it to the event.
+            # If there is an edit, optionally apply it to the event.
             edit = aggregations.replace
-            self._apply_edit(event, serialized_event, edit)
+            if apply_edits:
+                self._apply_edit(event, serialized_event, edit)
 
             # Include information about it in the relations dict.
             serialized_aggregations[RelationTypes.REPLACE] = {
@@ -617,7 +623,7 @@ def validate_canonicaljson(value: Any) -> None:
         # Note that Infinity, -Infinity, and NaN are also considered floats.
         raise SynapseError(400, "Bad JSON value: float", Codes.BAD_JSON)
 
-    elif isinstance(value, (dict, frozendict)):
+    elif isinstance(value, collections.abc.Mapping):
         for v in value.values():
             validate_canonicaljson(v)
 
