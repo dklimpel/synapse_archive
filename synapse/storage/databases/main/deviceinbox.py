@@ -16,7 +16,6 @@
 import logging
 from typing import (
     TYPE_CHECKING,
-    Any,
     Collection,
     Dict,
     Iterable,
@@ -475,11 +474,7 @@ class DeviceInboxWorkerStore(SQLBaseStore):
     @trace
     async def get_new_device_msgs_for_remote(
         self, destination: str, last_stream_id: int, current_stream_id: int, limit: int
-<<<<<<< HEAD
-    ) -> Tuple[List[dict], int]:
-=======
     ) -> Tuple[List[JsonDict], int]:
->>>>>>> refs/remotes/synapse/develop
         """
         Args:
             destination: The name of the remote server.
@@ -509,11 +504,7 @@ class DeviceInboxWorkerStore(SQLBaseStore):
         @trace
         def get_new_messages_for_remote_destination_txn(
             txn: LoggingTransaction,
-<<<<<<< HEAD
-        ) -> Tuple[List[dict], int]:
-=======
         ) -> Tuple[List[JsonDict], int]:
->>>>>>> refs/remotes/synapse/develop
             sql = (
                 "SELECT stream_id, messages_json FROM device_federation_outbox"
                 " WHERE destination = ?"
@@ -767,11 +758,7 @@ class DeviceInboxWorkerStore(SQLBaseStore):
         self,
         txn: LoggingTransaction,
         stream_id: int,
-<<<<<<< HEAD
-        messages_by_user_then_device: dict,
-=======
         messages_by_user_then_device: Dict[str, Dict[str, JsonDict]],
->>>>>>> refs/remotes/synapse/develop
     ) -> None:
         assert self._can_write_to_device
 
