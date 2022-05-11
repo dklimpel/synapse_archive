@@ -14,7 +14,7 @@
 # limitations under the License.
 import abc
 import logging
-from typing import TYPE_CHECKING, Collection, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Collection, Dict, List, Optional, Tuple, Union
 
 from synapse.api.errors import StoreError
 from synapse.config.homeserver import ExperimentalConfig
@@ -411,7 +411,7 @@ class PushRuleStore(PushRulesWorkerStore):
         self,
         txn: LoggingTransaction,
         stream_id: int,
-        event_stream_ordering,
+        event_stream_ordering: int,
         user_id: str,
         rule_id: str,
         priority_class: int,
@@ -481,7 +481,7 @@ class PushRuleStore(PushRulesWorkerStore):
         self,
         txn: LoggingTransaction,
         stream_id: int,
-        event_stream_ordering,
+        event_stream_ordering: int,
         user_id: str,
         rule_id: str,
         priority_class: int,
@@ -521,7 +521,7 @@ class PushRuleStore(PushRulesWorkerStore):
         self,
         txn: LoggingTransaction,
         stream_id: int,
-        event_stream_ordering,
+        event_stream_ordering: int,
         user_id: str,
         rule_id: str,
         priority_class: int,
@@ -612,7 +612,7 @@ class PushRuleStore(PushRulesWorkerStore):
         def delete_push_rule_txn(
             txn: LoggingTransaction,
             stream_id: int,
-            event_stream_ordering,
+            event_stream_ordering: int,
         ):
             # we don't use simple_delete_one_txn because that would fail if the
             # user did not have a push_rule_enable row.
@@ -676,12 +676,12 @@ class PushRuleStore(PushRulesWorkerStore):
         self,
         txn: LoggingTransaction,
         stream_id: int,
-        event_stream_ordering,
+        event_stream_ordering: int,
         user_id: str,
         rule_id: str,
         enabled: bool,
         is_default_rule: bool,
-    ):
+    ) -> None:
         new_id = self._push_rules_enable_id_gen.get_next()
 
         if not is_default_rule:
@@ -756,7 +756,7 @@ class PushRuleStore(PushRulesWorkerStore):
         def set_push_rule_actions_txn(
             txn: LoggingTransaction,
             stream_id: int,
-            event_stream_ordering,
+            event_stream_ordering: int,
         ):
             if is_default_rule:
                 # Add a dummy rule to the rules table with the user specified
@@ -814,7 +814,7 @@ class PushRuleStore(PushRulesWorkerStore):
         self,
         txn: LoggingTransaction,
         stream_id: int,
-        event_stream_ordering,
+        event_stream_ordering: int,
         user_id: str,
         rule_id: str,
         op: str,
