@@ -42,6 +42,7 @@ from synapse.storage.database import (
     LoggingDatabaseConnection,
     LoggingTransaction,
 )
+from synapse.storage.databases.main.cache import CacheInvalidationWorkerStore
 from synapse.storage.databases.main.events_worker import EventsWorkerStore
 from synapse.storage.engines import Sqlite3Engine
 from synapse.storage.roommember import (
@@ -1277,7 +1278,7 @@ class RoomMemberBackgroundUpdateStore(SQLBaseStore):
 class RoomMemberStore(
         RoomMemberWorkerStore,
         RoomMemberBackgroundUpdateStore,
-        CacheInvalidationWorkerStore
+        CacheInvalidationWorkerStore,
 ):
     def __init__(
         self,
