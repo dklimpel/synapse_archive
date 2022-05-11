@@ -303,7 +303,7 @@ class PushRulesWorkerStore(
         if not user_ids:
             return {}
 
-        results = {user_id: {} for user_id in user_ids}
+        results: Dict[str, Dict[str, bool]] = {user_id: {} for user_id in user_ids}
 
         rows = await self.db_pool.simple_select_many_batch(
             table="push_rules_enable",
@@ -356,7 +356,7 @@ class PushRulesWorkerStore(
             """
             txn.execute(sql, (last_id, current_id, limit))
             updates = cast(
-                List[Tuple[int, Tuple[str]]],
+                List[Tuple[int, tuple]],
                 [(stream_id, (user_id,)) for stream_id, user_id in txn],
             )
 
