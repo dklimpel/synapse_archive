@@ -177,7 +177,7 @@ class PushRulesWorkerStore(
         return _load_rules(rows, enabled_map, self.hs.config.experimental)
 
     @cached(max_entries=5000)
-    async def get_push_rules_enabled_for_user(self, user_id) -> Dict[str, bool]:
+    async def get_push_rules_enabled_for_user(self, user_id: str) -> Dict[str, bool]:
         results = await self.db_pool.simple_select_list(
             table="push_rules_enable",
             keyvalues={"user_name": user_id},
@@ -193,7 +193,7 @@ class PushRulesWorkerStore(
             return False
         else:
 
-            def have_push_rules_changed_txn(txn):
+            def have_push_rules_changed_txn(txn: LoggingTransaction) -> bool:
                 sql = (
                     "SELECT COUNT(stream_id) FROM push_rules_stream"
                     " WHERE user_id = ? AND ? < stream_id"
@@ -211,7 +211,7 @@ class PushRulesWorkerStore(
         list_name="user_ids",
         num_args=1,
     )
-    async def bulk_get_push_rules(self, user_ids):
+    async def bulk_get_push_rules(self, user_ids: Collection[str]):
         if not user_ids:
             return {}
 
@@ -367,13 +367,13 @@ class PushRulesWorkerStore(
 class PushRuleStore(PushRulesWorkerStore):
     async def add_push_rule(
         self,
-        user_id,
-        rule_id,
-        priority_class,
-        conditions,
-        actions,
-        before=None,
-        after=None,
+        user_id: str,
+        rule_id: str,
+        priority_class: int,
+        conditions: List[Dict[str, str]],
+        actions: List[Union[dict, str]],
+        before: Optional[str] = None,
+        after: Optional[str] = None,
     ) -> None:
         conditions_json = json_encoder.encode(conditions)
         actions_json = json_encoder.encode(actions)
@@ -414,11 +414,11 @@ class PushRuleStore(PushRulesWorkerStore):
         event_stream_ordering,
         user_id: str,
         rule_id: str,
-        priority_class,
+        priority_class: int,
         conditions_json,
         actions_json,
-        before,
-        after,
+        before: str,
+        after: str,
     ):
         # Lock the table since otherwise we'll have annoying races between the
         # SELECT here and the UPSERT below.
@@ -484,7 +484,7 @@ class PushRuleStore(PushRulesWorkerStore):
         event_stream_ordering,
         user_id: str,
         rule_id: str,
-        priority_class,
+        priority_class: int,
         conditions_json,
         actions_json,
     ):
@@ -524,7 +524,7 @@ class PushRuleStore(PushRulesWorkerStore):
         event_stream_ordering,
         user_id: str,
         rule_id: str,
-        priority_class,
+        priority_class: int,
         priority,
         conditions_json,
         actions_json,
@@ -609,7 +609,11 @@ class PushRuleStore(PushRulesWorkerStore):
             rule_id: The rule_id of the rule to be deleted
         """
 
-        def delete_push_rule_txn(txn, stream_id, event_stream_ordering):
+        def delete_push_rule_txn(
+            txn: LoggingTransaction,
+            stream_id: int,
+            event_stream_ordering,
+        ):
             # we don't use simple_delete_one_txn because that would fail if the
             # user did not have a push_rule_enable row.
             self.db_pool.simple_delete_txn(
@@ -670,13 +674,13 @@ class PushRuleStore(PushRulesWorkerStore):
 
     def _set_push_rule_enabled_txn(
         self,
-        txn,
-        stream_id,
+        txn: LoggingTransaction,
+        stream_id: int,
         event_stream_ordering,
-        user_id,
-        rule_id,
-        enabled,
-        is_default_rule,
+        user_id: str,
+        rule_id: str,
+        enabled: bool,
+        is_default_rule: bool,
     ):
         new_id = self._push_rules_enable_id_gen.get_next()
 
@@ -752,7 +756,7 @@ class PushRuleStore(PushRulesWorkerStore):
         def set_push_rule_actions_txn(
             txn: LoggingTransaction,
             stream_id: int,
-            event_stream_ordering
+            event_stream_ordering,
         ):
             if is_default_rule:
                 # Add a dummy rule to the rules table with the user specified
@@ -813,8 +817,8 @@ class PushRuleStore(PushRulesWorkerStore):
         event_stream_ordering,
         user_id: str,
         rule_id: str,
-        op,
-        data=None,
+        op: str,
+        data: Optional[JsonDict] = None,
     ):
         values = {
             "stream_id": stream_id,
