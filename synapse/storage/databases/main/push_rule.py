@@ -261,7 +261,7 @@ class PushRulesWorkerStore(
                 condition["pattern"] = new_room_id
 
         # Add the rule for the new room
-        await self.add_push_rule(
+        await self.add_push_rule(  # type: ignore[attr-defined]
             user_id=user_id,
             rule_id=new_rule_id,
             priority_class=rule["priority_class"],
@@ -556,7 +556,7 @@ class PushRuleStore(PushRulesWorkerStore):
 
         if txn.rowcount == 0:
             # We didn't update a row with the given rule_id so insert one
-            push_rule_id = self._push_rule_id_gen.get_next()
+            push_rule_id = self._push_rule_id_gen.get_next()  # type: ignore[attr-defined]
 
             self.db_pool.simple_insert_txn(
                 txn,
@@ -604,7 +604,7 @@ class PushRuleStore(PushRulesWorkerStore):
         else:
             raise RuntimeError("Unknown database engine")
 
-        new_enable_id = self._push_rules_enable_id_gen.get_next()
+        new_enable_id = self._push_rules_enable_id_gen.get_next()  # type: ignore[attr-defined]
         txn.execute(sql, (new_enable_id, user_id, rule_id, 1))
 
     async def delete_push_rule(self, user_id: str, rule_id: str) -> None:
@@ -691,7 +691,7 @@ class PushRuleStore(PushRulesWorkerStore):
         enabled: bool,
         is_default_rule: bool,
     ) -> None:
-        new_id = self._push_rules_enable_id_gen.get_next()
+        new_id = self._push_rules_enable_id_gen.get_next()  # type: ignore[attr-defined]
 
         if not is_default_rule:
             # first check it exists; we need to lock for key share so that a
