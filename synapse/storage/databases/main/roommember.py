@@ -705,8 +705,8 @@ class RoomMemberWorkerStore(EventsWorkerStore):
     async def _get_joined_users_from_context(
         self,
         room_id: str,
-        state_group: Optional[int],
-        current_state_ids: Optional[StateMap[str]],
+        state_group: int,
+        current_state_ids: StateMap[str],
         cache_context: _CacheContext,
         event: Optional[EventBase] = None,
         context: Optional[EventContext] = None,
