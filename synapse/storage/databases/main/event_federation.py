@@ -1118,7 +1118,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         ]
 
     async def get_backfill_events(
-        self, room_id: str, seed_event_id_list: list, limit: int
+        self, room_id: str, seed_event_id_list: List[str], limit: int
     ):
         """Get a list of Events for a given topic that occurred before (and
         including) the events in seed_event_id_list. Return a list of max size `limit`
@@ -1141,7 +1141,11 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         )
 
     def _get_backfill_events(
-        self, txn: LoggingTransaction, room_id: str, seed_event_id_list, limit: int
+        self,
+        txn: LoggingTransaction,
+        room_id: str, 
+        eed_event_id_list: List[str],
+        limit: int,
     ):
         """
         We want to make sure that we do a breadth-first, "depth" ordered search.
@@ -1630,13 +1634,13 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
             txn: LoggingTransaction
         ) -> Tuple[int, int]:
             txn.execute("SELECT count(*) FROM federation_inbound_events_staging")
-            (count,) = txn.fetchone()
+            (count,) = cast(Tuple[int], txn.fetchone())
 
             txn.execute(
                 "SELECT min(received_ts) FROM federation_inbound_events_staging"
             )
 
-            (received_ts,) = txn.fetchone()
+            (received_ts,) = cast(Tuple[int], txn.fetchone())
 
             # If there is nothing in the staging area default it to 0.
             age = 0
