@@ -1426,7 +1426,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
 
             def _remove_received_event_from_staging_txn(
                 txn: LoggingTransaction,
-            ) -> Optional[List[int]]:
+            ) -> Optional[Tuple[int]]:
                 sql = """
                     DELETE FROM federation_inbound_events_staging
                     WHERE origin = ? AND event_id = ?
@@ -1434,7 +1434,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
                 """
 
                 txn.execute(sql, (origin, event_id))
-                return cast(Optional[List[int]], txn.fetchone())
+                return cast(Optional[Tuple[int]], txn.fetchone())
 
             row = await self.db_pool.runInteraction(
                 "remove_received_event_from_staging",
@@ -1449,7 +1449,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         else:
 
             def _remove_received_event_from_staging_txn(
-                txn: LoggingTransaction
+                txn: LoggingTransaction,
             ) -> Optional[int]:
                 received_ts = self.db_pool.simple_select_one_onecol_txn(
                     txn,
