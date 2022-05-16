@@ -1154,7 +1154,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         self,
         txn: LoggingTransaction,
         room_id: str, 
-        eed_event_id_list: List[str],
+        seed_event_id_list: List[str],
         limit: int,
     ):
         """
@@ -1284,7 +1284,11 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         return event_id_results
 
     async def get_missing_events(
-        self, room_id: str, earliest_events, latest_events, limit: int
+        self,
+        room_id: str,
+        earliest_events: List[str],
+        latest_events: List[str],
+        limit: int,
     ) -> List[EventBase]:
         ids = await self.db_pool.runInteraction(
             "get_missing_events",
@@ -1299,8 +1303,8 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
     def _get_missing_events(
         self, txn: LoggingTransaction,
         room_id: str,
-        earliest_events,
-        latest_events,
+        earliest_events: List[str],
+        latest_events: List[str],
         limit: int,
     ):
 
