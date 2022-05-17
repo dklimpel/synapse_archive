@@ -1153,7 +1153,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
     def _get_backfill_events(
         self,
         txn: LoggingTransaction,
-        room_id: str, 
+        room_id: str,
         seed_event_id_list: List[str],
         limit: int,
     ) -> Set[str]:
@@ -1301,7 +1301,8 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         return await self.get_events_as_list(ids)
 
     def _get_missing_events(
-        self, txn: LoggingTransaction,
+        self,
+        txn: LoggingTransaction,
         room_id: str,
         earliest_events: List[str],
         latest_events: List[str],
@@ -1511,7 +1512,7 @@ class EventFederationWorkerStore(SignatureWorkerStore, EventsWorkerStore, SQLBas
         """Get the next event in the staging area for the given room."""
 
         def _get_next_staged_event_for_room_txn(
-            txn: LoggingTransaction
+            txn: LoggingTransaction,
         ) -> Optional[Tuple[str, str, str]]:
             sql = """
                 SELECT event_json, internal_metadata, origin
@@ -1709,9 +1710,7 @@ class EventFederationStore(EventFederationWorkerStore):
             "clean_room_for_join", self._clean_room_for_join_txn, room_id
         )
 
-    def _clean_room_for_join_txn(
-        self, txn: LoggingTransaction, room_id: str
-    ) -> None:
+    def _clean_room_for_join_txn(self, txn: LoggingTransaction, room_id: str) -> None:
         query = "DELETE FROM event_forward_extremities WHERE room_id = ?"
 
         txn.execute(query, (room_id,))
