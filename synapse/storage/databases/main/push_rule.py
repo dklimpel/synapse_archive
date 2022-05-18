@@ -34,7 +34,9 @@ from synapse.storage.databases.main.roommember import RoomMemberWorkerStore
 from synapse.storage.engines import PostgresEngine, Sqlite3Engine
 from synapse.storage.push_rule import InconsistentRuleException, RuleNotFoundException
 from synapse.storage.util.id_generators import (
+    AbstractStreamIdGenerator,
     AbstractStreamIdTracker,
+    IdGenerator,
     StreamIdGenerator,
 )
 from synapse.types import JsonDict
@@ -199,7 +201,7 @@ class PushRulesWorkerStore(
                     " WHERE user_id = ? AND ? < stream_id"
                 )
                 txn.execute(sql, (user_id, last_id))
-                (count,) = txn.fetchone()
+                (count,) = cast(Tuple[int], txn.fetchone())
                 return bool(count)
 
             return await self.db_pool.runInteraction(
@@ -319,7 +321,7 @@ class PushRulesWorkerStore(
 
     async def get_all_push_rule_updates(
         self, instance_name: str, last_id: int, current_id: int, limit: int
-    ) -> Tuple[List[Tuple[int, tuple]], int, bool]:
+    ) -> Tuple[List[Tuple[int, Tuple[str]]], int, bool]:
         """Get updates for push_rules replication stream.
 
         Args:
@@ -345,8 +347,8 @@ class PushRulesWorkerStore(
             return [], current_id, False
 
         def get_all_push_rule_updates_txn(
-            txn: LoggingTransaction
-        ) -> Tuple[List[Tuple[int, tuple]], int, bool]:
+            txn: LoggingTransaction,
+        ) -> Tuple[List[Tuple[int, Tuple[str]]], int, bool]:
             sql = """
                 SELECT stream_id, user_id
                 FROM push_rules_stream
@@ -356,7 +358,7 @@ class PushRulesWorkerStore(
             """
             txn.execute(sql, (last_id, current_id, limit))
             updates = cast(
-                List[Tuple[int, tuple]],
+                List[Tuple[int, Tuple[str]]],
                 [(stream_id, (user_id,)) for stream_id, user_id in txn],
             )
 
@@ -374,19 +376,34 @@ class PushRulesWorkerStore(
 
 
 class PushRuleStore(PushRulesWorkerStore):
+    # Because we have write access, this will be a StreamIdGenerator
+    # (see PushRulesWorkerStore.__init__)
+    _push_rules_stream_id_gen: AbstractStreamIdGenerator
+
+    def __init__(
+        self,
+        database: DatabasePool,
+        db_conn: LoggingDatabaseConnection,
+        hs: "HomeServer",
+    ):
+        super().__init__(database, db_conn, hs)
+
+        self._push_rule_id_gen = IdGenerator(db_conn, "push_rules", "id")
+        self._push_rules_enable_id_gen = IdGenerator(db_conn, "push_rules_enable", "id")
+
     async def add_push_rule(
         self,
         user_id: str,
         rule_id: str,
         priority_class: int,
         conditions: List[Dict[str, str]],
-        actions: List[Union[dict, str]],
+        actions: List[Union[JsonDict, str]],
         before: Optional[str] = None,
         after: Optional[str] = None,
     ) -> None:
         conditions_json = json_encoder.encode(conditions)
         actions_json = json_encoder.encode(actions)
-        async with self._push_rules_stream_id_gen.get_next() as stream_id:  # type: ignore[attr-defined]
+        async with self._push_rules_stream_id_gen.get_next() as stream_id:
             event_stream_ordering = self._stream_id_gen.get_current_token()
 
             if before or after:
@@ -556,7 +573,7 @@ class PushRuleStore(PushRulesWorkerStore):
 
         if txn.rowcount == 0:
             # We didn't update a row with the given rule_id so insert one
-            push_rule_id = self._push_rule_id_gen.get_next()  # type: ignore[attr-defined]
+            push_rule_id = self._push_rule_id_gen.get_next()
 
             self.db_pool.simple_insert_txn(
                 txn,
@@ -604,7 +621,7 @@ class PushRuleStore(PushRulesWorkerStore):
         else:
             raise RuntimeError("Unknown database engine")
 
-        new_enable_id = self._push_rules_enable_id_gen.get_next()  # type: ignore[attr-defined]
+        new_enable_id = self._push_rules_enable_id_gen.get_next()
         txn.execute(sql, (new_enable_id, user_id, rule_id, 1))
 
     async def delete_push_rule(self, user_id: str, rule_id: str) -> None:
@@ -637,7 +654,7 @@ class PushRuleStore(PushRulesWorkerStore):
                 txn, stream_id, event_stream_ordering, user_id, rule_id, op="DELETE"
             )
 
-        async with self._push_rules_stream_id_gen.get_next() as stream_id:  # type: ignore[attr-defined]
+        async with self._push_rules_stream_id_gen.get_next() as stream_id:
             event_stream_ordering = self._stream_id_gen.get_current_token()
 
             await self.db_pool.runInteraction(
@@ -668,7 +685,7 @@ class PushRuleStore(PushRulesWorkerStore):
         Raises:
             RuleNotFoundException if the rule does not exist.
         """
-        async with self._push_rules_stream_id_gen.get_next() as stream_id:  # type: ignore[attr-defined]
+        async with self._push_rules_stream_id_gen.get_next() as stream_id:
             event_stream_ordering = self._stream_id_gen.get_current_token()
             await self.db_pool.runInteraction(
                 "_set_push_rule_enabled_txn",
@@ -691,7 +708,7 @@ class PushRuleStore(PushRulesWorkerStore):
         enabled: bool,
         is_default_rule: bool,
     ) -> None:
-        new_id = self._push_rules_enable_id_gen.get_next()  # type: ignore[attr-defined]
+        new_id = self._push_rules_enable_id_gen.get_next()
 
         if not is_default_rule:
             # first check it exists; we need to lock for key share so that a
@@ -809,7 +826,7 @@ class PushRuleStore(PushRulesWorkerStore):
                 data={"actions": actions_json},
             )
 
-        async with self._push_rules_stream_id_gen.get_next() as stream_id:  # type: ignore[attr-defined]
+        async with self._push_rules_stream_id_gen.get_next() as stream_id:
             event_stream_ordering = self._stream_id_gen.get_current_token()
 
             await self.db_pool.runInteraction(

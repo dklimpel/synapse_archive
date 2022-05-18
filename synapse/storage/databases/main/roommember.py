@@ -15,6 +15,7 @@
 import logging
 from typing import (
     TYPE_CHECKING,
+    Callable,
     Collection,
     Dict,
     FrozenSet,
@@ -189,9 +190,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             "get_users_in_room", self.get_users_in_room_txn, room_id
         )
 
-    def get_users_in_room_txn(
-        self, txn: LoggingTransaction, room_id: str
-    ) -> List[str]:
+    def get_users_in_room_txn(self, txn: LoggingTransaction, room_id: str) -> List[str]:
         # If we can assume current_state_events.membership is up to date
         # then we can avoid a join, which is a Very Good Thing given how
         # frequently this function gets called.
@@ -232,7 +231,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
         """
 
         def _get_users_in_room_with_profiles(
-            txn: LoggingTransaction
+            txn: LoggingTransaction,
         ) -> Dict[str, ProfileInfo]:
             sql = """
                 SELECT state_key, display_name, avatar_url FROM room_memberships as m
@@ -588,7 +587,9 @@ class RoomMemberWorkerStore(EventsWorkerStore):
 
         txn.execute(sql, [Membership.JOIN] + args)
 
-        result: Dict[str, set] = {user_id: set() for user_id in user_ids}
+        result: Dict[str, Set[GetRoomsForUserWithStreamOrdering]] = {
+            user_id: set() for user_id in user_ids
+        }
         for user_id, room_id, instance, stream_id in txn:
             result[user_id].add(
                 GetRoomsForUserWithStreamOrdering(
@@ -634,7 +635,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
         )
 
     async def get_rooms_for_user(
-        self, user_id: str, on_invalidate=None
+        self, user_id: str, on_invalidate: Optional[Callable[[], None]] = None
     ) -> FrozenSet[str]:
         """Returns a set of room_ids the user is currently joined to.
 
@@ -672,7 +673,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
     async def get_joined_users_from_context(
         self, event: EventBase, context: EventContext
     ) -> Dict[str, ProfileInfo]:
-        state_group: Union[object, Optional[int]] = context.state_group
+        state_group: Union[object, int] = context.state_group
         if not state_group:
             # If state_group is None it means it has yet to be assigned a
             # state group, i.e. we need to make sure that calls with a state_group
@@ -681,6 +682,8 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             state_group = object()
 
         current_state_ids = await context.get_current_state_ids()
+        assert current_state_ids is not None
+        assert state_group is not None
         return await self._get_joined_users_from_context(
             event.room_id, state_group, current_state_ids, event=event, context=context
         )
@@ -688,7 +691,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
     async def get_joined_users_from_state(
         self, room_id: str, state_entry: "_StateCacheEntry"
     ) -> Dict[str, ProfileInfo]:
-        state_group = state_entry.state_group
+        state_group: Union[object, int] = state_entry.state_group
         if not state_group:
             # If state_group is None it means it has yet to be assigned a
             # state group, i.e. we need to make sure that calls with a state_group
@@ -696,6 +699,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             # To do this we set the state_group to a new object as object() != object()
             state_group = object()
 
+        assert state_group is not None
         with Measure(self._clock, "get_joined_users_from_state"):
             return await self._get_joined_users_from_context(
                 room_id, state_group, state_entry.state, context=state_entry
@@ -705,11 +709,11 @@ class RoomMemberWorkerStore(EventsWorkerStore):
     async def _get_joined_users_from_context(
         self,
         room_id: str,
-        state_group: int,
+        state_group: Union[object, int],
         current_state_ids: StateMap[str],
         cache_context: _CacheContext,
         event: Optional[EventBase] = None,
-        context: Optional[EventContext] = None,
+        context: Optional[Union[EventContext, "_StateCacheEntry"]] = None,
     ) -> Dict[str, ProfileInfo]:
         # We don't use `state_group`, it's there so that we can cache based
         # on it. However, it's important that it's never None, since two current_states
@@ -868,7 +872,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
     async def get_joined_hosts(
         self, room_id: str, state_entry: "_StateCacheEntry"
     ) -> FrozenSet[str]:
-        state_group = state_entry.state_group
+        state_group: Union[object, int] = state_entry.state_group
         if not state_group:
             # If state_group is None it means it has yet to be assigned a
             # state group, i.e. we need to make sure that calls with a state_group
@@ -876,6 +880,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             # To do this we set the state_group to a new object as object() != object()
             state_group = object()
 
+        assert state_group is not None
         with Measure(self._clock, "get_joined_hosts"):
             return await self._get_joined_hosts(
                 room_id, state_group, state_entry=state_entry
@@ -883,7 +888,10 @@ class RoomMemberWorkerStore(EventsWorkerStore):
 
     @cached(num_args=2, max_entries=10000, iterable=True)
     async def _get_joined_hosts(
-        self, room_id: str, state_group: int, state_entry: "_StateCacheEntry"
+        self,
+        room_id: str,
+        state_group: Union[object, int],
+        state_entry: "_StateCacheEntry",
     ) -> FrozenSet[str]:
         # We don't use `state_group`, it's there so that we can cache based on
         # it. However, its important that its never None, since two
@@ -901,7 +909,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
         # `get_joined_hosts` is called with the "current" state group for the
         # room, and so consecutive calls will be for consecutive state groups
         # which point to the previous state group.
-        cache = await self._get_joined_hosts_cache(room_id)
+        cache = await self._get_joined_hosts_cache(room_id)  # type: ignore[misc]
 
         # If the state group in the cache matches, we already have the data we need.
         if state_entry.state_group == cache.state_group:
@@ -917,6 +925,7 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             elif state_entry.prev_group == cache.state_group:
                 # The cached work is for the previous state group, so we work out
                 # the delta.
+                assert state_entry.delta_ids is not None
                 for (typ, state_key), event_id in state_entry.delta_ids.items():
                     if typ != EventTypes.Member:
                         continue
@@ -1133,7 +1142,7 @@ class RoomMemberBackgroundUpdateStore(SQLBaseStore):
         )
 
     async def _background_add_membership_profile(
-        self, progress: dict, batch_size: int
+        self, progress: JsonDict, batch_size: int
     ) -> int:
         target_min_stream_id = progress.get(
             "target_min_stream_id_inclusive", self._min_stream_order_on_start  # type: ignore[attr-defined]
@@ -1207,7 +1216,7 @@ class RoomMemberBackgroundUpdateStore(SQLBaseStore):
         return result
 
     async def _background_current_state_membership(
-        self, progress: dict, batch_size: int
+        self, progress: JsonDict, batch_size: int
     ) -> int:
         """Update the new membership column on current_state_events.
 
@@ -1271,9 +1280,9 @@ class RoomMemberBackgroundUpdateStore(SQLBaseStore):
 
 
 class RoomMemberStore(
-        RoomMemberWorkerStore,
-        RoomMemberBackgroundUpdateStore,
-        CacheInvalidationWorkerStore,
+    RoomMemberWorkerStore,
+    RoomMemberBackgroundUpdateStore,
+    CacheInvalidationWorkerStore,
 ):
     def __init__(
         self,
