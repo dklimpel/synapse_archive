@@ -1694,6 +1694,27 @@ COMMIT;
 <p><a href="https://github.com/matrix-org/synapse/issues/11779#issuecomment-1131545970">This comment on issue 11779</a>
 has queries that can be used to check a database for this problem in advance.</p>
 </details>
+<h2 id="new-signature-for-the-spam-checker-callback-check_event_for_spam"><a class="header" href="#new-signature-for-the-spam-checker-callback-check_event_for_spam">New signature for the spam checker callback <code>check_event_for_spam</code></a></h2>
+<p>The previous signature has been deprecated.</p>
+<p>Whereas <code>check_event_for_spam</code> callbacks used to return <code>Union[str, bool]</code>, they should now return <code>Union[&quot;synapse.module_api.NOT_SPAM&quot;, &quot;synapse.module_api.errors.Codes&quot;]</code>.</p>
+<p>This is part of an ongoing refactoring of the SpamChecker API to make it less ambiguous and more powerful.</p>
+<p>If your module implements <code>check_event_for_spam</code> as follows:</p>
+<pre><code class="language-python">async def check_event_for_spam(event):
+    if ...:
+        # Event is spam
+        return True
+    # Event is not spam
+    return False
+</code></pre>
+<p>you should rewrite it as follows:</p>
+<pre><code class="language-python">async def check_event_for_spam(event):
+    if ...:
+        # Event is spam, mark it as forbidden (you may use some more precise error
+        # code if it is useful).
+        return synapse.module_api.errors.Codes.FORBIDDEN
+    # Event is not spam, mark it as such.
+    return synapse.module_api.NOT_SPAM
+</code></pre>
 <h1 id="upgrading-to-v1590"><a class="header" href="#upgrading-to-v1590">Upgrading to v1.59.0</a></h1>
 <h2 id="device-name-lookup-over-federation-has-been-disabled-by-default"><a class="header" href="#device-name-lookup-over-federation-has-been-disabled-by-default">Device name lookup over federation has been disabled by default</a></h2>
 <p>The names of user devices are no longer visible to users on other homeservers by default.
@@ -3558,6 +3579,13 @@ The default value is 10.</p>
 <pre><code class="language-yaml">dummy_events_threshold: 5
 </code></pre>
 <hr />
+<p>Config option <code>delete_stale_devices_after</code></p>
+<p>An optional duration. If set, Synapse will run a daily background task to log out and
+delete any device that hasn't been accessed for more than the specified amount of time.</p>
+<p>Defaults to no duration, which means devices are never pruned.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">delete_stale_devices_after: 1y
+</code></pre>
 <h2 id="homeserver-blocking"><a class="header" href="#homeserver-blocking">Homeserver blocking</a></h2>
 <p>Useful options for Synapse admins.</p>
 <hr />
@@ -4275,7 +4303,7 @@ into fewer transactions. Defaults to 50. </p>
 </code></pre>
 <hr />
 <h2 id="media-store"><a class="header" href="#media-store">Media Store</a></h2>
-<p>Config options relating to Synapse media store.</p>
+<p>Config options related to Synapse's media store.</p>
 <hr />
 <p>Config option: <code>enable_media_repo</code> </p>
 <p>Enable the media store service in the Synapse master. Defaults to true. 
@@ -4360,6 +4388,28 @@ from a precalculated list. Defaults to false. </p>
     height: 600
     method: scale
 </code></pre>
+<hr />
+<p>Config option: <code>media_retention</code></p>
+<p>Controls whether local media and entries in the remote media cache
+(media that is downloaded from other homeservers) should be removed
+under certain conditions, typically for the purpose of saving space.</p>
+<p>Purging media files will be the carried out by the media worker
+(that is, the worker that has the <code>enable_media_repo</code> homeserver config
+option set to 'true'). This may be the main process.</p>
+<p>The <code>media_retention.local_media_lifetime</code> and
+<code>media_retention.remote_media_lifetime</code> config options control whether
+media will be purged if it has not been accessed in a given amount of
+time. Note that media is 'accessed' when loaded in a room in a client, or
+otherwise downloaded by a local or remote user. If the media has never
+been accessed, the media's creation time is used instead. Both thumbnails
+and the original media will be removed. If either of these options are unset,
+then media of that type will not be purged.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">media_retention:
+    local_media_lifetime: 90d
+    remote_media_lifetime: 14d
+</code></pre>
+<hr />
 <p>Config option: <code>url_preview_enabled</code></p>
 <p>This setting determines whether the preview URL API is enabled.
 It is disabled by default. Set to true to enable. If enabled you must specify a
@@ -5528,7 +5578,10 @@ validation will fail without configuring audiences.</li>
 <p>Use this setting to enable password-based logins. </p>
 <p>This setting has the following sub-options:</p>
 <ul>
-<li><code>enabled</code>: Defaults to true.</li>
+<li><code>enabled</code>: Defaults to true.
+Set to false to disable password authentication.
+Set to <code>only_for_reauth</code> to allow users with existing passwords to use them
+to log in and reauthenticate, whilst preventing new users from setting passwords.</li>
 <li><code>localdb_enabled</code>: Set to false to disable authentication against the local password
 database. This is ignored if <code>enabled</code> is false, and is only useful
 if you have other <code>password_providers</code>. Defaults to true. </li>
@@ -5752,19 +5805,6 @@ room creation presets</li>
 will also not affect rooms created by other servers.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">encryption_enabled_by_default_for_room_type: invite
-</code></pre>
-<hr />
-<p>Config option: <code>enable_group_creation</code></p>
-<p>Set to true to allow non-server-admin users to create groups on this server</p>
-<p>Example configuration:</p>
-<pre><code class="language-yaml">enable_group_creation: true
-</code></pre>
-<hr />
-<p>Config option: <code>group_creation_prefix</code></p>
-<p>If enabled/present, non-server admins can only create groups with local parts
-starting with this prefix.</p>
-<p>Example configuration:</p>
-<pre><code class="language-yaml">group_creation_prefix: &quot;unofficial_&quot;
 </code></pre>
 <hr />
 <p>Config option: <code>user_directory</code></p>
@@ -8328,7 +8368,9 @@ sso:
 
 
 password_config:
-   # Uncomment to disable password login
+   # Uncomment to disable password login.
+   # Set to `only_for_reauth` to permit reauthentication for users that
+   # have passwords and are already logged in.
    #
    #enabled: false
 
@@ -8631,16 +8673,6 @@ push:
 #            &quot;m.room.server_acl&quot;: 100
 #            &quot;m.room.tombstone&quot;: 100
 #        &quot;events_default&quot;: 1
-
-
-# Uncomment to allow non-server-admin users to create groups on this server
-#
-#enable_group_creation: true
-
-# If enabled, non server admins can only create groups with local parts
-# starting with this prefix
-#
-#group_creation_prefix: &quot;unofficial_&quot;
 
 
 
@@ -9097,7 +9129,7 @@ loggers:
 </code></pre>
 <p>The above logging config will set Synapse as 'INFO' logging level by default,
 with the SQL layer at 'WARNING', and will log to a file, stored as JSON.</p>
-<p>It is also possible to figure Synapse to log to a remote endpoint by using the
+<p>It is also possible to configure Synapse to log to a remote endpoint by using the
 <code>synapse.logging.RemoteHandler</code> class included with Synapse. It takes the
 following arguments:</p>
 <ul>
@@ -11030,7 +11062,7 @@ policy's <code>max_lifetime</code> is greater than a week.</li>
 <p>Note that this example is tailored to show different configurations and
 features slightly more jobs than it's probably necessary (in practice, a
 server admin would probably consider it better to replace the two last
-jobs with one that runs once a day and handles rooms which which
+jobs with one that runs once a day and handles rooms which
 policy's <code>max_lifetime</code> is greater than 3 days).</p>
 <p>Keep in mind, when configuring these jobs, that a purge job can become
 quite heavy on the server if it targets many rooms, therefore prefer
@@ -11204,20 +11236,25 @@ Synapse instances. Spam checker callbacks can be registered using the module API
 <p>The available spam checker callbacks are:</p>
 <h3 id="check_event_for_spam"><a class="header" href="#check_event_for_spam"><code>check_event_for_spam</code></a></h3>
 <p><em>First introduced in Synapse v1.37.0</em></p>
-<pre><code class="language-python">async def check_event_for_spam(event: &quot;synapse.events.EventBase&quot;) -&gt; Union[bool, str]
+<p><em>Changed in Synapse v1.60.0: <code>synapse.module_api.NOT_SPAM</code> and <code>synapse.module_api.errors.Codes</code> can be returned by this callback. Returning a boolean or a string is now deprecated.</em> </p>
+<pre><code class="language-python">async def check_event_for_spam(event: &quot;synapse.module_api.EventBase&quot;) -&gt; Union[&quot;synapse.module_api.NOT_SPAM&quot;, &quot;synapse.module_api.errors.Codes&quot;, str, bool]
 </code></pre>
-<p>Called when receiving an event from a client or via federation. The callback must return
-either:</p>
+<p>Called when receiving an event from a client or via federation. The callback must return one of:</p>
 <ul>
-<li>an error message string, to indicate the event must be rejected because of spam and 
-give a rejection reason to forward to clients;</li>
-<li>the boolean <code>True</code>, to indicate that the event is spammy, but not provide further details; or</li>
-<li>the booelan <code>False</code>, to indicate that the event is not considered spammy.</li>
+<li><code>synapse.module_api.NOT_SPAM</code>, to allow the operation. Other callbacks may still 
+decide to reject it.</li>
+<li><code>synapse.module_api.errors.Codes</code> to reject the operation with an error code. In case
+of doubt, <code>synapse.module_api.errors.Codes.FORBIDDEN</code> is a good error code.</li>
+<li>(deprecated) a non-<code>Codes</code> <code>str</code> to reject the operation and specify an error message. Note that clients
+typically will not localize the error message to the user's preferred locale.</li>
+<li>(deprecated) <code>False</code>, which is the same as returning <code>synapse.module_api.NOT_SPAM</code>.</li>
+<li>(deprecated) <code>True</code>, which is the same as returning <code>synapse.module_api.errors.Codes.FORBIDDEN</code>.</li>
 </ul>
 <p>If multiple modules implement this callback, they will be considered in order. If a
-callback returns <code>False</code>, Synapse falls through to the next one. The value of the first
-callback that does not return <code>False</code> will be used. If this happens, Synapse will not call
-any of the subsequent implementations of this callback.</p>
+callback returns <code>synapse.module_api.NOT_SPAM</code>, Synapse falls through to the next one.
+The value of the first callback that does not return <code>synapse.module_api.NOT_SPAM</code> will
+be used. If this happens, Synapse will not call any of the subsequent implementations of
+this callback.</p>
 <h3 id="user_may_join_room"><a class="header" href="#user_may_join_room"><code>user_may_join_room</code></a></h3>
 <p><em>First introduced in Synapse v1.37.0</em></p>
 <pre><code class="language-python">async def user_may_join_room(user: str, room: str, is_invited: bool) -&gt; bool
@@ -11373,6 +11410,18 @@ this callback.</p>
 <p>Called when storing a local or remote file. The module must return a <code>bool</code> indicating
 whether the given file should be excluded from the homeserver's media store. Return
 <code>True</code> to prevent this file from being stored; otherwise return <code>False</code>.</p>
+<p>If multiple modules implement this callback, they will be considered in order. If a
+callback returns <code>False</code>, Synapse falls through to the next one. The value of the first
+callback that does not return <code>False</code> will be used. If this happens, Synapse will not call
+any of the subsequent implementations of this callback.</p>
+<h3 id="should_drop_federated_event"><a class="header" href="#should_drop_federated_event"><code>should_drop_federated_event</code></a></h3>
+<p><em>First introduced in Synapse v1.60.0</em></p>
+<pre><code class="language-python">async def should_drop_federated_event(event: &quot;synapse.events.EventBase&quot;) -&gt; bool
+</code></pre>
+<p>Called when checking whether a remote server can federate an event with us. <strong>Returning
+<code>True</code> from this function will silently drop a federated event and split-brain our view
+of a room's DAG, and thus you shouldn't use this callback unless you know what you are
+doing.</strong></p>
 <p>If multiple modules implement this callback, they will be considered in order. If a
 callback returns <code>False</code>, Synapse falls through to the next one. The value of the first
 callback that does not return <code>False</code> will be used. If this happens, Synapse will not call
@@ -12142,7 +12191,7 @@ changes to the database should now be made by the module using the module API cl
 use the new <code>modules</code> section in Synapse's configuration file (see <a href="modules/index.html#using-modules">this section</a>
 for more info).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="scaling-synapse-via-workers"><a class="header" href="#scaling-synapse-via-workers">Scaling synapse via workers</a></h1>
-<p>For small instances it recommended to run Synapse in the default monolith mode.
+<p>For small instances it is recommended to run Synapse in the default monolith mode.
 For larger instances where performance is a concern it can be helpful to split
 out functionality into multiple separate python processes. These processes are
 called 'workers', and are (eventually) intended to scale horizontally
@@ -12302,7 +12351,7 @@ information.</p>
 ^/_matrix/federation/v1/user/devices/
 ^/_matrix/federation/v1/get_groups_publicised$
 ^/_matrix/key/v2/query
-^/_matrix/federation/(v1|unstable/org.matrix.msc2946)/hierarchy/
+^/_matrix/federation/v1/hierarchy/
 
 # Inbound federation transaction request
 ^/_matrix/federation/v1/send/
@@ -12314,9 +12363,11 @@ information.</p>
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/.*$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$
-^/_matrix/client/(v1|unstable/org.matrix.msc2946)/rooms/.*/hierarchy$
+^/_matrix/client/v1/rooms/.*/hierarchy$
+^/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$
 ^/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$
 ^/_matrix/client/(r0|v3|unstable)/account/3pid$
+^/_matrix/client/(r0|v3|unstable)/account/whoami$
 ^/_matrix/client/(r0|v3|unstable)/devices$
 ^/_matrix/client/versions$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$
@@ -12345,9 +12396,6 @@ information.</p>
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/join/
 ^/_matrix/client/(api/v1|r0|v3|unstable)/profile/
-
-# Device requests
-^/_matrix/client/(r0|v3|unstable)/sendToDevice/
 
 # Account data requests
 ^/_matrix/client/(r0|v3|unstable)/.*/tags
@@ -16710,8 +16758,8 @@ and you agree to license it under the same terms as the project's license, we've
 same lightweight approach that the Linux Kernel
 <a href="https://www.kernel.org/doc/html/latest/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin%3E">submitting patches process</a>,
 <a href="https://github.com/docker/docker/blob/master/CONTRIBUTING.md">Docker</a>, and many other
-projects use: the DCO (Developer Certificate of Origin:
-http://developercertificate.org/). This is a simple declaration that you wrote
+projects use: the DCO (<a href="http://developercertificate.org/">Developer Certificate of Origin</a>).
+This is a simple declaration that you wrote
 the contribution or otherwise have the right to contribute it to Matrix:</p>
 <pre><code>Developer Certificate of Origin
 Version 1.1
