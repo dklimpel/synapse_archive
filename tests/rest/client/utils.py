@@ -140,7 +140,7 @@ class RestHelper:
             custom_headers=custom_headers,
         )
 
-        assert channel.result["code"] == b"%d" % expect_code, channel.result
+        assert channel.code == expect_code, channel.result
         self.auth_user_id = temp_id
 
         if expect_code == HTTPStatus.OK:
@@ -214,10 +214,10 @@ class RestHelper:
         )
 
         assert (
-            int(channel.result["code"]) == expect_code
+            channel.code == expect_code
         ), "Expected: %d, got: %d, resp: %r" % (
             expect_code,
-            int(channel.result["code"]),
+            channel.code,
             channel.result["body"],
         )
 
@@ -313,10 +313,10 @@ class RestHelper:
         )
 
         assert (
-            int(channel.result["code"]) == expect_code
+            channel.code == expect_code
         ), "Expected: %d, got: %d, resp: %r" % (
             expect_code,
-            int(channel.result["code"]),
+            channel.code,
             channel.result["body"],
         )
 
@@ -397,10 +397,10 @@ class RestHelper:
         )
 
         assert (
-            int(channel.result["code"]) == expect_code
+            channel.code == expect_code
         ), "Expected: %d, got: %d, resp: %r" % (
             expect_code,
-            int(channel.result["code"]),
+            channel.code,
             channel.result["body"],
         )
 
@@ -450,10 +450,10 @@ class RestHelper:
         channel = make_request(self.hs.get_reactor(), self.site, method, path, content)
 
         assert (
-            int(channel.result["code"]) == expect_code
+            channel.code == expect_code
         ), "Expected: %d, got: %d, resp: %r" % (
             expect_code,
-            int(channel.result["code"]),
+            channel.code,
             channel.result["body"],
         )
 
@@ -545,7 +545,7 @@ class RestHelper:
 
         assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
             expect_code,
-            int(channel.result["code"]),
+            channel.code,
             channel.result["body"],
         )
 
