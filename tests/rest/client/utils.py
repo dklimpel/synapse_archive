@@ -213,9 +213,7 @@ class RestHelper:
             data,
         )
 
-        assert (
-            channel.code == expect_code
-        ), "Expected: %d, got: %d, resp: %r" % (
+        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
             expect_code,
             channel.code,
             channel.result["body"],
@@ -312,9 +310,7 @@ class RestHelper:
             data,
         )
 
-        assert (
-            channel.code == expect_code
-        ), "Expected: %d, got: %d, resp: %r" % (
+        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
             expect_code,
             channel.code,
             channel.result["body"],
@@ -396,9 +392,7 @@ class RestHelper:
             custom_headers=custom_headers,
         )
 
-        assert (
-            channel.code == expect_code
-        ), "Expected: %d, got: %d, resp: %r" % (
+        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
             expect_code,
             channel.code,
             channel.result["body"],
@@ -449,9 +443,7 @@ class RestHelper:
 
         channel = make_request(self.hs.get_reactor(), self.site, method, path, content)
 
-        assert (
-            channel.code == expect_code
-        ), "Expected: %d, got: %d, resp: %r" % (
+        assert channel.code == expect_code, "Expected: %d, got: %d, resp: %r" % (
             expect_code,
             channel.code,
             channel.result["body"],
