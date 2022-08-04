@@ -133,9 +133,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             channel = self.make_request(b"POST", LOGIN_URL, params)
 
             if i == 5:
-                self.assertEqual(
-                    channel.code, 429, msg=channel.result
-                )
+                self.assertEqual(channel.code, 429, msg=channel.result)
                 retry_after_ms = int(channel.json_body["retry_after_ms"])
             else:
                 self.assertEqual(channel.code, 200, msg=channel.result)
@@ -180,9 +178,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             channel = self.make_request(b"POST", LOGIN_URL, params)
 
             if i == 5:
-                self.assertEqual(
-                    channel.code, 429, msg=channel.result
-                )
+                self.assertEqual(channel.code, 429, msg=channel.result)
                 retry_after_ms = int(channel.json_body["retry_after_ms"])
             else:
                 self.assertEqual(channel.code, 200, msg=channel.result)
@@ -227,9 +223,7 @@ class LoginRestServletTestCase(unittest.HomeserverTestCase):
             channel = self.make_request(b"POST", LOGIN_URL, params)
 
             if i == 5:
-                self.assertEqual(
-                    channel.code, 429, msg=channel.result
-                )
+                self.assertEqual(channel.code, 429, msg=channel.result)
                 retry_after_ms = int(channel.json_body["retry_after_ms"])
             else:
                 self.assertEqual(channel.code, 403, msg=channel.result)
