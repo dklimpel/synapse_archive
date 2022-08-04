@@ -67,11 +67,7 @@ class RedactionsTestCase(HomeserverTestCase):
         )
 
     def _redact_event(
-        self,
-        access_token: str,
-        room_id: str,
-        event_id: str,
-        expect_code: int = 200,
+        self, access_token: str, room_id: str, event_id: str, expect_code: int = 200
     ) -> JsonDict:
         """Helper function to send a redaction event.
 
@@ -121,10 +117,7 @@ class RedactionsTestCase(HomeserverTestCase):
 
         # as a normal, try to redact the admin's event
         self._redact_event(
-            self.other_access_token,
-            self.room_id,
-            admin_msg_id,
-            expect_code=403,
+            self.other_access_token, self.room_id, admin_msg_id, expect_code=403
         )
 
         # now try to redact our own event
@@ -160,10 +153,7 @@ class RedactionsTestCase(HomeserverTestCase):
 
         # ... but normals cannot
         self._redact_event(
-            self.other_access_token,
-            self.room_id,
-            "$zzz",
-            expect_code=404,
+            self.other_access_token, self.room_id, "$zzz", expect_code=404
         )
 
         # when we sync, we should see only the valid redaction
@@ -188,18 +178,12 @@ class RedactionsTestCase(HomeserverTestCase):
 
         # room moderators cannot send redactions for create events
         self._redact_event(
-            self.mod_access_token,
-            self.room_id,
-            create_event_id,
-            expect_code=403,
+            self.mod_access_token, self.room_id, create_event_id, expect_code=403
         )
 
         # and nor can normals
         self._redact_event(
-            self.other_access_token,
-            self.room_id,
-            create_event_id,
-            expect_code=403,
+            self.other_access_token, self.room_id, create_event_id, expect_code=403
         )
 
     def test_redact_event_as_moderator_ratelimit(self) -> None:
