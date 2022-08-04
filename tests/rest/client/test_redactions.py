@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from http import HTTPStatus
 from typing import List
 
 from twisted.test.proto_helpers import MemoryReactor
@@ -72,7 +71,7 @@ class RedactionsTestCase(HomeserverTestCase):
         access_token: str,
         room_id: str,
         event_id: str,
-        expect_code: int = HTTPStatus.OK,
+        expect_code: int = 200,
     ) -> JsonDict:
         """Helper function to send a redaction event.
 
@@ -86,7 +85,7 @@ class RedactionsTestCase(HomeserverTestCase):
 
     def _sync_room_timeline(self, access_token: str, room_id: str) -> List[JsonDict]:
         channel = self.make_request("GET", "sync", access_token=self.mod_access_token)
-        self.assertEqual(channel.code, HTTPStatus.OK)
+        self.assertEqual(channel.code, 200)
         room_sync = channel.json_body["rooms"]["join"][room_id]
         return room_sync["timeline"]["events"]
 
@@ -125,7 +124,7 @@ class RedactionsTestCase(HomeserverTestCase):
             self.other_access_token,
             self.room_id,
             admin_msg_id,
-            expect_code=HTTPStatus.FORBIDDEN,
+            expect_code=403,
         )
 
         # now try to redact our own event
@@ -164,7 +163,7 @@ class RedactionsTestCase(HomeserverTestCase):
             self.other_access_token,
             self.room_id,
             "$zzz",
-            expect_code=HTTPStatus.NOT_FOUND,
+            expect_code=404,
         )
 
         # when we sync, we should see only the valid redaction
@@ -192,7 +191,7 @@ class RedactionsTestCase(HomeserverTestCase):
             self.mod_access_token,
             self.room_id,
             create_event_id,
-            expect_code=HTTPStatus.FORBIDDEN,
+            expect_code=403,
         )
 
         # and nor can normals
@@ -200,7 +199,7 @@ class RedactionsTestCase(HomeserverTestCase):
             self.other_access_token,
             self.room_id,
             create_event_id,
-            expect_code=HTTPStatus.FORBIDDEN,
+            expect_code=403,
         )
 
     def test_redact_event_as_moderator_ratelimit(self) -> None:
