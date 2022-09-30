@@ -350,7 +350,7 @@ and mounting it to <code>/var/synapse</code> should be taken into consideration.
 </code></pre>
 <h4 id="nixos"><a class="header" href="#nixos">NixOS</a></h4>
 <p>Robin Lambertz has packaged Synapse for NixOS at:
-<a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/misc/matrix-synapse.nix">https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/misc/matrix-synapse.nix</a></p>
+<a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/matrix/synapse.nix">https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/matrix/synapse.nix</a></p>
 <h3 id="installing-as-a-python-module-from-pypi"><a class="header" href="#installing-as-a-python-module-from-pypi">Installing as a Python module from PyPI</a></h3>
 <p>It's also possible to install Synapse as a Python module from PyPI.</p>
 <p>When following this route please make sure that the <a href="setup/installation.html#platform-specific-prerequisites">Platform-specific prerequisites</a> are already installed.</p>
@@ -890,6 +890,10 @@ consider setting <code>bind_addresses: ['127.0.0.1']</code> so that the server o
 listens to traffic on localhost. (Do not change <code>bind_addresses</code> to <code>127.0.0.1</code> 
 when using a containerized Synapse, as that will prevent it from responding
 to proxied traffic.)</p>
+<p>Optionally, you can also set
+<a href="../usage/configuration/config_documentation.html#listeners"><code>request_id_header</code></a>
+so that the server extracts and re-uses the same request ID format that the
+reverse proxy is using.</p>
 <h2 id="reverse-proxy-configuration-examples"><a class="header" href="#reverse-proxy-configuration-examples">Reverse-proxy configuration examples</a></h2>
 <p><strong>NOTE</strong>: You only need one of these.</p>
 <h3 id="nginx"><a class="header" href="#nginx">nginx</a></h3>
@@ -1551,9 +1555,8 @@ which are no longer maintained.</p>
 summaries.</p>
 </li>
 <li>
-<p>If Synapse was installed using <a href="setup/installation.html#prebuilt-packages">prebuilt
-packages</a>, you will need to follow the
-normal process for upgrading those packages.</p>
+<p>If Synapse was installed using <a href="setup/installation.html#prebuilt-packages">prebuilt packages</a>,
+you will need to follow the normal process for upgrading those packages.</p>
 </li>
 <li>
 <p>If Synapse was installed using pip then upgrade to the latest
@@ -1621,6 +1624,37 @@ dpkg -i matrix-synapse-py3_1.3.0+stretch1_amd64.deb
 </code></pre>
 </li>
 </ul>
+<h1 id="upgrading-to-v1690"><a class="header" href="#upgrading-to-v1690">Upgrading to v1.69.0</a></h1>
+<h2 id="changes-to-the-receipts-replication-streams"><a class="header" href="#changes-to-the-receipts-replication-streams">Changes to the receipts replication streams</a></h2>
+<p>Synapse now includes information indicating if a receipt applies to a thread when
+replicating it to other workers. This is a forwards- and backwards-incompatible
+change: v1.68 and workers cannot process receipts replicated by v1.69 workers, and
+vice versa.</p>
+<p>Once all workers are upgraded to v1.69 (or downgraded to v1.68), receipts
+replication will resume as normal.</p>
+<h1 id="upgrading-to-v1680"><a class="header" href="#upgrading-to-v1680">Upgrading to v1.68.0</a></h1>
+<p>Two changes announced in the upgrade notes for v1.67.0 have now landed in v1.68.0.</p>
+<h2 id="sqlite-version-requirement"><a class="header" href="#sqlite-version-requirement">SQLite version requirement</a></h2>
+<p>Synapse now requires a SQLite version of 3.27.0 or higher if SQLite is configured as
+Synapse's database.</p>
+<p>Installations using</p>
+<ul>
+<li>Docker images <a href="https://hub.docker.com/r/matrixdotorg/synapse">from <code>matrixdotorg</code></a>,</li>
+<li>Debian packages <a href="https://packages.matrix.org/">from Matrix.org</a>, or</li>
+<li>a PostgreSQL database</li>
+</ul>
+<p>are not affected.</p>
+<h2 id="rust-requirement-when-building-from-source"><a class="header" href="#rust-requirement-when-building-from-source">Rust requirement when building from source.</a></h2>
+<p>Building from a source checkout of Synapse now requires a recent Rust compiler
+(currently Rust 1.58.1, but see also the
+<a href="https://matrix-org.github.io/synapse/latest/deprecation_policy.html">Platform Dependency Policy</a>).</p>
+<p>Installations using</p>
+<ul>
+<li>Docker images <a href="https://hub.docker.com/r/matrixdotorg/synapse">from <code>matrixdotorg</code></a>,</li>
+<li>Debian packages <a href="https://packages.matrix.org/">from Matrix.org</a>, or</li>
+<li>PyPI wheels via <code>pip install matrix-synapse</code> (on supported platforms and architectures)</li>
+</ul>
+<p>will not be affected.</p>
 <h1 id="upgrading-to-v1670"><a class="header" href="#upgrading-to-v1670">Upgrading to v1.67.0</a></h1>
 <h2 id="direct-tcp-replication-is-no-longer-supported-migrate-to-redis"><a class="header" href="#direct-tcp-replication-is-no-longer-supported-migrate-to-redis">Direct TCP replication is no longer supported: migrate to Redis</a></h2>
 <p>Redis support was added in v1.13.0 with it becoming the recommended method in
@@ -1643,11 +1677,11 @@ will require a recent Rust compiler. Those using packages or
 <code>pip install matrix-synapse</code> will not be affected.</p>
 <p>The simplest way of installing Rust is via <a href="https://rustup.rs/">rustup.rs</a></p>
 <h2 id="sqlite-version-requirement-in-the-next-release"><a class="header" href="#sqlite-version-requirement-in-the-next-release">SQLite version requirement in the next release</a></h2>
-<p>From the next major release (v1.68.0) Synapse will require SQLite 3.27.0 or 
+<p>From the next major release (v1.68.0) Synapse will require SQLite 3.27.0 or
 higher. Synapse v1.67.0 will be the last major release supporting SQLite
 versions 3.22 to 3.26.</p>
-<p>Those using docker images or Debian packages from Matrix.org will not be
-affected. If you have installed from source, you should check the version of 
+<p>Those using Docker images or Debian packages from Matrix.org will not be
+affected. If you have installed from source, you should check the version of
 SQLite used by Python with:</p>
 <pre><code class="language-shell">python -c &quot;import sqlite3; print(sqlite3.sqlite_version)&quot;
 </code></pre>
@@ -3543,7 +3577,16 @@ configuration.</p>
 </li>
 <li>
 <p><code>x_forwarded</code>: Only valid for an 'http' listener. Set to true to use the X-Forwarded-For header as the client IP. Useful when Synapse is
-behind a reverse-proxy.</p>
+behind a <a href="usage/configuration/../../reverse_proxy.html">reverse-proxy</a>.</p>
+</li>
+<li>
+<p><code>request_id_header</code>: The header extracted from each incoming request that is
+used as the basis for the request ID. The request ID is used in
+<a href="usage/configuration/../administration/request_log.html#request-log-format">logs</a> and tracing to
+correlate and match up requests. When unset, Synapse will automatically
+generate sequential request IDs. This option is useful when Synapse is behind
+a <a href="usage/configuration/../../reverse_proxy.html">reverse-proxy</a>.</p>
+<p><em>Added in Synapse 1.68.0.</em></p>
 </li>
 <li>
 <p><code>resources</code>: Only valid for an 'http' listener. A list of resources to host
@@ -5011,6 +5054,8 @@ as a publicly joinable room when the first user registers for the
 homeserver. If the room already exists, make certain it is a publicly joinable
 room, i.e. the join rule of the room must be set to 'public'. You can find more options
 relating to auto-joining rooms below.</p>
+<p>As Spaces are just rooms under the hood, Space aliases may also be
+used.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">auto_join_rooms:
   - &quot;#exampleroom:example.com&quot;
@@ -5020,7 +5065,7 @@ relating to auto-joining rooms below.</p>
 <h3 id="autocreate_auto_join_rooms"><a class="header" href="#autocreate_auto_join_rooms"><code>autocreate_auto_join_rooms</code></a></h3>
 <p>Where <code>auto_join_rooms</code> are specified, setting this flag ensures that
 the rooms exist by creating them when the first user on the
-homeserver registers.</p>
+homeserver registers. This option will not create Spaces.</p>
 <p>By default the auto-created rooms are publicly joinable from any federated
 server. Use the <code>autocreate_auto_join_rooms_federated</code> and
 <code>autocreate_auto_join_room_preset</code> settings to customise this behaviour.</p>
@@ -5032,7 +5077,7 @@ users cannot be auto-joined since they do not exist.</p>
 </code></pre>
 <hr />
 <h3 id="autocreate_auto_join_rooms_federated"><a class="header" href="#autocreate_auto_join_rooms_federated"><code>autocreate_auto_join_rooms_federated</code></a></h3>
-<p>Whether the rooms listen in <code>auto_join_rooms</code> that are auto-created are available
+<p>Whether the rooms listed in <code>auto_join_rooms</code> that are auto-created are available
 via federation. Only has an effect if <code>autocreate_auto_join_rooms</code> is true.</p>
 <p>Note that whether a room is federated cannot be modified after
 creation.</p>
@@ -7532,8 +7577,8 @@ for the user. Commonly the <code>sub</code> claim of the response.</li>
 <li>This method must be async.</li>
 <li>Arguments:
 <ul>
-<li><code>userinfo</code> - A <code>authlib.oidc.core.claims.UserInfo</code> object to extract user
-information from.</li>
+<li><code>userinfo</code> - An <a href="https://docs.authlib.org/en/latest/specs/oidc.html#authlib.oidc.core.UserInfo"><code>authlib.oidc.core.claims.UserInfo</code></a>
+object to extract user information from.</li>
 <li><code>token</code> - A dictionary which includes information necessary to make
 further requests to the OpenID provider.</li>
 <li><code>failures</code> - An <code>int</code> that represents the amount of times the returned
@@ -7553,7 +7598,13 @@ with failures=1. The method should then return a different
 <code>None</code>, the user is prompted to pick their own username. This is only used
 during a user's first login. Once a localpart has been associated with a
 remote user ID (see <code>get_remote_user_id</code>) it cannot be updated.</li>
-<li><code>displayname</code>: An optional string, the display name for the user.</li>
+<li><code>confirm_localpart</code>: A boolean. If set to <code>True</code>, when a <code>localpart</code>
+string is returned from this method, Synapse will prompt the user to
+either accept this localpart or pick their own username. Otherwise this
+option has no effect. If omitted, defaults to <code>False</code>.</li>
+<li><code>display_name</code>: An optional string, the display name for the user.</li>
+<li><code>emails</code>: A list of strings, the email address(es) to associate with
+this user. If omitted, defaults to an empty list.</li>
 </ul>
 </li>
 </ul>
@@ -10897,7 +10948,7 @@ a purge id:</p>
 non-interactive way. This is generally used for bootstrapping a Synapse
 instance with administrator accounts.</p>
 <p>To authenticate yourself to the server, you will need both the shared secret
-(<a href="admin_api/../configuration/config_documentation.html#registration_shared_secret"><code>registration_shared_secret</code></a>
+(<a href="admin_api/../usage/configuration/config_documentation.html#registration_shared_secret"><code>registration_shared_secret</code></a>
 in the homeserver configuration), and a one-time nonce. If the registration
 shared secret is not configured, this API is not enabled.</p>
 <p>To fetch the nonce, you need to request one from the API:</p>
@@ -13282,6 +13333,30 @@ for more information.</p>
 </code></pre>
 <p>The request and response format is the same as the
 <a href="https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-register-available">/_matrix/client/r0/register/available</a> API.</p>
+<h3 id="find-a-user-based-on-their-id-in-an-auth-provider"><a class="header" href="#find-a-user-based-on-their-id-in-an-auth-provider">Find a user based on their ID in an auth provider</a></h3>
+<p>The API is:</p>
+<pre><code>GET /_synapse/admin/v1/auth_providers/$provider/users/$external_id
+</code></pre>
+<p>When a user matched the given ID for the given provider, an HTTP code <code>200</code> with a response body like the following is returned:</p>
+<pre><code class="language-json">{
+    &quot;user_id&quot;: &quot;@hello:example.org&quot;
+}
+</code></pre>
+<p><strong>Parameters</strong></p>
+<p>The following parameters should be set in the URL:</p>
+<ul>
+<li><code>provider</code> - The ID of the authentication provider, as advertised by the <a href="https://spec.matrix.org/latest/client-server-api/#post_matrixclientv3login"><code>GET /_matrix/client/v3/login</code></a> API in the <code>m.login.sso</code> authentication method.</li>
+<li><code>external_id</code> - The user ID from the authentication provider. Usually corresponds to the <code>sub</code> claim for OIDC providers, or to the <code>uid</code> attestation for SAML2 providers.</li>
+</ul>
+<p>The <code>external_id</code> may have characters that are not URL-safe (typically <code>/</code>, <code>:</code> or <code>@</code>), so it is advised to URL-encode those parameters.</p>
+<p><strong>Errors</strong></p>
+<p>Returns a <code>404</code> HTTP status code if no user was found, with a response body like this:</p>
+<pre><code class="language-json">{
+    &quot;errcode&quot;:&quot;M_NOT_FOUND&quot;,
+    &quot;error&quot;:&quot;User not found&quot;
+}
+</code></pre>
+<p><em>Added in Synapse 1.68.0.</em></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="version-api"><a class="header" href="#version-api">Version API</a></h1>
 <p>This API returns the running Synapse version and the Python version
 on which Synapse is being run. This is useful when a Synapse instance
@@ -14171,14 +14246,14 @@ WHERE room_stats_state.room_id = event_json.room_id&quot; | psql -d synapse -h l
 -AAAAAAAAAAAAAAAAAAAAA-   -BBBBBBBBBBBBBBBBBBBBBB-   -C-   -DD-   -EEEEEE-  -FFFFFFFFF-   -GG-    -HHHHHHHHHHHHHHHHHHHHHHH-                     -IIIIII- -JJJJJJJ-  -KKKKKK-, -LLLLLL-  -MMMMMMM- -NNNNNN- O  -P- -QQ-  -RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR-   -SSSSSSSSSSSS-   -TTTTTT-
 </code></pre>
 <table><thead><tr><th>Part</th><th>Explanation</th></tr></thead><tbody>
-<tr><td>AAAA</td><td>Timestamp request was logged (not recieved)</td></tr>
+<tr><td>AAAA</td><td>Timestamp request was logged (not received)</td></tr>
 <tr><td>BBBB</td><td>Logger name (<code>synapse.access.(http\|https).&lt;tag&gt;</code>, where 'tag' is defined in the <code>listeners</code> config section, normally the port)</td></tr>
 <tr><td>CCCC</td><td>Line number in code</td></tr>
 <tr><td>DDDD</td><td>Log Level</td></tr>
 <tr><td>EEEE</td><td>Request Identifier (This identifier is shared by related log lines)</td></tr>
 <tr><td>FFFF</td><td>Source IP (Or X-Forwarded-For if enabled)</td></tr>
 <tr><td>GGGG</td><td>Server Port</td></tr>
-<tr><td>HHHH</td><td>Federated Server or Local User making request (blank if unauthenticated or not supplied)</td></tr>
+<tr><td>HHHH</td><td>Federated Server or Local User making request (blank if unauthenticated or not supplied).<br/>If this is of the form `@aaa:example.com</td></tr>
 <tr><td>IIII</td><td>Total Time to process the request</td></tr>
 <tr><td>JJJJ</td><td>Time to send response over network once generated (this may be negative if the socket is closed before the response is generated)</td></tr>
 <tr><td>KKKK</td><td>Userland CPU time</td></tr>
@@ -14430,6 +14505,9 @@ Make sure that you have saved all your files.</p>
 <p>The unit tests run parts of Synapse, including your changes, to see if anything
 was broken. They are slower than the linters but will typically catch more errors.</p>
 <pre><code class="language-sh">poetry run trial tests
+</code></pre>
+<p>You can run unit tests in parallel by specifying <code>-jX</code> argument to <code>trial</code> where <code>X</code> is the number of parallel runners you want. To use 4 cpu cores, you would run them like:</p>
+<pre><code class="language-sh">poetry run trial -j4 tests
 </code></pre>
 <p>If you wish to only run <em>some</em> unit tests, you may specify
 another module instead of <code>tests</code> - or a test class or a method:</p>
@@ -15315,21 +15393,21 @@ in Python, evaluates to <code>True</code>.</p>
 </li>
 </ul>
 <h2 id="event_id-global-uniqueness"><a class="header" href="#event_id-global-uniqueness"><code>event_id</code> global uniqueness</a></h2>
-<p>In room versions <code>1</code> and <code>2</code> it's possible to end up with two events with the
-same <code>event_id</code> (in the same or different rooms). After room version <code>3</code>, that
-can only happen with a hash collision, which we basically hope will never
-happen.</p>
-<p>There are several places in Synapse and even Matrix APIs like <a href="https://spec.matrix.org/v1.1/server-server-api/#get_matrixfederationv1eventeventid"><code>GET /_matrix/federation/v1/event/{eventId}</code></a>
-where we assume that event IDs are globally unique.</p>
-<p>But hash collisions are still possible, and by treating event IDs as room
-scoped, we can reduce the possibility of a hash collision. When scoping
-<code>event_id</code> in the database schema, it should be also accompanied by <code>room_id</code>
-(<code>PRIMARY KEY (room_id, event_id)</code>) and lookups should be done through the pair
-<code>(room_id, event_id)</code>.</p>
-<p>There has been a lot of debate on this in places like
-https://github.com/matrix-org/matrix-spec-proposals/issues/2779 and
+<p><code>event_id</code>'s can be considered globally unique although there has been a lot of
+debate on this topic in places like
+<a href="https://github.com/matrix-org/matrix-spec-proposals/issues/2779">MSC2779</a> and
 <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/2848">MSC2848</a> which
-has no resolution yet (as of 2022-09-01).</p>
+has no resolution yet (as of 2022-09-01). There are several places in Synapse
+and even in the Matrix APIs like <a href="https://spec.matrix.org/v1.1/server-server-api/#get_matrixfederationv1eventeventid"><code>GET /_matrix/federation/v1/event/{eventId}</code></a>
+where we assume that event IDs are globally unique.</p>
+<p>When scoping <code>event_id</code> in a database schema, it is often nice to accompany it
+with <code>room_id</code> (<code>PRIMARY KEY (room_id, event_id)</code> and a <code>FOREIGN KEY(room_id) REFERENCES rooms(room_id)</code>) which makes flexible lookups easy. For example it
+makes it very easy to find and clean up everything in a room when it needs to be
+purged (no need to use sub-<code>select</code> query or join from the <code>events</code> table).</p>
+<p>A note on collisions: In room versions <code>1</code> and <code>2</code> it's possible to end up with
+two events with the same <code>event_id</code> (in the same or different rooms). After room
+version <code>3</code>, that can only happen with a hash collision, which we basically hope
+will never happen (SHA256 has a massive big key space).</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="implementing-experimental-features-in-synapse"><a class="header" href="#implementing-experimental-features-in-synapse">Implementing experimental features in Synapse</a></h1>
 <p>It can be desirable to implement &quot;experimental&quot; features which are disabled by
 default and must be explicitly enabled via the Synapse configuration. This is
@@ -15459,6 +15537,20 @@ context of poetry's venv, without having to run <code>poetry shell</code> before
 <h2 id="reset-my-venv-to-the-locked-environment"><a class="header" href="#reset-my-venv-to-the-locked-environment">...reset my venv to the locked environment?</a></h2>
 <pre><code class="language-shell">poetry install --extras all --remove-untracked
 </code></pre>
+<h2 id="delete-everything-and-start-over-from-scratch"><a class="header" href="#delete-everything-and-start-over-from-scratch">...delete everything and start over from scratch?</a></h2>
+<pre><code class="language-shell"># Stop the current virtualenv if active
+$ deactivate
+
+# Remove all of the files from the current environment.
+# Don't worry, even though it says &quot;all&quot;, this will only
+# remove the Poetry virtualenvs for the current project.
+$ poetry env remove --all
+
+# Reactivate Poetry shell to create the virtualenv again
+$ poetry shell
+# Install everything again
+$ poetry install --extras all
+</code></pre>
 <h2 id="run-a-command-in-the-poetry-virtualenv"><a class="header" href="#run-a-command-in-the-poetry-virtualenv">...run a command in the <code>poetry</code> virtualenv?</a></h2>
 <p>Use <code>poetry run cmd args</code> when you need the python virtualenv context.
 To avoid typing <code>poetry run</code> all the time, you can run  <code>poetry shell</code>
@@ -15547,6 +15639,11 @@ installed <code>poetry</code> with <code>pipx</code>, try <code>pipx runpip poet
 <p>Poetry caches a bunch of information about packages that isn't readily available
 from PyPI. (This is what makes poetry seem slow when doing the first
 <code>poetry install</code>.) Try <code>poetry cache list</code> and <code>poetry cache clear --all &lt;name of cache&gt;</code> to see if that fixes things.</p>
+<h2 id="remove-outdated-egg-info"><a class="header" href="#remove-outdated-egg-info">Remove outdated egg-info</a></h2>
+<p>Delete the <code>matrix_synapse.egg-info/</code> directory from the root of your Synapse
+install.</p>
+<p>This stores some cached information about dependencies and often conflicts with
+letting Poetry do the right thing.</p>
 <h2 id="try---verbose-or---dry-run-arguments"><a class="header" href="#try---verbose-or---dry-run-arguments">Try <code>--verbose</code> or <code>--dry-run</code> arguments.</a></h2>
 <p>Sometimes useful to see what poetry's internal logic is.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="cancellation"><a class="header" href="#cancellation">Cancellation</a></h1>
