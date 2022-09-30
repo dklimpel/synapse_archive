@@ -93,7 +93,6 @@ listener" for the main process; and secondly, you need to enable redis-based
 replication. Optionally, a shared secret can be used to authenticate HTTP
 traffic between workers. For example:
 
-
 ```yaml
 # extend the existing `listeners` section. This defines the ports that the
 # main process will listen on.
@@ -129,7 +128,8 @@ In the config file for each worker, you must specify:
  * The HTTP replication endpoint that it should talk to on the main synapse process
    (`worker_replication_host` and `worker_replication_http_port`)
  * If handling HTTP requests, a `worker_listeners` option with an `http`
-   listener, in the same way as the `listeners` option in the shared config.
+   listener, in the same way as the [`listeners`](docs/usage/configuration/config_documentation.md#listeners)
+   option in the shared config.
  * If handling the `^/_matrix/client/v3/keys/upload` endpoint, the HTTP URI for
    the main process (`worker_main_http_uri`).
 
@@ -537,7 +537,8 @@ file to stop the main synapse running background jobs related to managing the
 media repository. Note that doing so will prevent the main process from being
 able to handle the above endpoints.
 
-In the `media_repository` worker configuration file, configure the http listener to
+In the `media_repository` worker configuration file, configure the
+[HTTP listener](docs/usage/configuration/config_documentation.md#listeners) to
 expose the `media` resource. For example:
 
 ```yaml
