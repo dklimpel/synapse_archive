@@ -3792,7 +3792,7 @@ start_pushers: false
 ### `pusher_instances`
 
 It is possible to run multiple pusher workers, in which case the
-work is balanced across them. Use this setting to list the pushers by `worker_name`.
+work is balanced across them. Use this setting to list the pushers by [`worker_name`](#worker_name).
 
 Example configuration:
 ```yaml
