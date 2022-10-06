@@ -28,6 +28,7 @@
         bind_addresses: ['::1', '127.0.0.1']
 
         resources:
+          # added "metrics" in this line
           - names: [client, federation, metrics]
             compress: false
     ```
@@ -57,6 +58,7 @@
           - names: [client, federation]
             compress: false
 
+      # beginning of the new metrics listener
       - port: 9000
         type: metrics
         bind_addresses: ['::1', '127.0.0.1']
