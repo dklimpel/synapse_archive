@@ -3721,6 +3721,18 @@ Example configuration:
 worker_replication_http_port: 9093
 ```
 ---
+### `worker_replication_secret`
+
+A shared secret used by the replication APIs to authenticate HTTP requests
+from workers.
+
+By default this is unused and traffic is not authenticated.
+
+Example configuration:
+```yaml
+worker_replication_secret: "secret_secret"
+```
+---
 ### `worker_listeners`
 
 A worker can handle HTTP requests. If handling HTTP requests, a `worker_listeners`
