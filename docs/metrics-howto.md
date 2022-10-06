@@ -16,14 +16,20 @@
     There are two methods of enabling the metrics endpoint in Synapse.
 
     The first serves the metrics as a part of the usual web server and
-    can be enabled by adding the \"metrics\" resource to the existing
-    listener as such:
+    can be enabled by adding the `metrics` resource to the existing
+    listener as such as in this example:
 
     ```yaml
-      resources:
-        - names:
-          - client
-          - metrics
+    listeners:
+      - port: 8008
+        tls: false
+        type: http
+        x_forwarded: true
+        bind_addresses: ['::1', '127.0.0.1']
+
+        resources:
+          - names: [client, federation, metrics]
+            compress: false
     ```
 
     This provides a simple way of adding metrics to your Synapse
