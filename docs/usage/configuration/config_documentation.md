@@ -3751,9 +3751,7 @@ worker_listeners:
 ### `worker_daemonize`
 
 Specifies whether the worker should be daemonize. If [systemd](../../systemd-with-workers/README.md)
-is used, this must not configured. Systemd manages daemonization itself.
-
-Defaults to `false`.
+is used, this must not configured. Systemd manages daemonization itself. Defaults to `false`.
 
 Example configuration:
 ```yaml
@@ -3806,7 +3804,7 @@ pusher_instances:
 
 Controls sending of outbound federation transactions on the main process.
 Set to false if using a [federation sender worker](../../workers.md#synapseappfederation_sender).
-Defaults to true.
+Defaults to `true`.
 
 Example configuration:
 ```yaml
