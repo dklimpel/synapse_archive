@@ -3674,6 +3674,39 @@ opentracing:
 Configuration options related to workers.
 
 ---
+### `worker_app`
+
+---
+### `worker_name`
+
+---
+### `worker_replication_host`
+
+---
+### `worker_replication_http_port`
+
+---
+### `worker_listeners`
+
+---
+### `worker_daemonize`
+
+---
+### `worker_pid_file`
+
+---
+### `worker_log_config`
+
+---
+### `worker_manhole`
+
+---
+### `start_pushers`
+
+---
+### `pusher_instances`
+
+---
 ### `send_federation`
 
 Controls sending of outbound federation transactions on the main process.
