@@ -43,14 +43,23 @@
     to just internal networks easier. The served metrics are available
     over HTTP only, and will be available at `/_synapse/metrics`.
 
-    Add a new listener to homeserver.yaml:
+    Add a new listener to homeserver.yaml as in this example:
 
     ```yaml
-      listeners:
-        - type: metrics
-          port: 9000
-          bind_addresses:
-            - '0.0.0.0'
+    listeners:
+      - port: 8008
+        tls: false
+        type: http
+        x_forwarded: true
+        bind_addresses: ['::1', '127.0.0.1']
+
+        resources:
+          - names: [client, federation]
+            compress: false
+
+      - port: 9000
+        type: metrics
+        bind_addresses: ['::1', '127.0.0.1']
     ```
 
 1.  Restart Synapse.
