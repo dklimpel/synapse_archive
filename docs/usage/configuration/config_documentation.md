@@ -1338,7 +1338,8 @@ Config options related to logging.
 ---
 ### `log_config`
 
-This option specifies a yaml python logging config file as described [here](https://docs.python.org/3.7/library/logging.config.html#configuration-dictionary-schema).
+This option specifies a yaml python logging config file as described
+[here](https://docs.python.org/3.11/library/logging.config.html#configuration-dictionary-schema).
 
 Example configuration:
 ```yaml
@@ -3700,9 +3701,25 @@ worker_name: generic_worker1
 ---
 ### `worker_replication_host`
 
+The HTTP replication endpoint that it should talk to on the main Synapse process.
+The main Synapse process defines this with a `replication` resource in
+[`listeners` option](#listeners).
+
+Example configuration:
+```yaml
+worker_replication_host: 127.0.0.1
+```
 ---
 ### `worker_replication_http_port`
 
+The HTTP replication port that it should talk to on the main Synapse process.
+The main Synapse process defines this with a `replication` resource in
+[`listeners` option](#listeners).
+
+Example configuration:
+```yaml
+worker_replication_http_port: 9093
+```
 ---
 ### `worker_listeners`
 
@@ -3721,15 +3738,36 @@ worker_listeners:
 ---
 ### `worker_daemonize`
 
+Specifies whether the worker should be daemonize. If [systemd](../../systemd-with-workers/README.md)
+is used, this must not configured. Systemd manages daemonization itself.
+
+Defaults to `false`.
+
+Example configuration:
+```yaml
+worker_daemonize: true
+```
 ---
 ### `worker_pid_file`
 
+When running Synapse worker as a daemon, the file to store the pid in. Defaults to none.
+This is the same way as the [`pid_file` option](#pid_file) in the shared config.
+
+Example configuration:
+```yaml
+worker_pid_file: DATADIR/generic_worker1.pid
+```
 ---
 ### `worker_log_config`
 
----
-### `worker_manhole`
+This option specifies a yaml python logging config file as described
+[here](https://docs.python.org/3.11/library/logging.config.html#configuration-dictionary-schema).
+This is the same way as the [`log_config` option](#log_config) in the shared config.
 
+Example configuration:
+```yaml
+worker_log_config: /etc/matrix-synapse/generic-worker-log.yaml
+```
 ---
 ### `start_pushers`
 
@@ -3751,7 +3789,6 @@ Example configuration:
 pusher_instances:
   - pusher_worker1
 ```
-
 ---
 ### `send_federation`
 
@@ -3816,17 +3853,6 @@ Example configuration:
 run_background_tasks_on: worker1
 ```
 ---
-### `worker_replication_secret`
-
-A shared secret used by the replication APIs to authenticate HTTP requests
-from workers.
-
-By default this is unused and traffic is not authenticated.
-
-Example configuration:
-```yaml
-worker_replication_secret: "secret_secret"
-```
 ### `redis`
 
 Configuration for Redis when using workers. This *must* be enabled when
@@ -3845,6 +3871,7 @@ redis:
   port: 6379
   password: <secret_password>
 ```
+---
 ## Background Updates ##
 Configuration settings related to background updates.
 
