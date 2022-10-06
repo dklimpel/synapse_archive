@@ -3673,12 +3673,30 @@ opentracing:
 ## Workers ##
 Configuration options related to workers.
 
+Please also note the [further documentation for workers](../../workers.md).
+
 ---
 ### `worker_app`
 
+The type of worker. The currently available worker applications are listed
+in [worker documentation](../../workers.md#available-worker-applications).
+
+The most common worker is the `synapse.app.generic_worker`.
+
+Example configuration:
+```yaml
+worker_app: synapse.app.generic_worker
+```
 ---
 ### `worker_name`
 
+A unique name for the worker. The worker needs a name to be addressed in
+further parameters and identification in log files.
+
+Example configuration:
+```yaml
+worker_name: generic_worker1
+```
 ---
 ### `worker_replication_host`
 
@@ -3688,6 +3706,18 @@ Configuration options related to workers.
 ---
 ### `worker_listeners`
 
+A worker can handle HTTP requests. If handling HTTP requests, a `worker_listeners`
+option with an http listener, in the same way as the [`listeners` option](#listeners)
+in the shared config.
+
+Example configuration:
+```yaml
+worker_listeners:
+  - type: http
+    port: 8083
+    resources:
+      - names: [client, federation]
+```
 ---
 ### `worker_daemonize`
 
@@ -3703,14 +3733,31 @@ Configuration options related to workers.
 ---
 ### `start_pushers`
 
+Controls sending of push notifications on the main process. Set to `false`
+if using a [pusher worker](../../workers.md#synapseapppusher). Defaults to `true`.
+
+Example configuration:
+```yaml
+start_pushers: false
+```
 ---
 ### `pusher_instances`
+
+It is possible to run multiple pusher workers, in which case the
+work is balanced across them. Use this setting to list the pushers by `worker_name`.
+
+Example configuration:
+```yaml
+pusher_instances:
+  - pusher_worker1
+```
 
 ---
 ### `send_federation`
 
 Controls sending of outbound federation transactions on the main process.
-Set to false if using a federation sender worker. Defaults to true.
+Set to false if using a [federation sender worker](../../workers.md#synapseappfederation_sender).
+Defaults to true.
 
 Example configuration:
 ```yaml
