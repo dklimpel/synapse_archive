@@ -1651,6 +1651,30 @@ the names of Prometheus metrics.
 If you want to test your changes before legacy names are disabled by default,
 you may specify <code>enable_legacy_metrics: false</code> in your homeserver configuration.</p>
 <p>A list of affected metrics is available on the <a href="https://matrix-org.github.io/synapse/v1.69/metrics-howto.html?highlight=metrics%20deprecated#renaming-of-metrics--deprecation-of-old-names-in-12">Metrics How-to page</a>.</p>
+<h2 id="deprecation-of-the-generate_short_term_login_token-module-api-method"><a class="header" href="#deprecation-of-the-generate_short_term_login_token-module-api-method">Deprecation of the <code>generate_short_term_login_token</code> module API method</a></h2>
+<p>The following method of the module API has been deprecated, and is scheduled to
+be remove in v1.71.0:</p>
+<pre><code class="language-python">def generate_short_term_login_token(
+    self,
+    user_id: str,
+    duration_in_ms: int = (2 * 60 * 1000),
+    auth_provider_id: str = &quot;&quot;,
+    auth_provider_session_id: Optional[str] = None,
+) -&gt; str:
+    ...
+</code></pre>
+<p>It has been replaced by an asynchronous equivalent:</p>
+<pre><code class="language-python">async def create_login_token(
+    self,
+    user_id: str,
+    duration_in_ms: int = (2 * 60 * 1000),
+    auth_provider_id: Optional[str] = None,
+    auth_provider_session_id: Optional[str] = None,
+) -&gt; str:
+    ...
+</code></pre>
+<p>Synapse will log a warning when a module uses the deprecated method, to help
+administrators find modules using it.</p>
 <h1 id="upgrading-to-v1680"><a class="header" href="#upgrading-to-v1680">Upgrading to v1.68.0</a></h1>
 <p>Two changes announced in the upgrade notes for v1.67.0 have now landed in v1.68.0.</p>
 <h2 id="sqlite-version-requirement"><a class="header" href="#sqlite-version-requirement">SQLite version requirement</a></h2>
@@ -4182,7 +4206,7 @@ Defaults to 2m.</p>
 <li>
 <p><code>cache_autotuning</code> and its sub-options <code>max_cache_memory_usage</code>, <code>target_cache_memory_usage</code>, and
 <code>min_cache_ttl</code> work in conjunction with each other to maintain a balance between cache memory
-usage and cache entry availability. You must be using <a href="https://github.com/matrix-org/synapse#help-synapse-is-slow-and-eats-all-my-ramcpu">jemalloc</a>
+usage and cache entry availability. You must be using <a href="usage/configuration/../administration/admin_faq.html#help-synapse-is-slow-and-eats-all-my-ramcpu">jemalloc</a>
 to utilize this option, and all three of the options must be specified for this feature to work. This option
 defaults to off, enable it by providing values for the sub-options listed below. Please note that the feature will not work
 and may cause unstable behavior (such as excessive emptying of caches or exceptions) if all of the values are not provided.
@@ -7307,11 +7331,12 @@ does not return a <code>sub</code> property, an alternative <code>subject_claim<
     issuer: &quot;https://accounts.google.com/&quot;
     client_id: &quot;your-client-id&quot; # TO BE FILLED
     client_secret: &quot;your-client-secret&quot; # TO BE FILLED
-    scopes: [&quot;openid&quot;, &quot;profile&quot;]
+    scopes: [&quot;openid&quot;, &quot;profile&quot;, &quot;email&quot;] # email is optional, read below
     user_mapping_provider:
       config:
         localpart_template: &quot;{{ user.given_name|lower }}&quot;
         display_name_template: &quot;{{ user.name }}&quot;
+        email_template: &quot;{{ user.email }}&quot; # needs &quot;email&quot; in scopes above
 </code></pre>
 </li>
 <li>Back in the Google console, add this Authorized redirect URI: <code>[synapse public baseurl]/_synapse/client/oidc/callback</code>.</li>
@@ -7389,7 +7414,7 @@ and &quot;App Secret&quot; for use below.</li>
     user_mapping_provider:
       config:
         display_name_template: &quot;{{ user.name }}&quot;
-        email_template: &quot;{{ '{{ user.email }}' }}&quot;
+        email_template: &quot;{{ user.email }}&quot;
 </code></pre>
 <p>Relevant documents:</p>
 <ul>
@@ -10204,6 +10229,16 @@ pusher instances by their worker name, e.g.:</p>
     - pusher_worker1
     - pusher_worker2
 </code></pre>
+<p>An example for a pusher instance:</p>
+<pre><code class="language-yaml">worker_app: synapse.app.pusher
+worker_name: pusher_worker1
+
+# The replication listener on the main synapse process.
+worker_replication_host: 127.0.0.1
+worker_replication_http_port: 9093
+
+worker_log_config: /etc/matrix-synapse/pusher-worker-log.yaml
+</code></pre>
 <h3 id="synapseappappservice"><a class="header" href="#synapseappappservice"><code>synapse.app.appservice</code></a></h3>
 <p><strong>Deprecated as of Synapse v1.59.</strong> <a href="workers.html#notifying-application-services">Use <code>synapse.app.generic_worker</code> with the
 <code>notify_appservices_from_worker</code> option instead.</a></p>
@@ -10222,6 +10257,16 @@ For example:</p>
 <pre><code class="language-yaml">federation_sender_instances:
     - federation_sender1
     - federation_sender2
+</code></pre>
+<p>An example for a federation sender instance:</p>
+<pre><code class="language-yaml">worker_app: synapse.app.federation_sender
+worker_name: federation_sender1
+
+# The replication listener on the main synapse process.
+worker_replication_host: 127.0.0.1
+worker_replication_http_port: 9093
+
+worker_log_config: /etc/matrix-synapse/federation-sender-log.yaml
 </code></pre>
 <h3 id="synapseappmedia_repository"><a class="header" href="#synapseappmedia_repository"><code>synapse.app.media_repository</code></a></h3>
 <p>Handles the media repository. It can handle all endpoints starting with:</p>
@@ -13685,12 +13730,19 @@ set to <code>True</code>.</p>
 collect data:</p>
 <p>There are two methods of enabling the metrics endpoint in Synapse.</p>
 <p>The first serves the metrics as a part of the usual web server and
-can be enabled by adding the &quot;metrics&quot; resource to the existing
-listener as such:</p>
-<pre><code class="language-yaml">  resources:
-    - names:
-      - client
-      - metrics
+can be enabled by adding the <code>metrics</code> resource to the existing
+listener as such as in this example:</p>
+<pre><code class="language-yaml">listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ['::1', '127.0.0.1']
+
+    resources:
+      # added &quot;metrics&quot; in this line
+      - names: [client, federation, metrics]
+        compress: false
 </code></pre>
 <p>This provides a simple way of adding metrics to your Synapse
 installation, and serves under <code>/_synapse/metrics</code>. If you do not
@@ -13701,12 +13753,22 @@ different thread to Synapse. This can make it more resilient to
 heavy load meaning metrics cannot be retrieved, and can be exposed
 to just internal networks easier. The served metrics are available
 over HTTP only, and will be available at <code>/_synapse/metrics</code>.</p>
-<p>Add a new listener to homeserver.yaml:</p>
-<pre><code class="language-yaml">  listeners:
-    - type: metrics
-      port: 9000
-      bind_addresses:
-        - '0.0.0.0'
+<p>Add a new listener to homeserver.yaml as in this example:</p>
+<pre><code class="language-yaml">listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ['::1', '127.0.0.1']
+
+    resources:
+      - names: [client, federation]
+        compress: false
+
+  # beginning of the new metrics listener
+  - port: 9000
+    type: metrics
+    bind_addresses: ['::1', '127.0.0.1']
 </code></pre>
 </li>
 <li>
@@ -14721,7 +14783,7 @@ in the format of <code>PRnumber.type</code>. The type can be one of the followin
 <p>This file will become part of our <a href="https://github.com/matrix-org/synapse/blob/master/CHANGES.md">changelog</a> at the next
 release, so the content of the file should be a short description of your
 change in the same style as the rest of the changelog. The file can contain Markdown
-formatting, and should end with a full stop (.) or an exclamation mark (!) for
+formatting, and must end with a full stop (.) or an exclamation mark (!) for
 consistency.</p>
 <p>Adding credits to the changelog is encouraged, we value your
 contributions and would like to have you shouted out in the release notes!</p>
