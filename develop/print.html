@@ -6312,8 +6312,8 @@ users by always returning an empty list for all queries. Defaults to true.</p>
 <pre><code class="language-yaml">enable_room_list_search: false
 </code></pre>
 <hr />
-<h3 id="alias_creation"><a class="header" href="#alias_creation"><code>alias_creation</code></a></h3>
-<p>The <code>alias_creation</code> option controls who is allowed to create aliases
+<h3 id="alias_creation_rules"><a class="header" href="#alias_creation_rules"><code>alias_creation_rules</code></a></h3>
+<p>The <code>alias_creation_rules</code> option controls who is allowed to create aliases
 on this server.</p>
 <p>The format of this option is a list of rules that contain globs that
 match against user_id, room_id and the new alias (fully qualified with
@@ -9982,6 +9982,8 @@ information.</p>
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$
 ^/_matrix/client/v1/rooms/.*/hierarchy$
+^/_matrix/client/(v1|unstable)/rooms/.*/relations/
+^/_matrix/client/v1/rooms/.*/threads$
 ^/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$
 ^/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$
 ^/_matrix/client/(r0|v3|unstable)/account/3pid$
@@ -14740,7 +14742,7 @@ Here is how to run your local Synapse checkout against your local Complement che
 </code></pre>
 <h3 id="prettier-formatting-with-gotestfmt"><a class="header" href="#prettier-formatting-with-gotestfmt">Prettier formatting with <code>gotestfmt</code></a></h3>
 <p>If you want to format the output of the tests the same way as it looks in CI,
-install <a href="https://github.com/haveyoudebuggedit/gotestfmt">gotestfmt</a>.</p>
+install <a href="https://github.com/GoTestTools/gotestfmt">gotestfmt</a>.</p>
 <p>You can then use this incantation to format the tests appropriately:</p>
 <pre><code class="language-sh">COMPLEMENT_DIR=../complement ./scripts-dev/complement.sh -json | gotestfmt -hide successful-tests
 </code></pre>
