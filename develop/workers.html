@@ -252,8 +252,8 @@ The currently available worker applications are listed <a href="#available-worke
 <a href="usage/configuration/config_documentation.html#worker_replication_http_port"><code>worker_replication_http_port</code></a>).</li>
 <li>If handling HTTP requests, a <a href="usage/configuration/config_documentation.html#worker_listeners"><code>worker_listeners</code></a> option
 with an <code>http</code> listener.</li>
-<li>If handling the <code>^/_matrix/client/v3/keys/upload</code> endpoint, the HTTP URI for
-the main process (<code>worker_main_http_uri</code>).</li>
+<li><strong>Synapse 1.72 and older:</strong> if handling the <code>^/_matrix/client/v3/keys/upload</code> endpoint, the HTTP URI for
+the main process (<code>worker_main_http_uri</code>). This config option is no longer required and is ignored when running Synapse 1.73 and newer.</li>
 </ul>
 <p>For example:</p>
 <pre><code class="language-yaml">worker_app: synapse.app.generic_worker
@@ -312,6 +312,7 @@ information.</p>
 ^/_matrix/federation/(v1|v2)/send_leave/
 ^/_matrix/federation/(v1|v2)/invite/
 ^/_matrix/federation/v1/event_auth/
+^/_matrix/federation/v1/timestamp_to_event/
 ^/_matrix/federation/v1/exchange_third_party_invite/
 ^/_matrix/federation/v1/user/devices/
 ^/_matrix/key/v2/query
@@ -339,10 +340,10 @@ information.</p>
 ^/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/
 ^/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$
+^/_matrix/client/v1/rooms/.*/timestamp_to_event$
 ^/_matrix/client/(api/v1|r0|v3|unstable)/search$
 
 # Encryption requests
-# Note that ^/_matrix/client/(r0|v3|unstable)/keys/upload/ requires `worker_main_http_uri`
 ^/_matrix/client/(r0|v3|unstable)/keys/query$
 ^/_matrix/client/(r0|v3|unstable)/keys/changes$
 ^/_matrix/client/(r0|v3|unstable)/keys/claim$
@@ -496,7 +497,7 @@ responsible for</p>
 <li>persisting them to the DB, and finally</li>
 <li>updating the events stream.</li>
 </ul>
-<p>Because load is sharded in this way, you <em>must</em> restart all worker instances when 
+<p>Because load is sharded in this way, you <em>must</em> restart all worker instances when
 adding or removing event persisters.</p>
 <p>An <code>event_persister</code> should not be mistaken for an <code>event_creator</code>.
 An <code>event_creator</code> listens for requests from clients to create new events and does
@@ -588,6 +589,8 @@ after setting this option in the shared configuration!</p>
 <p>This style of configuration supersedes the legacy <code>synapse.app.appservice</code>
 worker application type.</p>
 <h3 id="synapseapppusher"><a class="header" href="#synapseapppusher"><code>synapse.app.pusher</code></a></h3>
+<p>It is likely this option will be deprecated in the future and is not recommended for new
+installations. Instead, <a href="usage/configuration/config_documentation.html#pusher_instances">use <code>synapse.app.generic_worker</code> with the <code>pusher_instances</code></a>.</p>
 <p>Handles sending push notifications to sygnal and email. Doesn't handle any
 REST endpoints itself, but you should set
 <a href="usage/configuration/config_documentation.html#start_pushers"><code>start_pushers: false</code></a> in the
@@ -619,6 +622,8 @@ REST endpoints itself, but you should set <code>notify_appservices: False</code>
 shared configuration file to stop the main synapse sending appservice notifications.</p>
 <p>Note this worker cannot be load-balanced: only one instance should be active.</p>
 <h3 id="synapseappfederation_sender"><a class="header" href="#synapseappfederation_sender"><code>synapse.app.federation_sender</code></a></h3>
+<p>It is likely this option will be deprecated in the future and not recommended for
+new installations. Instead, <a href="usage/configuration/config_documentation.html#federation_sender_instances">use <code>synapse.app.generic_worker</code> with the <code>federation_sender_instances</code></a>. </p>
 <p>Handles sending federation traffic to other servers. Doesn't handle any
 REST endpoints itself, but you should set
 <a href="usage/configuration/config_documentation.html#send_federation"><code>send_federation: false</code></a>
@@ -710,7 +715,9 @@ equivalent to <code>synapse.app.generic_worker</code>:</p>
 <li><code>synapse.app.client_reader</code></li>
 <li><code>synapse.app.event_creator</code></li>
 <li><code>synapse.app.federation_reader</code></li>
+<li><code>synapse.app.federation_sender</code></li>
 <li><code>synapse.app.frontend_proxy</code></li>
+<li><code>synapse.app.pusher</code></li>
 <li><code>synapse.app.synchrotron</code></li>
 </ul>
 <h2 id="migration-from-old-config"><a class="header" href="#migration-from-old-config">Migration from old config</a></h2>
