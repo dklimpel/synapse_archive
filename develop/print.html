@@ -3806,6 +3806,11 @@ configuration.</p>
 <p><code>port</code>: the TCP port to bind to.</p>
 </li>
 <li>
+<p><code>tag</code>: An alias for the port in the logger name. If set the tag is logged instead
+of the port. Default to <code>None</code>, is optional and only valid for listener with <code>type: http</code>.
+See the docs <a href="usage/configuration/../administration/request_log.html">request log format</a>.</p>
+</li>
+<li>
 <p><code>bind_addresses</code>: a list of local addresses to listen on. The default is
 'all local interfaces'.</p>
 </li>
@@ -3882,6 +3887,13 @@ additional endpoints which should be loaded via dynamic modules.</p>
 </li>
 <li>
 <p><code>static</code>: static resources under synapse/static (/_matrix/static). (Mostly useful for 'fallback authentication'.)</p>
+</li>
+<li>
+<p><code>health</code>: the <a href="usage/configuration/../../reverse_proxy.html#health-check-endpoint">health check endpoint</a>. This endpoint
+is by default active for all other resources and does not have to be activated separately.
+This is only useful if you want to use the health endpoint explicitly on a dedicated port or
+for <a href="usage/configuration/../../workers.html">workers</a> and containers without listener e.g.
+<a href="usage/configuration/../../workers.html#notifying-application-services">application services</a>.</p>
 </li>
 </ul>
 <p>Example configuration #1:</p>
@@ -5644,20 +5656,20 @@ state events are shared with users:</p>
 <p>To change the default behavior, use the following sub-options:</p>
 <ul>
 <li>
-<p><code>disable_default_event_types</code>: boolean. Set to <code>true</code> to disable the above 
+<p><code>disable_default_event_types</code>: boolean. Set to <code>true</code> to disable the above
 defaults. If this is enabled, only the event types listed in
 <code>additional_event_types</code> are shared. Defaults to <code>false</code>.</p>
 </li>
 <li>
-<p><code>additional_event_types</code>: A list of additional state events to include in the 
-events to be shared. By default, this list is empty (so only the default event 
+<p><code>additional_event_types</code>: A list of additional state events to include in the
+events to be shared. By default, this list is empty (so only the default event
 types are shared).</p>
 <p>Each entry in this list should be either a single string or a list of two
-strings. </p>
+strings.</p>
 <ul>
 <li>A standalone string <code>t</code> represents all events with type <code>t</code> (i.e.
 with no restrictions on state keys).</li>
-<li>A pair of strings <code>[t, s]</code> represents a single event with type <code>t</code> and 
+<li>A pair of strings <code>[t, s]</code> represents a single event with type <code>t</code> and
 state key <code>s</code>. The same type can appear in two entries with different state
 keys: in this situation, both state keys are included in prejoin state.</li>
 </ul>
@@ -6793,6 +6805,33 @@ defaults to the main process.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">run_background_tasks_on: worker1
 </code></pre>
+<hr />
+<h3 id="update_user_directory_from_worker"><a class="header" href="#update_user_directory_from_worker"><code>update_user_directory_from_worker</code></a></h3>
+<p>The <a href="usage/configuration/../../workers.html#updating-the-user-directory">worker</a> that is used to
+update the user directory. If not provided this defaults to the main process.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">update_user_directory_from_worker: worker1
+</code></pre>
+<p><em>Added in Synapse 1.59.0.</em></p>
+<hr />
+<h3 id="notify_appservices_from_worker"><a class="header" href="#notify_appservices_from_worker"><code>notify_appservices_from_worker</code></a></h3>
+<p>The <a href="usage/configuration/../../workers.html#notifying-application-services">worker</a> that is used to
+send output traffic to Application Services. If not provided this defaults
+to the main process.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">notify_appservices_from_worker: worker1
+</code></pre>
+<p><em>Added in Synapse 1.59.0.</em></p>
+<hr />
+<h3 id="media_instance_running_background_jobs"><a class="header" href="#media_instance_running_background_jobs"><code>media_instance_running_background_jobs</code></a></h3>
+<p>The <a href="usage/configuration/../../workers.html#synapseappmedia_repository">worker</a> that is used to run
+background tasks for media repository. If running multiple media repositories
+you must configure a single instance to run the background tasks. If not provided
+this defaults to the main process or your single <code>media_repository</code> worker.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">media_instance_running_background_jobs: worker1
+</code></pre>
+<p><em>Added in Synapse 1.16.0.</em></p>
 <hr />
 <h3 id="redis"><a class="header" href="#redis"><code>redis</code></a></h3>
 <p>Configuration for Redis when using workers. This <em>must</em> be enabled when using workers.
@@ -10709,7 +10748,8 @@ worker_log_config: /etc/matrix-synapse/background-worker-log.yaml
 </code></pre>
 <h4 id="updating-the-user-directory"><a class="header" href="#updating-the-user-directory">Updating the User Directory</a></h4>
 <p>You can designate one generic worker to update the user directory.</p>
-<p>Specify its name in the shared configuration as follows:</p>
+<p>Specify its name in the <a href="usage/configuration/config_documentation.html#update_user_directory_from_worker">shared configuration</a>
+as follows:</p>
 <pre><code class="language-yaml">update_user_directory_from_worker: worker_name
 </code></pre>
 <p>This work cannot be load-balanced; please ensure the main process is restarted
@@ -10725,16 +10765,36 @@ worker application type.</p>
 <h4 id="notifying-application-services"><a class="header" href="#notifying-application-services">Notifying Application Services</a></h4>
 <p>You can designate one generic worker to send output traffic to Application Services.
 Doesn't handle any REST endpoints itself, but you should specify its name in the
-shared configuration as follows:</p>
+<a href="usage/configuration/config_documentation.html#notify_appservices_from_worker">shared configuration</a>
+as follows:</p>
 <pre><code class="language-yaml">notify_appservices_from_worker: worker_name
 </code></pre>
 <p>This work cannot be load-balanced; please ensure the main process is restarted
 after setting this option in the shared configuration!</p>
 <p>This style of configuration supersedes the legacy <code>synapse.app.appservice</code>
 worker application type.</p>
+<h4 id="push-notifications"><a class="header" href="#push-notifications">Push Notifications</a></h4>
+<p>You can designate generic worker to sending push notifications to
+a <a href="https://spec.matrix.org/v1.5/push-gateway-api/">push gateway</a> such as
+<a href="https://github.com/matrix-org/sygnal">sygnal</a> and email.</p>
+<p>This will stop the main process sending push notifications.</p>
+<p>The workers responsible for sending push notifications can be defined using the
+<a href="usage/configuration/config_documentation.html#pusher_instances"><code>pusher_instances</code></a>
+option. For example:</p>
+<pre><code class="language-yaml">pusher_instances:
+  - pusher_worker1
+  - pusher_worker2
+</code></pre>
+<p>Multiple workers can be added to this map, in which case the work is balanced
+across them. Ensure the main process and all pusher workers are restarted after changing
+this option.</p>
+<p>These workers don't need to accept incoming HTTP requests to send push notifications,
+so no additional reverse proxy configuration is required for pusher workers.</p>
+<p>This style of configuration supersedes the legacy <code>synapse.app.pusher</code>
+worker application type.</p>
 <h3 id="synapseapppusher"><a class="header" href="#synapseapppusher"><code>synapse.app.pusher</code></a></h3>
 <p>It is likely this option will be deprecated in the future and is not recommended for new
-installations. Instead, <a href="usage/configuration/config_documentation.html#pusher_instances">use <code>synapse.app.generic_worker</code> with the <code>pusher_instances</code></a>.</p>
+installations. Instead, <a href="workers.html#push-notifications">use <code>synapse.app.generic_worker</code> with the <code>pusher_instances</code></a>.</p>
 <p>Handles sending push notifications to sygnal and email. Doesn't handle any
 REST endpoints itself, but you should set
 <a href="usage/configuration/config_documentation.html#start_pushers"><code>start_pushers: false</code></a> in the
@@ -10767,7 +10827,7 @@ shared configuration file to stop the main synapse sending appservice notificati
 <p>Note this worker cannot be load-balanced: only one instance should be active.</p>
 <h3 id="synapseappfederation_sender"><a class="header" href="#synapseappfederation_sender"><code>synapse.app.federation_sender</code></a></h3>
 <p>It is likely this option will be deprecated in the future and not recommended for
-new installations. Instead, <a href="usage/configuration/config_documentation.html#federation_sender_instances">use <code>synapse.app.generic_worker</code> with the <code>federation_sender_instances</code></a>. </p>
+new installations. Instead, <a href="usage/configuration/config_documentation.html#federation_sender_instances">use <code>synapse.app.generic_worker</code> with the <code>federation_sender_instances</code></a>.</p>
 <p>Handles sending federation traffic to other servers. Doesn't handle any
 REST endpoints itself, but you should set
 <a href="usage/configuration/config_documentation.html#send_federation"><code>send_federation: false</code></a>
@@ -10831,7 +10891,9 @@ worker_listeners:
 worker_log_config: /etc/matrix-synapse/media-worker-log.yaml
 </code></pre>
 <p>Note that if running multiple media repositories they must be on the same server
-and you must configure a single instance to run the background tasks, e.g.:</p>
+and you must specify a single instance to run the background tasks in the
+<a href="usage/configuration/config_documentation.html#media_instance_running_background_jobs">shared configuration</a>,
+e.g.:</p>
 <pre><code class="language-yaml">media_instance_running_background_jobs: &quot;media-repository-1&quot;
 </code></pre>
 <p>Note that if a reverse proxy is used , then <code>/_matrix/media/</code> must be routed for both inbound client and federation requests (if they are handled separately).</p>
@@ -14935,7 +14997,7 @@ WHERE room_stats_state.room_id = event_json.room_id&quot; | psql -d synapse -h l
 </code></pre>
 <table><thead><tr><th>Part</th><th>Explanation</th></tr></thead><tbody>
 <tr><td>AAAA</td><td>Timestamp request was logged (not received)</td></tr>
-<tr><td>BBBB</td><td>Logger name (<code>synapse.access.(http\|https).&lt;tag&gt;</code>, where 'tag' is defined in the <code>listeners</code> config section, normally the port)</td></tr>
+<tr><td>BBBB</td><td>Logger name (<code>synapse.access.(http\|https).&lt;tag&gt;</code>, where 'tag' is defined in the <a href="usage/administration/../configuration/config_documentation.html#listeners"><code>listeners</code></a> config section, normally the port)</td></tr>
 <tr><td>CCCC</td><td>Line number in code</td></tr>
 <tr><td>DDDD</td><td>Log Level</td></tr>
 <tr><td>EEEE</td><td>Request Identifier (This identifier is shared by related log lines)</td></tr>
@@ -15340,7 +15402,7 @@ install <a href="https://github.com/GoTestTools/gotestfmt">gotestfmt</a>.</p>
 </ol>
 <h2 id="changelog"><a class="header" href="#changelog">Changelog</a></h2>
 <p>All changes, even minor ones, need a corresponding changelog / newsfragment
-entry. These are managed by <a href="https://github.com/hawkowl/towncrier">Towncrier</a>.</p>
+entry. These are managed by <a href="https://github.com/twisted/towncrier">Towncrier</a>.</p>
 <p>To create a changelog entry, make a new file in the <code>changelog.d</code> directory named
 in the format of <code>PRnumber.type</code>. The type can be one of the following:</p>
 <ul>
@@ -15523,17 +15585,13 @@ errors in code.</p>
 <li><a href="https://github.com/charliermarsh/ruff">ruff</a>, which can spot common errors; and</li>
 <li><a href="https://mypy.readthedocs.io/en/stable/">mypy</a>, a type checker.</li>
 </ul>
-<p>Install them with:</p>
-<pre><code class="language-sh">pip install -e &quot;.[lint,mypy]&quot;
-</code></pre>
-<p>The easiest way to run the lints is to invoke the linter script as follows.</p>
-<pre><code class="language-sh">scripts-dev/lint.sh
-</code></pre>
+<p>See <a href="development/contributing_guide.html#run-the-linters">the contributing guide</a> for instructions
+on how to install the above tools and run the linters.</p>
 <p>It's worth noting that modern IDEs and text editors can run these tools
 automatically on save. It may be worth looking into whether this
 functionality is supported in your editor for a more convenient
 development workflow. It is not, however, recommended to run <code>mypy</code>
-on save as they take a while and can be very resource intensive.</p>
+on save as it takes a while and can be very resource intensive.</p>
 <h2 id="general-rules"><a class="header" href="#general-rules">General rules</a></h2>
 <ul>
 <li><strong>Naming</strong>:
