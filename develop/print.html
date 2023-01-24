@@ -1771,6 +1771,20 @@ dpkg -i matrix-synapse-py3_1.3.0+stretch1_amd64.deb
 </code></pre>
 </li>
 </ul>
+<h1 id="upgrading-to-v1760"><a class="header" href="#upgrading-to-v1760">Upgrading to v1.76.0</a></h1>
+<h2 id="changes-to-the-account-data-replication-streams"><a class="header" href="#changes-to-the-account-data-replication-streams">Changes to the account data replication streams</a></h2>
+<p>Synapse has changed the format of the account data and devices replication
+streams (between workers). This is a forwards- and backwards-incompatible
+change: v1.75 workers cannot process account data replicated by v1.76 workers,
+and vice versa.</p>
+<p>Once all workers are upgraded to v1.76 (or downgraded to v1.75), account data
+and device replication will resume as normal.</p>
+<h2 id="minimum-version-of-poetry-is-now-132"><a class="header" href="#minimum-version-of-poetry-is-now-132">Minimum version of Poetry is now 1.3.2</a></h2>
+<p>The minimum supported version of Poetry is now 1.3.2 (previously 1.2.0, <a href="upgrade.html#upgrading-to-v1670">since 
+Synapse 1.67</a>). If you have used <code>poetry install</code> to 
+install Synapse from a source checkout, you should upgrade poetry: see its
+<a href="https://python-poetry.org/docs/#installation">installation instructions</a>.
+For all other installation methods, no acction is required.</p>
 <h1 id="upgrading-to-v1740"><a class="header" href="#upgrading-to-v1740">Upgrading to v1.74.0</a></h1>
 <h2 id="unicode-support-in-user-search"><a class="header" href="#unicode-support-in-user-search">Unicode support in user search</a></h2>
 <p>This version introduces optional support for an <a href="https://github.com/matrix-org/synapse/pull/14464">improved user search dealing with Unicode characters</a>.</p>
@@ -3709,7 +3723,8 @@ rooms directory via federation. Defaults to false.</p>
 <p>Known room versions are listed <a href="https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions">here</a></p>
 <p>For example, for room version 1, <code>default_room_version</code> should be set
 to &quot;1&quot;.</p>
-<p>Currently defaults to &quot;9&quot;.</p>
+<p>Currently defaults to <a href="https://spec.matrix.org/v1.5/rooms/v10/">&quot;10&quot;</a>.</p>
+<p><em>Changed in Synapse 1.76:</em> the default version room version was increased from <a href="https://spec.matrix.org/v1.5/rooms/v9/">9</a> to <a href="https://spec.matrix.org/v1.5/rooms/v10/">10</a>.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">default_room_version: &quot;8&quot;
 </code></pre>
@@ -6461,8 +6476,8 @@ will also not affect rooms created by other servers.</p>
 empty responses are returned to all queries. Defaults to true.</p>
 </li>
 <li>
-<p><code>search_all_users</code>: Defines whether to search all users visible to your HS when searching
-the user directory. If false, search results will only contain users
+<p><code>search_all_users</code>: Defines whether to search all users visible to your HS at the time the search is performed. If set to true, will return all users who share a room with the user from the homeserver.
+If false, search results will only contain users
 visible in public rooms and users sharing a room with the requester.
 Defaults to false.</p>
 <p>NB. If you set this to true, and the last time the user_directory search
@@ -6919,6 +6934,20 @@ other workers.</p>
       - names: [client, federation]
 </code></pre>
 <hr />
+<h3 id="worker_manhole"><a class="header" href="#worker_manhole"><code>worker_manhole</code></a></h3>
+<p>A worker may have a listener for <a href="usage/configuration/../../manhole.html"><code>manhole</code></a>.
+It allows server administrators to access a Python shell on the worker.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">worker_manhole: 9000
+</code></pre>
+<p>This is a short form for:</p>
+<pre><code class="language-yaml">worker_listeners:
+  - port: 9000
+    bind_addresses: ['127.0.0.1']
+    type: manhole
+</code></pre>
+<p>It needs also an additional <a href="usage/configuration/config_documentation.html#manhole_settings"><code>manhole_settings</code></a> configuration.</p>
+<hr />
 <h3 id="worker_daemonize"><a class="header" href="#worker_daemonize"><code>worker_daemonize</code></a></h3>
 <p>Specifies whether the worker should be started as a daemon process.
 If Synapse is being managed by <a href="usage/configuration/../../systemd-with-workers/">systemd</a>, this option
@@ -7030,9 +7059,10 @@ trusted_key_servers:
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="logging-sample-configuration-file"><a class="header" href="#logging-sample-configuration-file">Logging Sample Configuration File</a></h1>
 <p>Below is a sample logging configuration file. This file can be tweaked to control how your
-homeserver will output logs. A restart of the server is generally required to apply any
-changes made to this file. The value of the <code>log_config</code> option in your homeserver
-config should be the path to this file.</p>
+homeserver will output logs. The value of the <code>log_config</code> option in your homeserver config
+should be the path to this file.</p>
+<p>To apply changes made to this file, send Synapse a SIGHUP signal (or, if using <code>systemd</code>, run
+<code>systemctl reload</code> on the Synapse service).</p>
 <p>Note that a default logging configuration (shown below) is created automatically alongside
 the homeserver config when following the <a href="usage/configuration/../../setup/installation.html">installation instructions</a>.
 It should be named <code>&lt;SERVERNAME&gt;.log.config</code> by default.</p>
@@ -8720,7 +8750,8 @@ option in your synapse config.</p>
 - /home/matrix/.synapse/&lt;your-AS&gt;.yaml
 </code></pre>
 <p>The format of the AS configuration file is as follows:</p>
-<pre><code class="language-yaml">url: &lt;base url of AS&gt;
+<pre><code class="language-yaml">id: &lt;your-AS-id&gt;
+url: &lt;base url of AS&gt;
 as_token: &lt;token AS will add to requests to HS&gt;
 hs_token: &lt;token HS will add to requests to AS&gt;
 sender_localpart: &lt;localpart of AS user&gt;
@@ -10446,11 +10477,10 @@ worker_name: generic_worker1
 worker_replication_host: 127.0.0.1
 worker_replication_http_port: 9093
 
-worker_main_http_uri: http://localhost:8008/
-
 worker_listeners:
   - type: http
     port: 8083
+    x_forwarded: true
     resources:
       - names: [client, federation]
 
@@ -10662,6 +10692,7 @@ worker_listeners:
   #
   #- type: http
   #  port: 8035
+  #  x_forwarded: true
   #  resources:
   #    - names: [client]
 
@@ -10885,6 +10916,7 @@ worker_replication_http_port: 9093
 worker_listeners:
   - type: http
     port: 8085
+    x_forwarded: true
     resources:
       - names: [media]
 
@@ -11009,11 +11041,10 @@ worker_name: generic_worker1
 worker_replication_host: 127.0.0.1
 worker_replication_http_port: 9093
 
-worker_main_http_uri: http://localhost:8008/
-
 worker_listeners:
   - type: http
     port: 8083
+    x_forwarded: true
     resources:
       - names: [client, federation]
 
@@ -15191,7 +15222,7 @@ pipx install poetry
 </code></pre>
 <p>but see poetry's <a href="https://python-poetry.org/docs/#installation">installation instructions</a>
 for other installation methods.</p>
-<p>Synapse requires Poetry version 1.2.0 or later.</p>
+<p>Developing Synapse requires Poetry version 1.3.2 or later.</p>
 <p>Next, open a terminal and install dependencies as follows:</p>
 <pre><code class="language-sh">cd path/where/you/have/cloned/the/repository
 poetry install --extras all
@@ -16198,6 +16229,10 @@ configuration key (see the <code>synapse.config.experimental</code> file) and ei
 (briefly) what is being enabled, or include the MSC number.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="managing-dependencies-with-poetry"><a class="header" href="#managing-dependencies-with-poetry">Managing dependencies with Poetry</a></h1>
 <p>This is a quick cheat sheet for developers on how to use <a href="https://python-poetry.org/"><code>poetry</code></a>.</p>
+<h1 id="installing"><a class="header" href="#installing">Installing</a></h1>
+<p>See the <a href="development/contributing_guide.html#4-install-the-dependencies">contributing guide</a>.</p>
+<p>Developers should use Poetry 1.3.2 or higher. If you encounter problems related
+to poetry, please <a href="development/dependencies.html#check-the-version-of-poetry-with-poetry---version">double-check your poetry version</a>.</p>
 <h1 id="background-1"><a class="header" href="#background-1">Background</a></h1>
 <p>Synapse uses a variety of third-party Python packages to function as a homeserver.
 Some of these are direct dependencies, listed in <code>pyproject.toml</code> under the
@@ -16290,7 +16325,7 @@ e.g. <code>mypy</code> instead of <code>poetry run mypy</code>; <code>python</co
 context of poetry's venv, without having to run <code>poetry shell</code> beforehand.</p>
 <h1 id="how-do-i"><a class="header" href="#how-do-i">How do I...</a></h1>
 <h2 id="reset-my-venv-to-the-locked-environment"><a class="header" href="#reset-my-venv-to-the-locked-environment">...reset my venv to the locked environment?</a></h2>
-<pre><code class="language-shell">poetry install --extras all --remove-untracked
+<pre><code class="language-shell">poetry install --all-extras --sync
 </code></pre>
 <h2 id="delete-everything-and-start-over-from-scratch"><a class="header" href="#delete-everything-and-start-over-from-scratch">...delete everything and start over from scratch?</a></h2>
 <pre><code class="language-shell"># Stop the current virtualenv if active
@@ -16336,11 +16371,7 @@ useful.</p>
 <ul>
 <li>manually update <code>pyproject.toml</code>; then <code>poetry lock --no-update</code>; or else</li>
 <li><code>poetry add packagename</code>. See <code>poetry add --help</code>; note the <code>--dev</code>,
-<code>--extras</code> and <code>--optional</code> flags in particular.
-<ul>
-<li><strong>NB</strong>: this specifies the new package with a version given by a &quot;caret bound&quot;. This won't get forced to its lowest version in the old deps CI job: see <a href="https://github.com/matrix-org/synapse/blob/4e1374373857f2f7a911a31c50476342d9070681/.ci/scripts/test_old_deps.sh#L35-L39">this TODO</a>.</li>
-</ul>
-</li>
+<code>--extras</code> and <code>--optional</code> flags in particular.</li>
 </ul>
 <p>Include the updated <code>pyproject.toml</code> and <code>poetry.lock</code> files in your commit.</p>
 <h2 id="remove-a-dependency"><a class="header" href="#remove-a-dependency">...remove a dependency?</a></h2>
@@ -16348,7 +16379,7 @@ useful.</p>
 <pre><code class="language-shell">poetry remove packagename
 </code></pre>
 <p>ought to do the trick. Alternatively, manually update <code>pyproject.toml</code> and
-<code>poetry lock --no-update</code>. Include the updated <code>pyproject.toml</code> and poetry.lock`
+<code>poetry lock --no-update</code>. Include the updated <code>pyproject.toml</code> and <code>poetry.lock</code>
 files in your commit.</p>
 <h2 id="update-the-version-range-for-an-existing-dependency"><a class="header" href="#update-the-version-range-for-an-existing-dependency">...update the version range for an existing dependency?</a></h2>
 <p>Best done by manually editing <code>pyproject.toml</code>, then <code>poetry lock --no-update</code>.
@@ -16376,8 +16407,6 @@ poetry lock --no-update
 <pre><code class="language-shell">poetry export --extras all
 </code></pre>
 <p>Be wary of bugs in <code>poetry export</code> and <code>pip install -r requirements.txt</code>.</p>
-<p>Note: <code>poetry export</code> will be made a plugin in Poetry 1.2. Additional config may
-be required.</p>
 <h2 id="build-a-test-wheel"><a class="header" href="#build-a-test-wheel">...build a test wheel?</a></h2>
 <p>I usually use</p>
 <pre><code class="language-shell">poetry run pip install build &amp;&amp; poetry run python -m build
@@ -16387,7 +16416,7 @@ doesn't require poetry. (It's what we use in CI too). However, you could try
 <code>poetry build</code> too.</p>
 <h1 id="troubleshooting-4"><a class="header" href="#troubleshooting-4">Troubleshooting</a></h1>
 <h2 id="check-the-version-of-poetry-with-poetry---version"><a class="header" href="#check-the-version-of-poetry-with-poetry---version">Check the version of poetry with <code>poetry --version</code>.</a></h2>
-<p>The minimum version of poetry supported by Synapse is 1.2.</p>
+<p>The minimum version of poetry supported by Synapse is 1.3.2.</p>
 <p>It can also be useful to check the version of <code>poetry-core</code> in use. If you've
 installed <code>poetry</code> with <code>pipx</code>, try <code>pipx runpip poetry list | grep poetry-core</code>.</p>
 <h2 id="clear-caches-poetry-cache-clear---all-pypi"><a class="header" href="#clear-caches-poetry-cache-clear---all-pypi">Clear caches: <code>poetry cache clear --all pypi</code>.</a></h2>

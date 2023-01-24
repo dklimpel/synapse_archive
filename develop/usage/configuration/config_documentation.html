@@ -372,7 +372,8 @@ rooms directory via federation. Defaults to false.</p>
 <p>Known room versions are listed <a href="https://spec.matrix.org/latest/rooms/#complete-list-of-room-versions">here</a></p>
 <p>For example, for room version 1, <code>default_room_version</code> should be set
 to &quot;1&quot;.</p>
-<p>Currently defaults to &quot;9&quot;.</p>
+<p>Currently defaults to <a href="https://spec.matrix.org/v1.5/rooms/v10/">&quot;10&quot;</a>.</p>
+<p><em>Changed in Synapse 1.76:</em> the default version room version was increased from <a href="https://spec.matrix.org/v1.5/rooms/v9/">9</a> to <a href="https://spec.matrix.org/v1.5/rooms/v10/">10</a>.</p>
 <p>Example configuration:</p>
 <pre><code class="language-yaml">default_room_version: &quot;8&quot;
 </code></pre>
@@ -3124,8 +3125,8 @@ will also not affect rooms created by other servers.</p>
 empty responses are returned to all queries. Defaults to true.</p>
 </li>
 <li>
-<p><code>search_all_users</code>: Defines whether to search all users visible to your HS when searching
-the user directory. If false, search results will only contain users
+<p><code>search_all_users</code>: Defines whether to search all users visible to your HS at the time the search is performed. If set to true, will return all users who share a room with the user from the homeserver.
+If false, search results will only contain users
 visible in public rooms and users sharing a room with the requester.
 Defaults to false.</p>
 <p>NB. If you set this to true, and the last time the user_directory search
@@ -3581,6 +3582,20 @@ other workers.</p>
     resources:
       - names: [client, federation]
 </code></pre>
+<hr />
+<h3 id="worker_manhole"><a class="header" href="#worker_manhole"><code>worker_manhole</code></a></h3>
+<p>A worker may have a listener for <a href="../../manhole.html"><code>manhole</code></a>.
+It allows server administrators to access a Python shell on the worker.</p>
+<p>Example configuration:</p>
+<pre><code class="language-yaml">worker_manhole: 9000
+</code></pre>
+<p>This is a short form for:</p>
+<pre><code class="language-yaml">worker_listeners:
+  - port: 9000
+    bind_addresses: ['127.0.0.1']
+    type: manhole
+</code></pre>
+<p>It needs also an additional <a href="#manhole_settings"><code>manhole_settings</code></a> configuration.</p>
 <hr />
 <h3 id="worker_daemonize"><a class="header" href="#worker_daemonize"><code>worker_daemonize</code></a></h3>
 <p>Specifies whether the worker should be started as a daemon process.
