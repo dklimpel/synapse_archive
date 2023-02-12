@@ -1666,6 +1666,14 @@ generally not suitable if Synapse is hosted at a subdomain such as
 <p>It is also possible to do delegation using a SRV DNS record. However, that is generally
 not recommended, as it can be difficult to configure the TLS certificates correctly in
 this case, and it offers little advantage over <code>.well-known</code> delegation.</p>
+<p>Please keep in mind that server delegation is a function of server-server communication,
+and as such using SRV DNS records will not cover use cases involving client-server comms.
+This means setting global client settings (such as a Jitsi endpoint, or disabling
+creating new rooms as encrypted by default, etc) will still require that you serve a file
+from the <code>https://&lt;server_name&gt;/.well-known/</code> endpoints defined in the spec! If you are
+considering using SRV DNS delegation to avoid serving files from this endpoint, consider
+the impact that you will not be able to change those client-based default values globally,
+and will be relegated to the featureset of the configuration of each individual client.</p>
 <p>However, if you really need it, you can find some documentation on what such a
 record should look like and how Synapse will use it in <a href="https://matrix.org/docs/spec/server_server/latest#resolving-server-names">the Matrix
 specification</a>.</p>
@@ -1771,6 +1779,12 @@ dpkg -i matrix-synapse-py3_1.3.0+stretch1_amd64.deb
 </code></pre>
 </li>
 </ul>
+<h1 id="upgrading-to-v1780"><a class="header" href="#upgrading-to-v1780">Upgrading to v1.78.0</a></h1>
+<h2 id="deprecate-the-_synapseadminv1mediaserver_namedelete-admin-api"><a class="header" href="#deprecate-the-_synapseadminv1mediaserver_namedelete-admin-api">Deprecate the <code>/_synapse/admin/v1/media/&lt;server_name&gt;/delete</code> admin API</a></h2>
+<p>Synapse 1.78.0 replaces the <code>/_synapse/admin/v1/media/&lt;server_name&gt;/delete</code>
+admin API with an identical endpoint at <code>/_synapse/admin/v1/media/delete</code>. Please
+update your tooling to use the new endpoint. The deprecated version will be removed
+in a future release.</p>
 <h1 id="upgrading-to-v1760"><a class="header" href="#upgrading-to-v1760">Upgrading to v1.76.0</a></h1>
 <h2 id="faster-joins-are-enabled-by-default"><a class="header" href="#faster-joins-are-enabled-by-default">Faster joins are enabled by default</a></h2>
 <p>When joining a room for the first time, Synapse 1.76.0 will request a partial join from the other server by default. Previously, server admins had to opt-in to this using an experimental config flag.</p>
@@ -11569,13 +11583,18 @@ See also <a href="admin_api/media_admin_api.html#purge-remote-media-api">Purge R
 </ul>
 <h2 id="delete-local-media-by-date-or-size"><a class="header" href="#delete-local-media-by-date-or-size">Delete local media by date or size</a></h2>
 <p>Request:</p>
+<pre><code>POST /_synapse/admin/v1/media/delete?before_ts=&lt;before_ts&gt;
+
+{}
+</code></pre>
+<p><em>Deprecated in Synapse v1.78.0:</em> This API is available at the deprecated endpoint:</p>
 <pre><code>POST /_synapse/admin/v1/media/&lt;server_name&gt;/delete?before_ts=&lt;before_ts&gt;
 
 {}
 </code></pre>
 <p>URL Parameters</p>
 <ul>
-<li><code>server_name</code>: string - The name of your local server (e.g <code>matrix.org</code>).</li>
+<li><code>server_name</code>: string - The name of your local server (e.g <code>matrix.org</code>). <em>Deprecated in Synapse v1.78.0.</em></li>
 <li><code>before_ts</code>: string representing a positive integer - Unix timestamp in milliseconds.
 Files that were last used before this timestamp will be deleted. It is the timestamp of
 last access, not the timestamp when the file was created.</li>
@@ -15281,6 +15300,13 @@ for other installation methods.</p>
 poetry install --extras all
 </code></pre>
 <p>This will install the runtime and developer dependencies for the project.</p>
+<h2 id="running-synapse-via-poetry"><a class="header" href="#running-synapse-via-poetry">Running Synapse via poetry</a></h2>
+<p>To start a local instance of Synapse in the locked poetry environment, create a config file:</p>
+<pre><code class="language-sh">cp docs/sample_config.yaml homeserver.yaml
+</code></pre>
+<p>Now edit homeserver.yaml, and run Synapse with:</p>
+<pre><code class="language-sh">poetry run python -m synapse.app.homeserver -c homeserver.yaml
+</code></pre>
 <h1 id="5-get-in-touch"><a class="header" href="#5-get-in-touch">5. Get in touch.</a></h1>
 <p>Join our developer community on Matrix: <a href="https://matrix.to/#/#synapse-dev:matrix.org">#synapse-dev:matrix.org</a>!</p>
 <h1 id="6-pick-an-issue"><a class="header" href="#6-pick-an-issue">6. Pick an issue.</a></h1>
@@ -15451,6 +15477,7 @@ A safe example would be <code>WORKER_TYPES=&quot;federation_inbound, federation_
 See the <a href="development/../workers.html">worker documentation</a> for additional information on workers.</li>
 </ul>
 </li>
+<li>Passing <code>ASYNCIO_REACTOR=1</code> as an environment variable to use the Twisted asyncio reactor instead of the default one.</li>
 </ul>
 <p>To increase the log level for the tests, set <code>SYNAPSE_TEST_LOG_LEVEL</code>, e.g:</p>
 <pre><code class="language-sh">SYNAPSE_TEST_LOG_LEVEL=DEBUG COMPLEMENT_DIR=../complement ./scripts-dev/complement.sh -run TestImportHistoricalMessages
