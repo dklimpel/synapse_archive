@@ -832,13 +832,13 @@ files = [
 
 [[package]]
 name = "immutabledict"
-version = "3.0.0"
+version = "4.1.0"
 description = "Immutable wrapper around dictionaries (a fork of frozendict)"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "immutabledict-3.0.0-py3-none-any.whl", hash = "sha256:034bacc6c6872707c4ec0ea9515de6bbe0dcf0fcabd97ae19fd4e4c338f05798"},
-    {file = "immutabledict-3.0.0.tar.gz", hash = "sha256:5a23cd369a6187f76a8c29d7d687980b092538eb9800e58964603f1b973c56fe"},
+    {file = "immutabledict-4.1.0-py3-none-any.whl", hash = "sha256:c176e99aa90aedb81716ad35218bb2055d049b549626db4523dbe011cf2f32ac"},
+    {file = "immutabledict-4.1.0.tar.gz", hash = "sha256:93d100ccd2cd09a1fd3f136b9328c6e59529ba341de8bb499437f6819159fe8a"},
 ]
 
 [[package]]
